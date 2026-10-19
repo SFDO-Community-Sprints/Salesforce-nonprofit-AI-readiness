@@ -28,7 +28,7 @@ def main(live, agentforce=False):
     run('scripts/seed_failure_demo.py')
     run('scripts/check_data_improvement.py')
     tests_ran = 0
-    for test_class in ('NonprofitAIReadinessTest','ReadinessStaffReviewTest'):
+    for test_class in ('NonprofitAIReadinessTest','ReadinessStaffReviewTest','ReadinessMCPTest'):
         apex=sf('apex','run','test','--class-names',test_class,'--synchronous',
                 '--result-format','json','--target-org',state['alias'])
         summary=apex.get('summary',{})
@@ -43,9 +43,9 @@ def main(live, agentforce=False):
         raise RuntimeError('Capability inventory contract failed')
     if any(row.get('usage')!='not_verified' for row in inventory['capabilities']):
         raise RuntimeError('Inventory incorrectly implied verified usage')
-    if any(value not in {'available','limited'} for value in inventory.get('sections',{}).values()):
+    if any(value not in {'available','limited','unavailable'} for value in inventory.get('sections',{}).values()):
         raise RuntimeError('Practice inventory was unavailable or returned an unexpected section status')
-    print('License and feature inventory: passed; actual usage remains unverified',flush=True)
+    print('License and feature inventory contract passed; restricted sections and actual usage remain unverified',flush=True)
     run('scripts/check_erasure_demo.py')
     if agentforce:
         run('scripts/check_agentforce_action.py')

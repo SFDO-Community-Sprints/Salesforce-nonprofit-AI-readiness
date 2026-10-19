@@ -1,5 +1,6 @@
 import { LightningElement } from 'lwc';
 import hasReviewPermission from '@salesforce/customPermission/Readiness_Review_Staff';
+import hasReadPermission from '@salesforce/customPermission/Readiness_Read_Staff_Outcomes';
 import getQuestions from '@salesforce/apex/ReadinessStaffReview.getQuestions';
 import getLatestReview from '@salesforce/apex/ReadinessStaffReview.getLatestReview';
 import saveReview from '@salesforce/apex/ReadinessStaffReview.saveReview';
@@ -41,6 +42,7 @@ export default class ReadinessStaffReview extends LightningElement {
     latest;
     choices = CHOICES;
     canReview = Boolean(hasReviewPermission);
+    canRead = Boolean(hasReadPermission || hasReviewPermission);
     useFreshness = false;
     asOf = '';
     maxAgeDays = '';
@@ -53,15 +55,24 @@ export default class ReadinessStaffReview extends LightningElement {
     }
 
     async connectedCallback() {
+        if (!this.canRead) {
+            this.acceptResult(null);
+            this.loading = false;
+            return;
+        }
         try {
-            const [keyText, reviewText] = await Promise.all([getQuestions(), getLatestReview()]);
-            const key = JSON.parse(keyText);
-            this.version = key.version;
-            this.questions = key.questions.map((question, index) => ({ ...question,
-                title: `${index + 1}. ${TITLES[question.id] || 'Staff exercise'}`,
-                reviewer_confirmed: false, evidence_ref: '', observed_on: '',
-                required_actions: question.required_actions.map(action => ({ ...action, value: 'unknown' })),
-                critical_failures: question.critical_failures.map(failure => ({ ...failure, checked: false })) }));
+            const [keyText, reviewText] = await Promise.all([
+                this.canReview ? getQuestions() : Promise.resolve(null), getLatestReview()
+            ]);
+            if (keyText) {
+                const key = JSON.parse(keyText);
+                this.version = key.version;
+                this.questions = key.questions.map((question, index) => ({ ...question,
+                    title: `${index + 1}. ${TITLES[question.id] || 'Staff exercise'}`,
+                    reviewer_confirmed: false, evidence_ref: '', observed_on: '',
+                    required_actions: question.required_actions.map(action => ({ ...action, value: 'unknown' })),
+                    critical_failures: question.critical_failures.map(failure => ({ ...failure, checked: false })) }));
+            }
             this.acceptResult(JSON.parse(reviewText));
         } catch (error) {
             this.error = 'Staff review could not be loaded. Refresh or contact your Salesforce administrator.';
@@ -111,6 +122,7 @@ export default class ReadinessStaffReview extends LightningElement {
         }
     }
 
+    get noSavedReview() { return this.canRead && !this.loading && !this.latest && !this.error; }
     get disabled() { return !this.canReview || this.loading || this.saving || !this.questions.length; }
     get score() { return this.latest && this.latest.staff.score !== null ? `${this.latest.staff.score}%` : 'Not assessed'; }
     get coverage() { return this.latest ? `${this.latest.staff.coverage}%` : 'Not assessed'; }

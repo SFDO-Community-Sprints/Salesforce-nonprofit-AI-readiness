@@ -2,7 +2,6 @@
 """Narrow, read-only MCP interface to the saved, verified demo scratch org."""
 from datetime import date, datetime, timezone
 import json
-import os
 import re
 import sys
 import subprocess
@@ -10,7 +9,8 @@ import subprocess
 from staff_readiness import KEY as STAFF_KEY, evaluate as evaluate_staff, template as staff_template
 
 from privacy import build_data_result
-from scratch_demo import ROOT, SCENARIOS, STATE, query, verify
+from scratch_demo import ROOT, SCENARIOS, query
+from mcp_connection import load_connection
 
 ASSESSMENT_SCENARIOS = [*SCENARIOS, 'organization']
 
@@ -21,7 +21,7 @@ TOOLS = [
     {'name': 'org_capabilities', 'description': 'Read AI-readiness-relevant product license allocation and fixed feature availability; assignments and available records do not establish actual feature usage.',
      'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False},
      'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
-    {'name': 'readiness_check', 'description': 'Measure accessible organization Contact records or fixed synthetic demo groups using aggregate queries only. Scope is the authenticated identity, not guaranteed whole-org access. Technical safeguards remain unknown; own saved reviewer-confirmed staff exercises are included when accessible.',
+    {'name': 'readiness_check', 'description': 'Measure accessible organization Contact records or fixed synthetic demo groups using aggregate queries only. Scope is the authenticated identity, not guaranteed whole-org access. Technical safeguards and staff evidence remain unknown. The dedicated MCP identity cannot read or save staff reviews.',
      'inputSchema': {'type': 'object', 'properties': {'scenario': {'type': 'string', 'enum': ASSESSMENT_SCENARIOS}},
                      'required': ['scenario'], 'additionalProperties': False},
      'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
@@ -180,49 +180,49 @@ def tool_call(name, arguments):
             raise ValueError('Invalid tool arguments')
     else:
         raise ValueError('Unknown tool')
-    state = json.loads(STATE.read_text())
-    verify(state)
+    state = load_connection()
     if name == 'org_identity':
         return {'target_type': 'disposable_scratch', 'active': True, 'identity_verified': True,
-                'access': 'read_only', 'scope': 'saved_synthetic_demo_cohorts'}
+                'access': 'read_only', 'scope': 'dedicated_mcp_identity'}
     if name == 'org_capabilities':
         return org_capabilities(state)
     scenario = arguments['scenario']
-    where = ' FROM Contact'
-    if scenario != 'organization':
-        accounts = query(state['alias'], "SELECT Id FROM Account WHERE Name = 'SYNTHETIC AI Readiness " + scenario + "' LIMIT 2")
-        if len(accounts) != 1 or not re.fullmatch(r'[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?', accounts[0].get('Id', '')):
-            raise ValueError('Demo cohort unavailable')
-        where += " WHERE AccountId = '" + accounts[0]['Id'] + "'"
-    counts = query(state['alias'], 'SELECT COUNT(Id) contacts, COUNT(Email) email_present, COUNT(AccountId) linked_contacts' + where)
-    if len(counts) != 1:
-        raise ValueError('Aggregate result unavailable')
-    duplicates = query(state['alias'], 'SELECT COUNT(Id) repeated_count' + where +
-                       (' WHERE ' if scenario == 'organization' else ' AND ') +
-                       'Email != null GROUP BY Email HAVING COUNT(Id) > 1')
-    # No record values are selected, including the duplicate grouping field.
-    metrics = {key: counts[0][key] for key in ('contacts', 'email_present', 'linked_contacts')}
-    metrics['repeated_email_rows'] = sum(row['repeated_count'] - 1 for row in duplicates)
-    result = build_data_result(metrics, synthetic=scenario != 'organization' and os.environ.get('READINESS_SYNTHETIC_DEMO') == '1')
-    result.update({'scenario': scenario, 'scope': 'accessible_organization_records' if scenario == 'organization' else 'fixed_synthetic_demo_cohort',
+    process = subprocess.run(
+        ['sf', 'api', 'request', 'rest', '/services/data/v67.0/actions/custom/apex/ReadinessMCP',
+         '--target-org', state['alias'], '--method', 'POST', '--header', 'Content-Type:application/json',
+         '--body', json.dumps({'inputs': [{'scenario': scenario}]})],
+        cwd=ROOT, capture_output=True, text=True, timeout=120)
+    if process.returncode:
+        raise ValueError('Aggregate action unavailable')
+    responses = json.loads(process.stdout)
+    if (type(responses) is not list or len(responses) != 1 or type(responses[0]) is not dict
+            or responses[0].get('isSuccess') is not True):
+        raise ValueError('Aggregate action unavailable')
+    native = json.loads(responses[0]['outputValues']['output'])
+    if type(native) is not dict or 'error' in native:
+        raise ValueError('Aggregate action unavailable')
+    privacy = native.get('privacy')
+    if (type(privacy) is not dict or set(privacy) != {'mode', 'minimum_cohort', 'suppressed'}
+            or privacy['mode'] != 'aggregate_only' or type(privacy['minimum_cohort']) is not int
+            or privacy['minimum_cohort'] != 5 or type(privacy['suppressed']) is not bool):
+        raise ValueError('Invalid aggregate result')
+    metrics = native.get('metrics')
+    if privacy['suppressed']:
+        if metrics is not None:
+            raise ValueError('Invalid aggregate result')
+        result = build_data_result(dict(contacts=0, email_present=0, linked_contacts=0, repeated_email_rows=0))
+    else:
+        result = build_data_result(metrics)
+    if (privacy != result['privacy'] or native.get('specification_version') != result['specification_version']
+            or native.get('rubric_version') != result['rubric_version'] or native.get('profile_overrides') != {}
+            or native.get('data', {}).get('checks') != result['data']['checks']
+            or native.get('decision') != 'readiness_not_established' or 'staff_review' in native):
+        raise ValueError('Invalid aggregate result')
+    result.update({'scenario': scenario, 'scope': 'sharing_scoped_organization_records' if scenario == 'organization' else 'sharing_scoped_fixed_synthetic_demo_cohort',
                    'source': 'salesforce', 'collected_at': datetime.now(timezone.utc).isoformat(),
-                   'technical_and_staff': 'unknown; not exercised', 'decision': 'readiness_not_established'})
-    if scenario == 'organization':
-        staff = saved_staff_review(state)
-        if staff is not None:
-            result['staff_review'] = staff
-            result['staff_summary'] = ('Staff exercises: '+staff['staff']['score']+'%. Checks passed: '+str(staff['staff']['passed'])+
-                ' of 7. Checks completed: '+staff['staff']['coverage']+'% coverage. Scope: your saved exercises only; whole-team readiness is not established.')
-            result['technical_and_staff'] = 'Technical safeguards remain unknown; staff results cover only the exercise recorded by the current employee.'
-            staff_priorities = [
-                {'key': 'staff_' + item['question_id'], 'priority': item['priority'], 'impact': item['impact'],
-                 'recommendation': item['next_step'] + ' https://trailhead.salesforce.com/content/learn/modules/trusted-agentic-ai/discover-how-salesforce-builds-trusted-agentic-ai'}
-                for item in staff['follow_up']]
-            result['priorities'] = [item for item in result['priorities'] if item['key'] != 'staff'] + staff_priorities
-            order = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3}
-            result['priorities'].sort(key=lambda item: order[item['priority']])
-            if staff['critical_failures']:
-                result['decision'] = 'not_ready'
+                   'technical_and_staff': 'unknown; dedicated MCP identity has no staff evidence access',
+                   'coverage_note': 'Fixed aggregate computation only; sharing-scoped rows. Object/field access and restriction-rule enforcement are not established by these counts.',
+                   'decision': 'readiness_not_established'})
     return result
 
 

@@ -7,6 +7,7 @@ from demo import ROOT
 from scratch_demo import STATE, SCENARIOS, verify
 from privacy import build_data_result
 from run_demo import exchange, payload
+from mcp_connection import load_connection
 
 
 def main():
@@ -40,7 +41,18 @@ def main():
         reports[name]=report
         score=report['data']['score']
         print(f'{name}: PASS — '+('withheld for privacy' if score is None else f'data score {score}%'))
-    organization = json.loads(results[-2]['outputValues']['output'])
+    human_organization = json.loads(results[-2]['outputValues']['output'])
+    mcp_state = load_connection()
+    body.write_text(json.dumps({'inputs': [{'scenario': 'organization'}]}))
+    dedicated = subprocess.run(['sf','api','request','rest','/services/data/v67.0/actions/custom/apex/ReadinessMCP',
+        '--method','POST','--body','@'+str(body),'--target-org',mcp_state['alias']],
+        cwd=ROOT,text=True,capture_output=True,timeout=180)
+    if dedicated.returncode:
+        raise RuntimeError('Dedicated native aggregate action unavailable')
+    native_results = json.loads(dedicated.stdout)
+    if len(native_results) != 1 or native_results[0].get('isSuccess') is not True:
+        raise RuntimeError('Dedicated native aggregate action unavailable')
+    organization = json.loads(native_results[0]['outputValues']['output'])
     connected = payload(exchange([('tools/call', {'name':'readiness_check','arguments':{'scenario':'organization'}})])[0])
     if (organization['specification_version'] != connected['specification_version']
             or organization['profile_overrides'] != connected['profile_overrides']
@@ -48,24 +60,16 @@ def main():
             or organization['data']['checks'] != connected['data']['checks']
             or organization['decision'] != connected['decision']
             or [(item['key'],item['priority']) for item in organization['priorities']] != [(item['key'],item['priority']) for item in connected['priorities']]
-            or organization['scope'] != 'accessible_organization_records'):
-        raise RuntimeError('Salesforce screen/action and restricted connection do not agree')
-    if ('staff_review' in organization) != ('staff_review' in connected):
-        raise RuntimeError('Saved staff review availability differs between connection paths')
-    if 'staff_review' in organization:
-        native_staff, connected_staff = organization['staff_review'], connected['staff_review']
-        if (native_staff.get('freshness') != connected_staff.get('freshness')
-                or native_staff['staff']['checks'] != connected_staff['staff']['checks']
-                or native_staff['critical_failures'] != connected_staff['critical_failures']
-                or native_staff['decision'] != connected_staff['decision']
-                or organization['staff_summary'] != connected['staff_summary']
-                or any(float(native_staff['staff'][key]) != float(connected_staff['staff'][key]) for key in ('score','coverage'))):
-            raise RuntimeError('Saved staff review scores or scope differ between connection paths')
+            or organization['scope'] != 'sharing_scoped_organization_records'):
+        raise RuntimeError('Dedicated native action and restricted connection do not agree')
+    if 'staff_review' in organization or 'staff_review' in connected:
+        raise RuntimeError('Dedicated MCP must not expose employee staff evidence')
     score = connected['data']['score']
     if organization['data']['score'] != (None if score is None else float(score)):
         raise RuntimeError('Organization scores differ between connection paths')
+    reports['human_organization'] = human_organization
     reports['organization'] = organization
-    print('organization: PASS — Salesforce screen/action and restricted connection agree')
+    print('organization: PASS — Dedicated native action and restricted connection agree')
     invalid=json.loads(results[-1]['outputValues']['output'])
     if invalid != {'error':'invalid_scenario'}:
         raise RuntimeError('Invalid-input denial failed')

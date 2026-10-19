@@ -60,3 +60,47 @@ assert.equal(datedResult.staff.checks.scope, 'pass');
 assert.equal(datedResult.staff.checks.sensitive_data, 'unknown');
 assert.equal(datedResult.staff.checks.quality, 'unknown');
 console.log('Staff review form mapping, opt-in freshness and evaluator checks passed.');
+
+async function checkRoleLoading() {
+    const componentSource = source.replace(/^import .*;\n/gm, '').replace('export default class', 'class');
+    const latest = {staff: {score: '0.0', coverage: '0.0', checks: Object.fromEntries(key.questions.map(q => [q.id, 'unknown']))},
+        freshness: {as_of: '2026-10-20', max_age_days: 30}};
+    for (const role of ['none', 'reader', 'reviewer']) {
+        const calls = [];
+        const Component = vm.runInNewContext(componentSource + '\nReadinessStaffReview;', {
+            LightningElement: class {
+                events = [];
+                dispatchEvent(event) { this.events.push(event); }
+            },
+            CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
+            hasReadPermission: role === 'reader', hasReviewPermission: role === 'reviewer',
+            getQuestions: async () => { calls.push('questions'); return JSON.stringify(key); },
+            getLatestReview: async () => { calls.push('latest'); return JSON.stringify(latest); },
+            saveReview: async () => { calls.push('save'); throw new Error('Unexpected save'); }
+        });
+        const component = new Component();
+        await component.connectedCallback();
+        assert.equal(component.loading, false);
+        assert.equal(component.error, undefined);
+        assert.equal(component.canReview, role === 'reviewer');
+        assert.equal(component.canRead, role !== 'none');
+        assert.equal(component.questions.length, role === 'reviewer' ? 7 : 0);
+        assert.equal(component.events.length, 1);
+        if (role === 'none') {
+            assert.deepEqual(calls, [], 'Assessor-only users must not call inaccessible staff Apex');
+            assert.equal(component.events[0].detail, null);
+            assert.equal(component.latest, null);
+        } else {
+            assert.deepEqual(calls, role === 'reviewer' ? ['questions', 'latest'] : ['latest']);
+            assert.equal(component.latest.staff.coverage, '0.0');
+            assert(component.freshnessSummary.includes('2026-10-20'));
+        }
+        if (role !== 'reviewer') {
+            const before = calls.length;
+            await component.save();
+            assert.equal(calls.length, before, 'Non-reviewer saves must stop before template access or Apex');
+        }
+    }
+    console.log('Staff role loading checks passed: no access calls no Apex; readers load summaries only.');
+}
+checkRoleLoading().catch(error => { console.error(error); process.exitCode = 1; });

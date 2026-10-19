@@ -61,6 +61,9 @@ sf org open --target-org nonprofit-readiness-demo --path lightning/app/c__Nonpro
 # Demonstrate fictional data, safeguard, and staff outcomes separately.
 python3 scripts/run_demo.py
 
+# Provision the separate API-only integration after deployment.
+python3 scripts/setup_mcp_connection.py --alias nonprofit-readiness-mcp
+
 # Repeat the sample data checks through the restricted connection.
 python3 scripts/run_demo.py --live
 
@@ -118,3 +121,5 @@ python3 scripts/check_agentforce_action.py
 The second command tests the activated assistant through its native Salesforce action. The results show a 25% data score: one of four checks passed, while all four checks completed. Read the saved responses before accepting conversational behavior. For the full combined run, use `python3 scripts/check_all.py --live --agentforce` after both practice orgs are prepared.
 
 See [the assistant walkthrough](references/agentforce-next-steps.md) for prerequisites, current limits, and the separate authoring-preview check.
+
+Readiness roles are separate: data assessment, staff outcome reading, staff review creation, follow-up Tasks, Employee agent and dedicated MCP. The assessor role no longer grants staff evidence access. See [permission scopes](references/permission-scopes.md) before assigning roles.

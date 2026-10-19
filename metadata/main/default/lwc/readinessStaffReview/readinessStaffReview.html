@@ -1,9 +1,11 @@
 <template>
     <section class="review" aria-labelledby="staff-title">
         <h2 id="staff-title" class="slds-text-heading_medium">Staff readiness exercises</h2>
-        <p class="slds-m-top_small">Record your observed review of seven fictional exercises. This is your saved evidence, not an assessment of every staff member. Missing observations remain unknown.</p>
+        <p class="slds-m-top_small">Saved outcomes cover your reviewed fictional exercises, not every staff member. Missing observations remain unknown.</p>
+        <template lwc:if={canReview}>
         <p class="slds-m-top_x-small">Use an evidence reference such as TRAINING-001. Keep names, personal details and sensitive notes outside this form.</p>
         <p class="slds-m-top_x-small">Saving makes your calculated exercise outcomes available to your assessment assistants. Evidence references and documents are excluded.</p>
+        </template>
         <template lwc:if={loading}>
             <div class="loading"><lightning-spinner alternative-text="Loading staff review" size="small"></lightning-spinner></div>
         </template>
@@ -13,9 +15,10 @@
                 <template lwc:if={reviewedAt}><p>Saved <lightning-formatted-date-time value={reviewedAt} year="numeric" month="short" day="2-digit" hour="2-digit" minute="2-digit"></lightning-formatted-date-time></p></template>
                 <p>{freshnessSummary}</p>
                 <ul class="slds-list_dotted slds-m-top_small"><template for:each={savedChecks} for:item="check"><li key={check.id}>{check.label}: {check.outcome}</li></template></ul>
-                <p>To replace this review, record a new set of observations below.</p>
+                <template lwc:if={canReview}><p>To replace this review, record a new set of observations below.</p></template>
             </div>
         </template>
+        <template lwc:if={canReview}>
         <div class="slds-m-top_medium">
             <lightning-input type="checkbox" label="Apply an approved evidence age policy" checked={useFreshness}
                 data-field="useFreshness" onchange={changePolicy} disabled={saving}></lightning-input>
@@ -56,6 +59,8 @@
                 </lightning-accordion-section>
             </template>
         </lightning-accordion>
+        </template>
+        <template lwc:if={noSavedReview}><p class="slds-m-top_medium">No saved own staff review is available. Staff readiness remains unknown.</p></template>
         <template lwc:if={error}><p role="alert" class="slds-text-color_error slds-m-top_medium">{error}</p></template>
         <template lwc:if={message}><p role="status" class="slds-m-top_medium">{message}</p></template>
         <template lwc:if={canReview}>
@@ -64,6 +69,7 @@
             <template lwc:if={saving}><span class="slds-m-left_small" role="status">Saving observed review…</span></template>
         </div>
         </template>
-        <template lwc:else><p class="slds-m-top_medium">Saving reviewed staff evidence requires reviewer access. Contact your Salesforce administrator.</p></template>
+        <template lwc:elseif={canRead}><p class="slds-m-top_medium">You can read your calculated staff outcomes. Recording observations requires separate Readiness Staff Reviewer access.</p></template>
+        <template lwc:else><p class="slds-m-top_medium">Viewing saved staff outcomes requires Readiness Staff Reader or Readiness Staff Reviewer access. Staff readiness remains unknown.</p></template>
     </section>
 </template>

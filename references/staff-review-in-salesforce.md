@@ -17,7 +17,7 @@ The latest review belongs to the person who saved it. Its score covers those rec
 
 Run the assessment to include the latest own review in recommended actions. If results are already displayed, saving refreshes them. **Create my follow-up tasks** remains a separate choice: it uses the current assessment and assigns its recommendations to you. Existing Tasks are not automatically closed when a newer review passes.
 
-The Employee assistant receives calculated outcomes and fixed next steps, not evidence references or source documents. The restricted external connection reads the same own-review outcome through the fixed Salesforce assessment action and reconstructs its allowed summary from the answer key. It never returns references or source documents. A passing staff review never establishes technical safeguards, complete erasure, legal compliance or overall pilot approval.
+The Employee assistant receives calculated outcomes and fixed next steps, not evidence references or source documents. The dedicated external MCP connection excludes staff outcomes entirely; only permitted native human and Employee-agent contexts can obtain calculated own-review outcomes. A passing staff review never establishes technical safeguards, complete erasure, legal compliance or overall pilot approval.
 
 Fictional ready and failing review files remain offline demonstrations. Salesforce rejects the simulation format when saving actual evidence. Relabeling invented observations cannot be detected automatically: reviewer confirmation is an accountable assertion, not independent verification.
 
@@ -31,7 +31,7 @@ Save time does not establish when actions were observed. To enforce an organizat
 
 The saved review stores the explicit policy and observation dates inside its protected snapshot. Each retrieval recalculates opted-in outcomes as of the current Salesforce date; it does not freeze a passing result at its original assessment date or modify the saved observations. The summary displays the actual assessment date and age limit. Older reviews and reviews saved without opting in retain their existing scores and are labelled **Evidence freshness not assessed**. Opting out in a replacement review removes age enforcement for that replacement; reviewers remain responsible for using the approved policy. This is a reviewer-selected evidence policy, not an administrator-enforced organization-wide retention control.
 
-The Salesforce action, recommendations and restricted MCP connection receive the resulting outcomes. The restricted connection emits only validated freshness statuses, assessment date and age limit; observation dates and evidence references stay excluded. A confirmed critical failure still blocks when its date is expired or missing. Correct and retest the failure rather than waiting for it to expire.
+The native Salesforce action and recommendations receive the permitted own-review outcomes. The dedicated MCP role receives no staff outcomes or freshness metadata; observation dates and evidence references stay excluded from assistant output. A confirmed critical failure still blocks when its date is expired or missing. Correct and retest the failure rather than waiting for it to expire.
 
 ### Offline replay
 
@@ -57,3 +57,8 @@ The policy file must contain exactly these fields; the dates and 30-day limit be
 `observed_on` maps the fixed question IDs from `references/staff-answer-key.json` to reviewer-verified observation dates. Keep personal information and evidence references out of this policy. The assessment date and whole-day age limit from 0 to 2147483647 are mandatory. Dates use `YYYY-MM-DD`; future observation dates and unknown question IDs are rejected. Evidence exactly at the age limit remains current. Missing or expired dates make that exercise unknown, including an ordinary observed failure; confirmed critical failures continue to block until corrected and retested. A current date cannot replace missing actions, evidence or reviewer confirmation. Simulation results remain labelled simulations.
 
 The output records the assessment date, age limit and per-exercise freshness statuses without emitting observation dates or evidence references. This deterministic offline check neither updates saved Salesforce records nor retrieves protected source artifacts. The same policy can be stored as an optional `freshness_policy` property of the structured review for Python replay; replay uses its explicit `as_of` date, while Salesforce latest-review retrieval reassesses using the current Salesforce date. Reviewers must verify dates against those artifacts and agree the policy before relying on it. Omitting `--freshness-policy` preserves the existing scoring behavior; no age limit is silently selected.
+
+
+## Focused role boundary update
+
+The dedicated MCP role now excludes all staff outcomes and evidence. Earlier MCP staff-readback observations above describe the prior shared scratch-identity interface. Human summary reading requires Readiness_Staff_Reader (or the reviewer role), while the assessor role alone has no staff class/object/field access. Summary-only readers receive calculated own outcomes without raw Snapshot__c access or an editor. See [permission scopes](permission-scopes.md) for exact grants and current identity binding.

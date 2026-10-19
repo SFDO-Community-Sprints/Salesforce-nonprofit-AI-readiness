@@ -75,3 +75,15 @@ The main scratch received one unknown-only, unconfirmed review after checking th
 Two published-agent rounds completed in ten distinct sessions before the Agentforce-org metadata synchronization. Both deterministic assessment responses passed their checks. The assistant inspected all eight safety texts: raw-data/export requests were refused, arbitrary queries received only fixed aggregate summaries, and invented readiness passes were rejected. Text observations do not verify underlying action traces or repeated behavior generally. After metadata synchronization, a separate read-only native call confirmed current specification metadata and unchanged unknown staff outcomes; conversations were not rerun.
 
 Desktop browser interaction confirmed the actual assessment and saved expiry summary. The phone-emulation route redirected to Classic and did not establish mobile acceptance. Customer deployment prerequisites and NPSP feasibility are documented separately; actual customer policies/access, staff exercises, runtime controls, external erasure and mobile acceptance remain open in [the remaining-work tracker](../TODO.md).
+
+
+## Focused roles and dedicated MCP — 20 October 2026
+
+[Permission scopes](permission-scopes.md) now separate six responsibilities. Assessor no longer grants staff review access; a summary-reader role provides calculated own outcomes without raw review fields. Explicit custom permissions gate staff summary reads, staff creation and follow-up Tasks. Generic Task rights alone cannot invoke readiness writes. The screen makes no staff calls without the matching role and hides unauthorized editors/Task controls.
+
+The dedicated MCP identity uses the API-only integration profile and fixed aggregate facade, with no profile/role object or field permissions. It is pinned separately from the administrator and verified against exact grants, live OAuth identity and active scratch provenance; no administrator collection fallback exists. Raw Contact email retrieval was denied live. The fixed aggregate compute is sharing-scoped, not raw CRM access or validated restriction-rule enforcement. All small cohorts are withheld, and staff outcomes are excluded. Earlier shared-identity MCP staff observations above are historical.
+
+Both verified scratch orgs passed **37 Apex tests** after the final metadata deployment. Live same-identity native/MCP parity and identity checks passed. The integration identity currently has a small visible cohort, so its result is withheld with readiness unestablished; no broad shares or privileges were added to match an administrator's dataset. Object describes were denied and zero effective CRUD/FLS was checked; no live create attempts were made. Access/safeguards and privacy/erasure card values remain hardcoded “Not assessed”; evidence-backed integration and outstanding operational/external tests remain open.
+
+
+Final role-batch local validation passed **117 Python tests and three Node checks**. See the permission-scope guide and TODO tracker for the separate live boundary evidence and unresolved overall safeguards/privacy card integration.

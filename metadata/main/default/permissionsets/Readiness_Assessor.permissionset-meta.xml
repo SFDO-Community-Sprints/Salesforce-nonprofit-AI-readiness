@@ -4,8 +4,7 @@
         <apexClass>NonprofitAIReadiness</apexClass>
         <enabled>true</enabled>
     </classAccesses>
-    <classAccesses><apexClass>ReadinessStaffReview</apexClass><enabled>true</enabled></classAccesses>
-    <description>Read-only aggregate readiness action. Sharing still limits accessible demo records.</description>
+    <description>Interactive data assessment only: read accessible Account/Contact data and open the readiness screen. No staff records, API access, agent access or Task writes.</description>
     <fieldPermissions>
         <editable>false</editable>
         <field>Contact.AccountId</field>
@@ -16,8 +15,6 @@
         <field>Contact.Email</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions><editable>false</editable><field>AI_Readiness_Staff_Review__c.Snapshot__c</field><readable>true</readable></fieldPermissions>
-    <fieldPermissions><editable>false</editable><field>AI_Readiness_Staff_Review__c.Version__c</field><readable>true</readable></fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Readiness Assessor</label>
     <objectPermissions>
@@ -38,7 +35,6 @@
         <object>Contact</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
-    <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>false</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>AI_Readiness_Staff_Review__c</object><viewAllRecords>false</viewAllRecords></objectPermissions>
     <applicationVisibilities><application>Nonprofit_AI_Readiness</application><visible>true</visible></applicationVisibilities>
     <tabSettings><tab>AI_Readiness</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

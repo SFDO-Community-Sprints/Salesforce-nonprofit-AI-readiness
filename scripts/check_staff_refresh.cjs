@@ -11,6 +11,7 @@ async function check() {
     const newReview = { staff: { score: 85.7, coverage: 100 }, critical_failures: ['scope:unapproved_decision'] };
     const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
         LightningElement: class {},
+        hasFollowUpPermission: false,
         assess: () => ++calls === 1 ? new Promise(resolve => { finishOld = resolve; }) : Promise.resolve(JSON.stringify({staff_review: newReview})),
         capabilityInventory: () => Promise.resolve('{}')
     });
@@ -26,6 +27,26 @@ async function check() {
     assert.match(screen.banner, /blocks a pilot/);
     assert.equal(screen.loading, false);
     assert.equal(screen.refreshAfterAssessment, false);
+    let taskCalls = 0;
+    for (const permitted of [false, true]) {
+        const TaskComponent = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
+            LightningElement: class {}, hasFollowUpPermission: permitted,
+            createFollowUpTasks: async () => {
+                taskCalls++;
+                return JSON.stringify({created: 1, reused: 0});
+            }
+        });
+        const taskScreen = new TaskComponent();
+        taskScreen.result = {data: {checks: {}}, privacy: {suppressed: false}};
+        assert.equal(taskScreen.canCreateFollowUp, permitted);
+        assert.equal(taskScreen.tasksDisabled, !permitted);
+        await taskScreen.handleCreateTasks();
+        assert.equal(taskCalls, permitted ? 1 : 0, 'No custom permission must mean no Task Apex call');
+        assert.equal(taskScreen.taskError, undefined);
+        if (permitted) assert.match(taskScreen.taskMessage, /Created 1 tasks/);
+        else assert.equal(taskScreen.taskMessage, undefined);
+    }
+    console.log('PASS — task creation requires the dedicated custom permission before calling Apex');
     console.log('PASS — saving a critical review during assessment refreshes stale scores and recommendations');
 }
 check().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,4 +1,5 @@
 import { LightningElement } from 'lwc';
+import hasFollowUpPermission from '@salesforce/customPermission/Readiness_Create_Follow_Up';
 import assess from '@salesforce/apex/NonprofitAIReadiness.assessScenario';
 import createFollowUpTasks from '@salesforce/apex/NonprofitAIReadiness.createFollowUpTasks';
 import capabilityInventory from '@salesforce/apex/NonprofitAIReadiness.capabilityInventory';
@@ -51,6 +52,7 @@ export default class NonprofitAIReadiness extends LightningElement {
     error;
     lastChecked;
     savingTasks = false;
+    canCreateFollowUp = Boolean(hasFollowUpPermission);
     taskMessage;
     taskError;
     inventory;
@@ -74,7 +76,7 @@ export default class NonprofitAIReadiness extends LightningElement {
     }
     get actionsDisabled() { return this.loading || !this.result; }
     get assessmentDisabled() { return this.loading || this.savingTasks; }
-    get tasksDisabled() { return this.loading || this.savingTasks || !this.result || this.suppressed; }
+    get tasksDisabled() { return !this.canCreateFollowUp || this.loading || this.savingTasks || !this.result || this.suppressed; }
     get followUpCount() { return this.recommendations.length; }
     get score() { return this.result?.data?.score == null ? 'Not assessed' : `${this.result.data.score}%`; }
     get coverage() { return this.suppressed || this.result?.data?.coverage == null ? 'Not assessed' : `${this.result.data.coverage}%`; }

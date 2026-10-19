@@ -1,4 +1,4 @@
-"""Own saved staff evidence crosses MCP only as recomputed canonical summaries."""
+"""Human action summaries are sanitized separately; dedicated MCP never reads staff evidence."""
 import json
 import subprocess
 import unittest
@@ -65,19 +65,6 @@ class StaffMcpTests(unittest.TestCase):
             sanitized = mcp.saved_staff_review({'alias': 'fictional'})
         self.assertEqual(sanitized['follow_up'][0]['priority'], 'Critical')
         self.assertEqual(sanitized['follow_up'][0]['question_id'], 'sensitive_data')
-        with patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify'), patch.object(mcp, 'query') as query, patch.object(mcp, 'saved_staff_review', return_value=sanitized):
-            state.read_text.return_value = '{"alias":"fictional"}'
-            query.side_effect = [[{'contacts': 10, 'email_present': 10, 'linked_contacts': 10}], []]
-            result = mcp.tool_call('readiness_check', {'scenario': 'organization'})
-        self.assertEqual(result['decision'], 'not_ready')
-        self.assertEqual(result['priorities'][0]['key'], 'staff_sensitive_data')
-        self.assertEqual(result['priorities'][0]['priority'], 'Critical')
-        self.assertNotIn('staff', [item['key'] for item in result['priorities']])
-        self.assertEqual([item['key'] for item in result['priorities']], ['staff_sensitive_data', 'controls', 'privacy'])
-        self.assertEqual([item['priority'] for item in result['priorities']], ['Critical', 'High', 'High'])
-        self.assertNotIn(SENTINEL, json.dumps(result))
-        self.assertIn('Technical safeguards remain unknown', result['technical_and_staff'])
-
     def test_native_freshness_is_validated_and_sanitized(self):
         value = review_result(critical=True)
         value['freshness'] = {'scope': 'saved_review_reassessed_today', 'as_of': '2026-10-20',
@@ -102,13 +89,13 @@ class StaffMcpTests(unittest.TestCase):
         with patch.object(mcp.subprocess, 'run', return_value=response(value)):
             self.assertEqual(mcp.saved_staff_review({'alias': 'fictional'})['staff']['checks']['scope'], 'unknown')
 
-    def test_saved_review_not_applied_to_demo_groups(self):
-        with patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify'), patch.object(mcp, 'query') as query, patch.object(mcp, 'saved_staff_review') as staff:
-            state.read_text.return_value = '{"alias":"fictional"}'
-            query.side_effect = [[{'Id': '001000000000001AAA'}], [{'contacts': 10, 'email_present': 10, 'linked_contacts': 10}], []]
-            result = mcp.tool_call('readiness_check', {'scenario': 'pilot'})
+    def test_dedicated_mcp_never_requests_human_staff_outcomes(self):
+        from test_readiness_mcp import native_response
+        with patch.object(mcp, 'load_connection', return_value={'alias': 'dedicated'}), patch.object(mcp.subprocess, 'run', return_value=native_response()), patch.object(mcp, 'saved_staff_review') as staff:
+            result = mcp.tool_call('readiness_check', {'scenario': 'organization'})
         staff.assert_not_called()
         self.assertNotIn('staff_review', result)
+        self.assertEqual(result['decision'], 'readiness_not_established')
 
 
 if __name__ == '__main__':

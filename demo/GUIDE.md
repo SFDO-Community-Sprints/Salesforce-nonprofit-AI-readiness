@@ -76,23 +76,22 @@ To open the org, run `sf org open --target-org nonprofit-readiness-demo`. To del
 
 ## Agent-facing MCP
 
-Run the local stdio MCP through your client's MCP server configuration (adapt the outer config format to that client):
+Deploy the current metadata, then provision the separate integration identity with `python3 scripts/setup_mcp_connection.py --alias nonprofit-readiness-mcp`. See [permission scopes](../references/permission-scopes.md). Run the local stdio MCP through your client's MCP server configuration (adapt the outer config format to that client):
 
 ```json
 {
   "mcpServers": {
     "nonprofit-readiness": {
       "command": "python3",
-      "args": ["/absolute/path/to/salesforce-nonprofit-ai-readiness/scripts/readiness_mcp.py"],
-      "env": {"READINESS_SYNTHETIC_DEMO": "1"}
+      "args": ["/absolute/path/to/salesforce-nonprofit-ai-readiness/scripts/readiness_mcp.py"]
     }
   }
 }
 ```
 
-Replace the example path with your local project folder. Create/seed the scratch org first and keep Salesforce CLI authenticated. The server binds to this project's `.local/scratch.json`, verifies active scratch provenance, and speaks newline-delimited JSON-RPC on stdin/stdout. It exposes `org_identity`, `org_capabilities`, and `readiness_check`; the latter accepts only a scenario from `organization`, `poor`, `improving`, `pilot`, `blocked`, `unknown`. Organization scope measures current-user accessible Contact records; the other inputs are practice examples. No arbitrary SOQL, org override, raw record retrieval, free text, or writes are exposed.
+Replace the example path with your local project folder. Create/seed the scratch org first and keep Salesforce CLI authenticated. The server binds to `.local/mcp.json`, verifies its dedicated API-only identity and the separate active `.local/scratch.json` provenance, and speaks newline-delimited JSON-RPC on stdin/stdout. It exposes `org_identity`, `org_capabilities`, and `readiness_check`; the latter accepts only a scenario from `organization`, `poor`, `improving`, `pilot`, `blocked`, `unknown`. Organization scope performs fixed sharing-scoped aggregate computation without granting direct CRM object/field access; the other inputs are practice examples. No arbitrary SOQL, org override, raw record retrieval, free text, or writes are exposed.
 
-Without the demo environment flag, cohorts below five are suppressed. The flag is an explicit fictional-data exception in a verified scratch org, not a production setting. Aggregate-only results avoid sending Contact emails or names to the agent; record-level masking is not implemented. Salesforce is still queried inside the trusted local process, so run it on a trusted machine.
+Cohorts below five are always suppressed; the old synthetic flag is not an exception to the fixed facade. Aggregate-only results avoid sending Contact emails or names to the agent; record-level masking is not implemented. Fixed Salesforce aggregate computation bypasses CRUD/FLS inside the reviewed with-sharing class; restriction-rule enforcement is not established. The integration identity has no raw CRM grants and no staff-review access. Capabilities denied to this identity remain unknown/unavailable, rather than acquiring broader permissions. Explicitly shared practice records may be required for a new identity; different identities need not see the same data. Run the server on a trusted machine.
 
 Suggested agent prompt: “Call org_identity, then readiness_check for poor, improving, pilot, blocked, and unknown. Compare the measured data scores and coverage. Keep live technical and staff evidence unknown. Use offline simulated fixtures only as a separately labeled demonstration of guardrail gates.”
 
@@ -103,7 +102,7 @@ Run local checks with `python3 -m unittest discover -s scripts -p 'test_*.py'` a
 1. Run `python3 scripts/run_demo.py` for the offline comparison. Explain that all controls and staff outcomes here are simulated fixture evidence.
 2. Show `poor`: incomplete donor contact data produces a lower data score. Show `pilot`: clean synthetic data and simulated passing controls demonstrate the scoring rules, not live readiness.
 3. Show `blocked`: the same clean data cannot override a simulated unauthorized-export failure. Show `unknown`: unavailable evidence lowers coverage and cannot earn a pass.
-4. With the verified scratch org seeded, run `python3 scripts/run_demo.py --live`. This exercises the MCP path and saves sanitized results in `.local/mcp-demo-results.json`. Compare observed aggregate data checks against offline expectations; live staff and runtime controls remain unknown.
+4. With the verified scratch org seeded, run `python3 scripts/run_demo.py --live`. This exercises the MCP path and saves sanitized results in `.local/mcp-demo-results.json`. Check scoring against the actual scoped aggregates; unavailable practice cohorts remain unknown, and different sharing scopes need not match the complete offline fixtures. Live staff and runtime controls remain unknown.
 5. Connect the agent with the configuration above and ask it to explain the MCP results and remediation. It should state what is measured, what is simulated, and what remains unknown.
 
 The demo runner does not create or seed the scratch org; use the setup commands above first. Keep the synthetic demo exception confined to the fictional scratch data.

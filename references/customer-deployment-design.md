@@ -1,6 +1,6 @@
 # Customer deployment design — prerequisites, not deployment approval
 
-The current collector accepts only the saved, verified active disposable scratch org. Do not remove scratch provenance checks, substitute a customer alias in `.local/scratch.json`, or use broad administrator credentials to turn the demo into a production service. A customer collector and approved profile are separate implementation work. The native Salesforce app also requires its own customer validation; successful scratch deployment is not approval to deploy it elsewhere.
+The current collector accepts only the saved, verified active disposable scratch org. Do not remove scratch provenance checks, substitute customer identities in `.local/scratch.json` or `.local/mcp.json`, or use broad administrator credentials to turn the demo into a production service. The scratch collector now uses a separately verified API-only MCP identity with no CRM object/field grants. Customer binding, approved aggregate purpose, sharing/restriction-rule design and profile remain separate implementation and approval work. The native Salesforce app also requires its own customer validation; successful scratch deployment is not approval to deploy it elsewhere.
 
 ## Decisions required before implementation
 

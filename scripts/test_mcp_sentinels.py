@@ -40,7 +40,7 @@ class SensitiveMatrixTests(unittest.TestCase):
                     build_data_result({**METRICS, key: sentinel})
                 self.assertEqual(str(error.exception), 'Invalid aggregate metrics')
                 self.assertNotIn(sentinel, str(error.exception))
-                with patch.object(mcp, 'verify') as verify, patch.object(mcp, 'query') as query:
+                with patch.object(mcp, 'load_connection') as verify, patch.object(mcp, 'query') as query:
                     result = mcp.dispatch(request({'scenario': 'organization', key: sentinel}))
                     self.assertTrue(result['result']['isError'])
                     self.assertNotIn(sentinel, json.dumps(result))
@@ -55,12 +55,12 @@ from unittest.mock import patch
 import readiness_mcp as mcp
 stage = sys.argv[1]
 sentinel = sys.argv[2]
-with patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify') as verify, patch.object(mcp, 'query') as query:
-    state.read_text.return_value = json.dumps({'alias': 'fictional'})
+with patch.object(mcp, 'load_connection') as connection, patch.object(mcp.subprocess, 'run') as execute:
+    connection.return_value = {'alias': 'dedicated'}
     if stage == 'verify':
-        verify.side_effect = RuntimeError(sentinel)
+        connection.side_effect = RuntimeError(sentinel)
     else:
-        query.side_effect = RuntimeError(sentinel)
+        execute.side_effect = RuntimeError(sentinel)
     mcp.main()
 '''
         directory = Path(__file__).resolve().parent
@@ -78,15 +78,20 @@ with patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify') as verify,
                         self.assertNotIn(value, child.stdout + child.stderr)
                     self.assertNotIn('Traceback', child.stdout + child.stderr)
 
-    def test_unexpected_raw_query_fields_are_not_serialized(self):
+    def test_unexpected_native_fields_are_not_serialized(self):
+        from test_readiness_mcp import native_response
         for key, sentinel in SENTINELS.items():
-            with self.subTest(field=key), patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify'), patch.object(mcp, 'query') as query:
-                state.read_text.return_value = json.dumps({'alias': 'fictional'})
-                query.side_effect = [[{**METRICS, key: sentinel}], []]
+            response = native_response(METRICS)
+            outer = json.loads(response.stdout)
+            native = json.loads(outer[0]['outputValues']['output'])
+            native[key] = sentinel
+            outer[0]['outputValues']['output'] = json.dumps(native)
+            response.stdout = json.dumps(outer)
+            with self.subTest(field=key), patch.object(mcp, 'load_connection', return_value={'alias': 'dedicated'}), patch.object(mcp.subprocess, 'run', return_value=response):
                 result = mcp.dispatch(request({'scenario': 'organization'}))
-                self.assertFalse(result['result']['isError'])
-                self.assertNotIn(sentinel, json.dumps(result))
-                self.assertNotIn(key, result['result']['structuredContent']['metrics'])
+            self.assertFalse(result['result']['isError'])
+            self.assertNotIn(sentinel, json.dumps(result))
+            self.assertNotIn(key, result['result']['structuredContent']['metrics'])
 
 
 if __name__ == '__main__':

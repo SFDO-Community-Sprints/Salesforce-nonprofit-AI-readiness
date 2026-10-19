@@ -45,9 +45,16 @@ Status on 20 October 2026 (Europe/Amsterdam). This tracks the remaining PLAN.md 
 - [ ] **PRIVACY-8 — Conditional record-level support.** Only if an approved use case requires it: trusted-boundary removal/generalization/pseudonyms, server-side key handling, nested/failure-path sentinel tests and classification coverage. Keep record/free-text access denied otherwise.
 - [ ] **PRIVACY-9 — Inference resistance.** Define and test protections before expanding fixed aggregate queries or customer-data access.
 
+## Narrow role implementation
+
+- [x] **ROLES-1 — Focused specialist grants.** Data Assessor, Staff Reader, Staff Reviewer, Follow Up, Employee Agent Access and MCP are separate roles. Assessor has no staff evidence grants; Staff Reader has no raw review CRUD/FLS; Task writes require an explicit custom permission before queries/DML.
+- [x] **ROLES-2 — Dedicated MCP identity.** Provisioned and pinned separate API-only integration identity with zero profile/role object permissions and zero field grants. Exact grants/profile and OAuth user/org are verified before tools run; there is no admin collection fallback. Fixed aggregate facade is sharing-scoped, not general CRM read access or restriction-rule validation.
+- [x] **ROLES-3 — Boundary validation.** Both scratch deployments passed 37 Apex tests. Live raw Contact email query denied; object describes denied; effective zero CRUD/FLS confirmed. No live create attempts were made. Native/MCP same-identity parity passed; current small visible scope is withheld, with no staff data. No extra record shares or broad privileges were added to obtain a score.
+
 ## Delivery and verification
 
 - [ ] **UI-1 — Complete mobile/browser acceptance.** Desktop and a narrow desktop-UA initial assessment passed. Actual phone emulation redirected away from the readiness route. Exercise the real phone entry path, complete small-screen staff form, keyboard/screen-reader behavior, date errors and remaining console warnings; [observations](references/ui-validation.md).
+- [ ] **UI-2 — Evidence-backed safeguards/privacy cards.** Both values are currently hardcoded “Not assessed”. Replace them with scoped evidence-backed summaries when the underlying collection/review path is implemented. Permission-suite passes must not silently become complete live safeguard/erasure passes; the five technical checks and whole-system erasure still require evidence.
 - [ ] **DEPLOY-1 — Customer deployment acceptance.** [Deployment design](references/customer-deployment-design.md) now identifies concrete target/identity/policy/retention/stop/rollback requirements. Customer authorization, collector implementation and environment-specific acceptance remain open; scratch results do not complete these.
 - [ ] **LINK-1 — Serpent connection.** Repair/replace the unavailable project and authenticate through a supported org flow; verify repository and org links. No working connection is currently established by this repository.
 - [x] **VERIFY-1 — Integrate this implementation batch.** Local tests, both scratch deployments, native/MCP parity, desktop rendering and bounded repeated conversations recorded separately below. Mobile acceptance and real-world controls remain their own open tasks.
@@ -77,3 +84,15 @@ Real staff observations, customer policy approval, named external systems and te
 - Desktop Salesforce browser interaction/readback passed. At 393px with desktop user agent, the initial screen and Run assessment also worked; the complete staff form was not inspected there. Mobile-user-agent emulation redirected the custom route to Classic and did not establish mobile acceptance; UI-1 remains open. Details are tracked in [browser validation](references/ui-validation.md).
 
 Do not reuse scratch synthetic review-policy values as customer-approved policy. Real staff exercises, customer-approved profiles, intended non-admin Employee access, external erasure and mobile acceptance remain open.
+
+## Role boundary continuation — 20 October 2026
+
+Final local verification passed **117 Python tests and three Node checks**. Both verified scratch orgs passed **37 Apex tests each** with the current role/facade/UI metadata.
+
+See [permission scopes](references/permission-scopes.md) for role composition, dedicated API-only setup and elevated fixed aggregate computation limits. Earlier MCP staff-summary observations in this tracker describe the prior shared scratch credential. The current MCP role deliberately exposes no staff outcome or review evidence and always suppresses cohorts below five; the synthetic environment bypass was removed from the live MCP path.
+
+Current dedicated identity uses Minimum Access - API Only Integrations with only the Readiness_MCP set plus the platform's implicit matching profile assignment. Its profile has only API transport/API-only login/ChatterInternalUser flags and no object/field grants. Extra roles, profiles, custom grants, groups or cross-org/user credentials are rejected. Scratch administration is used for control-plane verification only; Contact aggregation runs as the dedicated identity via the fixed with-sharing facade. Restriction-rule behavior is not established by system CRUD/FLS aggregate computation.
+
+Live `org_identity` and sharing-scoped organization assessment succeeded. The dedicated identity's current visible cohort is below five, so metrics and score are withheld and readiness remains not established. Same-identity native/MCP parity passed; the administrator's larger dataset is not treated as the integration user's scope. Raw Contact email retrieval was denied, and object describes were denied. No live write attempts were made. The UI now hides staff editors and Task controls unless the corresponding specialist permission is present; role-loading and handler denial are covered by Node/native tests.
+
+The Access and safeguards and Privacy and erasure page cards are still hardcoded unknown states (UI-2). These app permission tests do not supply all runtime/approval/export/monitoring/stop evidence or integration/log/backup/restore/retention erasure evidence.

@@ -4,7 +4,7 @@ private class ReadinessStaffReviewTest {
         Id profile = [SELECT Id FROM Profile WHERE UserLicense.Name = 'Salesforce'
             AND PermissionsModifyAllData = false LIMIT 1].Id;
         List<User> users = new List<User>();
-        for (String alias : new List<String>{'srview','srdeny','srother','sradmin'}) {
+        for (String alias : new List<String>{'srview','srdeny','srother','sradmin','srread'}) {
             users.add(new User(Alias=alias, LastName='Fictional Reviewer',
                 Email=alias+'@example.invalid', Username=alias+'.'+UserInfo.getOrganizationId()+'.'+Datetime.now().getTime()+'@example.invalid',
                 TimeZoneSidKey='Europe/Amsterdam', LocaleSidKey='en_US', EmailEncodingKey='UTF-8',
@@ -13,11 +13,13 @@ private class ReadinessStaffReviewTest {
         users[3].ProfileId = [SELECT Id FROM Profile WHERE UserLicense.Name='Salesforce' AND PermissionsModifyAllData=true LIMIT 1].Id;
         insert users;
         Id reviewer = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Staff_Reviewer'].Id;
-        Id reader = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Assessor'].Id;
+        Id assessor = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Assessor'].Id;
+        Id reader = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Staff_Reader'].Id;
         insert new List<PermissionSetAssignment>{
             new PermissionSetAssignment(AssigneeId=users[0].Id,PermissionSetId=reviewer),
-            new PermissionSetAssignment(AssigneeId=users[1].Id,PermissionSetId=reader),
-            new PermissionSetAssignment(AssigneeId=users[2].Id,PermissionSetId=reviewer)};
+            new PermissionSetAssignment(AssigneeId=users[1].Id,PermissionSetId=assessor),
+            new PermissionSetAssignment(AssigneeId=users[2].Id,PermissionSetId=reviewer),
+            new PermissionSetAssignment(AssigneeId=users[4].Id,PermissionSetId=reader)};
     }
     private static User userFor(String alias) {
         return [SELECT Id FROM User WHERE Alias=:alias LIMIT 1];
@@ -63,12 +65,45 @@ private class ReadinessStaffReviewTest {
         System.runAs(userFor('srdeny')) {
             System.assert(ReadinessStaffReview.saveReview(JSON.serialize(snapshot())).contains('review_not_permitted'));
             String latest = ReadinessStaffReview.getLatestReview();
-            System.assert(latest == 'null' || latest == '{"error":"review_unavailable"}', 'Missing reader access must fail closed');
+            System.assertEquals('{"error":"review_not_permitted"}',latest, 'Assessment access alone cannot read staff outcomes');
             System.assert(!latest.contains('private_artifact_ref_001'));
         }
         // Administrator profile alone does not grant the explicit reviewer permission.
         System.runAs(userFor('sradmin')) {
+            System.assertEquals('{"error":"review_not_permitted"}',ReadinessStaffReview.getLatestReview());
             System.assert(ReadinessStaffReview.saveReview(JSON.serialize(snapshot())).contains('review_not_permitted'));
+        }
+    }
+    @IsTest static void summaryReaderCannotReadRawEvidenceOrOtherOwners() {
+        User reader = userFor('srread');
+        Map<String,Object> own = snapshot();
+        first(own).put('critical_failures',new List<Object>{'unapproved_decision'});
+        own.put('freshness_policy',new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),
+            'max_age_days'=>0,'observed_on'=>new Map<String,Object>()});
+        insert new List<AI_Readiness_Staff_Review__c>{
+            new AI_Readiness_Staff_Review__c(OwnerId=reader.Id,Version__c='staff-readiness-v1',Snapshot__c=JSON.serialize(own)),
+            new AI_Readiness_Staff_Review__c(OwnerId=userFor('srview').Id,Version__c='staff-readiness-v1',Snapshot__c=JSON.serialize(snapshot()))};
+        System.runAs(reader) {
+            System.assert(!AI_Readiness_Staff_Review__c.SObjectType.getDescribe().isAccessible());
+            System.assert(!AI_Readiness_Staff_Review__c.Snapshot__c.getDescribe().isAccessible());
+            System.assert(!AI_Readiness_Staff_Review__c.Snapshot__c.getDescribe().isCreateable());
+            Boolean rawDenied = false;
+            try {
+                List<AI_Readiness_Staff_Review__c> raw = [SELECT Snapshot__c FROM AI_Readiness_Staff_Review__c WITH USER_MODE];
+            } catch (QueryException expected) { rawDenied = true; }
+            System.assert(rawDenied,'Summary-only access must not permit raw snapshot queries');
+            String output = ReadinessStaffReview.getLatestReview();
+            Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(output);
+            System.assertEquals('blocked_by_observed_critical_failure',result.get('decision'));
+            System.assert(result.containsKey('freshness'),'Summary reads must preserve age-policy enforcement');
+            System.assertEquals(Decimal.valueOf('14.3'),((Map<String,Object>)result.get('staff')).get('coverage'));
+            System.assert(!output.contains('private_artifact_ref_001'));
+            System.assert(!output.contains('Snapshot__c'));
+            System.assert(!output.contains('observed_on'));
+            System.assertEquals('{"error":"review_not_permitted"}',ReadinessStaffReview.saveReview(JSON.serialize(snapshot())));
+        }
+        System.runAs(userFor('srother')) {
+            System.assertEquals('null',ReadinessStaffReview.getLatestReview(),'Another owner cannot read these summaries');
         }
     }
     @IsTest static void unknownUnconfirmedAndCriticalParity() {

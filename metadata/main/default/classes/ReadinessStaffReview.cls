@@ -33,10 +33,13 @@ public with sharing class ReadinessStaffReview {
     }
     @AuraEnabled
     public static String getLatestReview() {
+        if (!FeatureManagement.checkPermission('Readiness_Read_Staff_Outcomes') &&
+            !FeatureManagement.checkPermission('Readiness_Review_Staff')) return error('review_not_permitted');
         try {
+            // Bypass raw-field FLS only for this owner's computed summary; class sharing still applies.
             List<AI_Readiness_Staff_Review__c> records = [SELECT Snapshot__c, CreatedDate
                 FROM AI_Readiness_Staff_Review__c WHERE OwnerId = :UserInfo.getUserId()
-                WITH USER_MODE ORDER BY CreatedDate DESC, Id DESC LIMIT 1];
+                ORDER BY CreatedDate DESC, Id DESC LIMIT 1];
             if (records.isEmpty()) return 'null';
             Map<String,Object> input = (Map<String,Object>)JSON.deserializeUntyped(records[0].Snapshot__c);
             if (input.containsKey('freshness_policy')) {

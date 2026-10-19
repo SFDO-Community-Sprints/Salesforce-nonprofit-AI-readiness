@@ -41,8 +41,25 @@ public with sharing class NonprofitAIReadiness {
         return assess(new List<Request>{request})[0].output;
     }
 
+    public static String assessMcpScenario(String scenario) {
+        if (!FeatureManagement.checkPermission('Readiness_Run_MCP_Assessment')) {
+            return JSON.serialize(new Map<String,Object>{'error'=>'assessment_unavailable'});
+        }
+        if (!SCENARIOS.contains(scenario)) {
+            return JSON.serialize(new Map<String,Object>{'error'=>'invalid_scenario'});
+        }
+        try {
+            return JSON.serialize(collect(scenario,true));
+        } catch (Exception ignored) {
+            return JSON.serialize(new Map<String,Object>{'error'=>'assessment_unavailable'});
+        }
+    }
+
     @AuraEnabled
     public static String createFollowUpTasks() {
+        if (!FeatureManagement.checkPermission('Readiness_Create_Follow_Up')) {
+            return JSON.serialize(new Map<String,Object>{'error'=>'task_creation_unavailable'});
+        }
         Savepoint writeBoundary;
         try {
             Map<String,Object> assessment = collect('organization');
@@ -281,16 +298,29 @@ public with sharing class NonprofitAIReadiness {
     }
 
     private static Map<String,Object> collect(String scenario) {
+        return collect(scenario,false);
+    }
+
+    private static Map<String,Object> collect(String scenario, Boolean mcp) {
         Boolean organization = scenario == 'organization';
         Id accountId;
         if (!organization) {
             String cohort = 'SYNTHETIC AI Readiness ' + scenario;
-            List<Account> accounts = [SELECT Id FROM Account WHERE Name = :cohort WITH USER_MODE LIMIT 2];
+            List<Account> accounts;
+            if (mcp) accounts = [SELECT Id FROM Account WHERE Name = :cohort WITH SYSTEM_MODE LIMIT 2];
+            else accounts = [SELECT Id FROM Account WHERE Name = :cohort WITH USER_MODE LIMIT 2];
             if (accounts.size() != 1) return new Map<String,Object>{'error'=>'cohort_unavailable'};
             accountId = accounts[0].Id;
         }
         AggregateResult counts;
-        if (organization) {
+        // MCP grants this fixed aggregate computation, not general CRM CRUD/FLS; with sharing still applies.
+        if (mcp && organization) {
+            counts = [SELECT COUNT(Id) contacts, COUNT(Email) email_present,
+                COUNT(AccountId) linked_contacts FROM Contact WITH SYSTEM_MODE];
+        } else if (mcp) {
+            counts = [SELECT COUNT(Id) contacts, COUNT(Email) email_present,
+                COUNT(AccountId) linked_contacts FROM Contact WHERE AccountId = :accountId WITH SYSTEM_MODE];
+        } else if (organization) {
             counts = [SELECT COUNT(Id) contacts, COUNT(Email) email_present,
                 COUNT(AccountId) linked_contacts FROM Contact WITH USER_MODE];
         } else {
@@ -304,7 +334,14 @@ public with sharing class NonprofitAIReadiness {
         Integer repeated = 0;
         if (!suppressed) {
             List<AggregateResult> duplicates;
-            if (organization) {
+            if (mcp && organization) {
+                duplicates = [SELECT COUNT(Id) repeated_count FROM Contact
+                    WHERE Email != null WITH SYSTEM_MODE GROUP BY Email HAVING COUNT(Id) > 1];
+            } else if (mcp) {
+                duplicates = [SELECT COUNT(Id) repeated_count FROM Contact
+                    WHERE AccountId = :accountId AND Email != null WITH SYSTEM_MODE
+                    GROUP BY Email HAVING COUNT(Id) > 1];
+            } else if (organization) {
                 duplicates = [SELECT COUNT(Id) repeated_count FROM Contact
                     WHERE Email != null WITH USER_MODE GROUP BY Email HAVING COUNT(Id) > 1];
             } else {
@@ -332,8 +369,12 @@ public with sharing class NonprofitAIReadiness {
             'specification_version'=>specification.get('version'),
             'profile_overrides'=>new Map<String,Object>(),
             'rubric_version'=>'donor-summary-demo-v1', 'evidence_mode'=>'live_aggregate',
-            'scenario'=>scenario, 'scope'=>organization ? 'accessible_organization_records' : 'fixed_synthetic_demo_cohort',
-            'coverage_note'=>'Only records accessible to the current user are assessed; this is not proof of complete organization visibility.',
+            'scenario'=>scenario, 'scope'=>mcp
+                ? (organization ? 'sharing_scoped_organization_records' : 'sharing_scoped_fixed_synthetic_demo_cohort')
+                : (organization ? 'accessible_organization_records' : 'fixed_synthetic_demo_cohort'),
+            'coverage_note'=>mcp
+                ? 'Fixed aggregate computation bypasses object permissions and field-level security (CRUD/FLS), retaining class record sharing only; restriction rules are not validated. This is not proof of complete organization visibility.'
+                : 'Only records accessible to the current user are assessed; this is not proof of complete organization visibility.',
             'metrics'=>suppressed ? null : new Map<String,Integer>{'contacts'=>n,'email_present'=>populated,
                 'linked_contacts'=>linked,'repeated_email_rows'=>repeated},
             'data_summary'=>suppressed
@@ -347,7 +388,7 @@ public with sharing class NonprofitAIReadiness {
             'priorities'=>assessmentPriorities(checks,suppressed ? null : new Map<String,Object>{
                 'contacts'=>n,'email_present'=>populated,'linked_contacts'=>linked,'repeated_email_rows'=>repeated})
         };
-        if (organization) applyStaffReview(assessment);
+        if (organization && !mcp) applyStaffReview(assessment);
         return assessment;
     }
 }

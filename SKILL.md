@@ -48,13 +48,13 @@ Verify changing feature and licensing requirements against current sources:
 
 ## Project plan and score demonstrations
 
-See [PLAN.md](PLAN.md) for implementation scope and [demo/GUIDE.md](demo/GUIDE.md) for synthetic seed data, a versioned demo rubric, expected scores, and replay commands. Use `scripts/demo.py score <fixture.json>` only for these explicitly simulated assessments. Report deterministic category scores when demonstrating fixtures and the available live aggregate data checks. Live technical readiness remains unknown. A saved staff review reports only the current reviewer’s exercises; absent or incomplete review evidence leaves staff capability unestablished. Use the evidence-based conclusions above. Never present fixture control/staff results as observed org evidence.
+See [PLAN.md](PLAN.md) for implementation scope and [demo/GUIDE.md](demo/GUIDE.md) for synthetic seed data, a versioned demo rubric, expected scores, and replay commands. Use `scripts/demo.py score <fixture.json>` only for these explicitly simulated assessments. Report deterministic category scores when demonstrating fixtures and the available live aggregate data checks. Live technical readiness remains unknown. A saved native staff review reports only the current reviewer’s exercises; absent or incomplete review evidence leaves staff capability unestablished. Use the evidence-based conclusions above. Never present fixture control/staff results as observed org evidence.
 
 ## Collection interface
 
-Use `scripts/readiness_mcp.py`, a local stdio MCP server bound to this project's `.local/scratch.json` and verified active scratch provenance. Tools: `org_identity`, `org_capabilities`, and `readiness_check` with the fixed scope enum `organization`, `poor`, `improving`, `pilot`, `blocked`, `unknown`. It accepts no org override, arbitrary query, field selection, record export, or write operation. Setup/seeding stays outside this read-only interface.
+Use `scripts/readiness_mcp.py`, a local stdio MCP server bound to a dedicated API-only identity in `.local/mcp.json`, separately verified against active `.local/scratch.json` provenance. Tools: `org_identity`, `org_capabilities`, and `readiness_check` with the fixed scope enum `organization`, `poor`, `improving`, `pilot`, `blocked`, `unknown`. It accepts no org override, arbitrary query, field selection, record export, or write operation. Setup/seeding stays outside this read-only interface.
 
-The server returns approved aggregate outputs only, with small cohorts suppressed by default. `READINESS_SYNTHETIC_DEMO=1` permits the fictional demo cohorts in the verified scratch org; it is a synthetic-test exception, not a customer-data policy. Prefer the MCP's deterministic results; do not copy simulated fixture controls or staff scores into a live report.
+The server calls only the fixed ReadinessMCP assessment facade through an API-only identity with no CRM object/field grants. Cohorts below five are always withheld; the former synthetic environment bypass no longer applies. Results are sharing-scoped fixed computations, not user-mode field access or validated restriction-rule enforcement. Staff evidence is excluded from this dedicated MCP role. Prefer the MCP's deterministic results; do not copy simulated fixture controls or staff scores into a live report.
 
 ## Sensitive-data boundary gate
 
@@ -88,3 +88,8 @@ Compare staff improvement with `python3 scripts/staff_readiness.py evaluate demo
 The versioned scoring rules are in `demo/rubric.json`. The erasure checklist measures evidence coverage and keeps overall erasure unassessed until actual systems and outcomes have been verified. Importing demo records cannot turn off safeguards or establish erasure readiness.
 
 Saved staff reviews use [the structured Salesforce reviewer workflow](references/staff-review-in-salesforce.md). Report its scope and saved time, score and coverage separately from data scores. A reviewer assertion is not independent verification or evidence that all staff are trained. Preserve observed critical failures and their priorities. Never reveal evidence references or source training documents to the agent.
+
+
+## Focused roles
+
+See [permission scopes](references/permission-scopes.md). Data assessment, own staff-summary reading, staff-review creation, follow-up Tasks, Employee agent access and MCP are separate grants. The MCP binding rejects elevated profiles/extra roles and never falls back to scratch administrator collection. Human native staff outcomes remain permission-controlled; they are not exposed through the dedicated MCP role.

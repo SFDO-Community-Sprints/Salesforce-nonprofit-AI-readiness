@@ -43,3 +43,5 @@ The agent connection returns aggregate summaries and suppresses small groups. It
 Local authentication, scratch identifiers, generated traces, and test results stay in ignored folders and are not part of this repository.
 
 Reviewers can [record the seven observed staff exercises in Salesforce](references/staff-review-in-salesforce.md). This is an explicit, permission-controlled action separate from the read-only assessment.
+
+Permission sets are narrowly scoped by responsibility; the dedicated MCP integration has no CRM object/field grants. See [permission scopes and setup](references/permission-scopes.md).

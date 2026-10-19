@@ -1,6 +1,14 @@
 @IsTest
 private class NonprofitAIReadinessTest {
     @TestSetup static void seed() {
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            List<PermissionSetAssignment> assignments = new List<PermissionSetAssignment>();
+            for (PermissionSet permission : [SELECT Id FROM PermissionSet
+                    WHERE Name IN ('Readiness_Follow_Up','Readiness_Staff_Reader')]) {
+                assignments.add(new PermissionSetAssignment(AssigneeId=UserInfo.getUserId(),PermissionSetId=permission.Id));
+            }
+            insert assignments;
+        }
         List<Account> accounts = new List<Account>{
             new Account(Name='SYNTHETIC AI Readiness pilot'),
             new Account(Name='SYNTHETIC AI Readiness improving'),
@@ -145,61 +153,67 @@ private class NonprofitAIReadinessTest {
         }
     }
     @IsTest static void followUpTasksBelongToRunnerAndAreReused() {
-        Map<String,Object> first = (Map<String,Object>)JSON.deserializeUntyped(
-            NonprofitAIReadiness.createFollowUpTasks());
-        System.assertEquals(4,first.get('created'));
-        System.assertEquals(0,first.get('reused'));
-        List<Task> tasks = [SELECT Id,OwnerId,Subject,Description,Status,Priority FROM Task];
-        System.assertEquals(4,tasks.size());
-        for (Task task : tasks) {
-            System.assertEquals(UserInfo.getUserId(),task.OwnerId);
-            System.assert(task.Subject.startsWith('AI Readiness: '));
-            System.assert(task.Description.contains('https://trailhead.salesforce.com/') ||
-                task.Description.contains('https://www.edpb.europa.eu/'));
-            System.assertEquals('Not Started',task.Status);
-            System.assert(task.Description.startsWith('Assessment priority: '));
-            System.assert(task.Description.contains('Impact: '));
-            System.assertEquals(task.Subject.contains('safeguards') || task.Subject.contains('erasure') ? 'High' : 'Normal',task.Priority);
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            Map<String,Object> first = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals(4,first.get('created'));
+            System.assertEquals(0,first.get('reused'));
+            List<Task> tasks = [SELECT Id,OwnerId,Subject,Description,Status,Priority FROM Task];
+            System.assertEquals(4,tasks.size());
+            for (Task task : tasks) {
+                System.assertEquals(UserInfo.getUserId(),task.OwnerId);
+                System.assert(task.Subject.startsWith('AI Readiness: '));
+                System.assert(task.Description.contains('https://trailhead.salesforce.com/') ||
+                    task.Description.contains('https://www.edpb.europa.eu/'));
+                System.assertEquals('Not Started',task.Status);
+                System.assert(task.Description.startsWith('Assessment priority: '));
+                System.assert(task.Description.contains('Impact: '));
+                System.assertEquals(task.Subject.contains('safeguards') || task.Subject.contains('erasure') ? 'High' : 'Normal',task.Priority);
+            }
+            Map<String,Object> second = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals(0,second.get('created'));
+            System.assertEquals(4,second.get('reused'));
+            System.assertEquals(0,second.get('updated'));
+            tasks[0].Description='Old task recommendation';
+            tasks[0].Priority='Low';
+            update tasks[0];
+            Map<String,Object> refreshed = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals(0,refreshed.get('created'));
+            System.assertEquals(1,refreshed.get('updated'));
+            System.assert([SELECT Description FROM Task WHERE Id=:tasks[0].Id].Description.startsWith('Assessment priority: '));
         }
-        Map<String,Object> second = (Map<String,Object>)JSON.deserializeUntyped(
-            NonprofitAIReadiness.createFollowUpTasks());
-        System.assertEquals(0,second.get('created'));
-        System.assertEquals(4,second.get('reused'));
-        System.assertEquals(0,second.get('updated'));
-        tasks[0].Description='Old task recommendation';
-        tasks[0].Priority='Low';
-        update tasks[0];
-        Map<String,Object> refreshed = (Map<String,Object>)JSON.deserializeUntyped(
-            NonprofitAIReadiness.createFollowUpTasks());
-        System.assertEquals(0,refreshed.get('created'));
-        System.assertEquals(1,refreshed.get('updated'));
-        System.assert([SELECT Description FROM Task WHERE Id=:tasks[0].Id].Description.startsWith('Assessment priority: '));
     }
     @IsTest static void dataSeverityReflectsMeasuredImpact() {
-        delete [SELECT Id FROM Contact];
-        List<Contact> contacts = new List<Contact>();
-        for (Integer i=0;i<5;i++) contacts.add(new Contact(LastName='SYNTHETIC priority',
-            Email=i<2 ? 'priority@example.invalid' : null));
-        insert contacts;
-        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
-            NonprofitAIReadiness.createFollowUpTasks());
-        System.assertEquals(7,result.get('created'));
-        Map<String,String> priorities = new Map<String,String>();
-        for (Task task : [SELECT Subject,Priority,Description FROM Task]) {
-            priorities.put(task.Subject,task.Priority);
-            System.assert(!task.Description.startsWith('Assessment priority: Critical'));
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            delete [SELECT Id FROM Contact];
+            List<Contact> contacts = new List<Contact>();
+            for (Integer i=0;i<5;i++) contacts.add(new Contact(LastName='SYNTHETIC priority',
+                Email=i<2 ? 'priority@example.invalid' : null));
+            insert contacts;
+            Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals(7,result.get('created'));
+            Map<String,String> priorities = new Map<String,String>();
+            for (Task task : [SELECT Subject,Priority,Description FROM Task]) {
+                priorities.put(task.Subject,task.Priority);
+                System.assert(!task.Description.startsWith('Assessment priority: Critical'));
+            }
+            System.assertEquals('High',priorities.get('AI Readiness: Review missing contact emails'));
+            System.assertEquals('High',priorities.get('AI Readiness: Review possible duplicate contacts'));
+            System.assertEquals('High',priorities.get('AI Readiness: Review unlinked contacts'));
+            System.assertEquals('Low',priorities.get('AI Readiness: Confirm representative assessment data'));
         }
-        System.assertEquals('High',priorities.get('AI Readiness: Review missing contact emails'));
-        System.assertEquals('High',priorities.get('AI Readiness: Review possible duplicate contacts'));
-        System.assertEquals('High',priorities.get('AI Readiness: Review unlinked contacts'));
-        System.assertEquals('Low',priorities.get('AI Readiness: Confirm representative assessment data'));
     }
     @IsTest static void suppressedAssessmentCreatesNoTasks() {
-        delete [SELECT Id FROM Contact];
-        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
-            NonprofitAIReadiness.createFollowUpTasks());
-        System.assertEquals('assessment_unavailable',result.get('error'));
-        System.assertEquals(0,[SELECT COUNT() FROM Task]);
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            delete [SELECT Id FROM Contact];
+            Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals('assessment_unavailable',result.get('error'));
+            System.assertEquals(0,[SELECT COUNT() FROM Task]);
+        }
     }
     @IsTest static void inventoryContainsOnlyAggregateEvidence() {
         String output = NonprofitAIReadiness.capabilityInventory();
@@ -271,6 +285,8 @@ private class NonprofitAIReadinessTest {
             String assessmentOutput = NonprofitAIReadiness.assessScenario('organization');
             Map<String,Object> assessment = (Map<String,Object>)JSON.deserializeUntyped(assessmentOutput);
             System.assert(!assessment.containsKey('error'),'Read-only assessor must collect aggregate evidence');
+            System.assert(!assessment.containsKey('staff_review'),'Missing staff outcome access must not expose saved evidence');
+            System.assert(!assessmentOutput.contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
             System.assert(((Decimal)((Map<String,Object>)assessment.get('metrics')).get('contacts')) >= 10);
             String taskOutput = NonprofitAIReadiness.createFollowUpTasks();
             System.assertEquals('task_creation_unavailable',
@@ -280,6 +296,28 @@ private class NonprofitAIReadinessTest {
             System.assert(!taskOutput.contains('@'));
         }
         System.assertEquals(0,[SELECT COUNT() FROM Task WHERE OwnerId=:assessor.Id]);
+    }
+    @IsTest static void genericTaskRightsDoNotAuthorizeReadinessFollowUp() {
+        User genericTaskUser = new User(ProfileId=UserInfo.getProfileId(),
+            Username='readiness-generic-task-'+UserInfo.getOrganizationId()+'@example.invalid',
+            Email='generic-task@example.invalid',LastName='SYNTHETIC generic Task rights',Alias='rdytask',
+            TimeZoneSidKey='Europe/Amsterdam',LocaleSidKey='en_US',
+            EmailEncodingKey='UTF-8',LanguageLocaleKey='en_US');
+        insert genericTaskUser;
+        insert new PermissionSetAssignment(AssigneeId=genericTaskUser.Id,
+            PermissionSetId=[SELECT Id FROM PermissionSet WHERE Name='Readiness_Assessor' LIMIT 1].Id);
+        System.runAs(genericTaskUser) {
+            System.assert(Schema.sObjectType.Task.isCreateable());
+            System.assert(Schema.sObjectType.Task.isUpdateable());
+            System.assert(!FeatureManagement.checkPermission('Readiness_Create_Follow_Up'));
+            Integer queriesBefore = Limits.getQueries();
+            Integer writesBefore = Limits.getDmlStatements();
+            String output = NonprofitAIReadiness.createFollowUpTasks();
+            System.assertEquals(queriesBefore,Limits.getQueries(),'Denied action must not collect evidence');
+            System.assertEquals(writesBefore,Limits.getDmlStatements(),'Denied action must not write');
+            System.assertEquals('{"error":"task_creation_unavailable"}',output);
+        }
+        System.assertEquals(0,[SELECT COUNT() FROM Task WHERE OwnerId=:genericTaskUser.Id]);
     }
     @IsTest static void nonAdminFollowUpPermissionCreatesAndRefreshesOnlyOwnTasks() {
         Profile profile = [SELECT Id FROM Profile WHERE Name='Minimum Access - Salesforce' LIMIT 1];
@@ -297,6 +335,7 @@ private class NonprofitAIReadinessTest {
         System.assertEquals(2,assignments.size());
         insert assignments;
         System.runAs(runner) {
+            System.assert(FeatureManagement.checkPermission('Readiness_Create_Follow_Up'));
             System.assertEquals(false,Schema.sObjectType.Contact.isCreateable());
             System.assertEquals(false,Schema.sObjectType.Contact.isUpdateable());
             System.assertEquals(false,Schema.sObjectType.Contact.isDeletable());
@@ -373,41 +412,45 @@ private class NonprofitAIReadinessTest {
             Snapshot__c=JSON.serialize(new Map<String,Object>{'version'=>key.get('version'),'mode'=>'actual','reviews'=>reviews}));
     }
     @IsTest static void organizationUsesOnlyOwnSafeStaffExercise() {
-        saveStaffExercise(false);
-        Map<String,Object> result = runScenario('organization');
-        System.assert(result.containsKey('staff_review'));
-        Map<String,Object> review = (Map<String,Object>)result.get('staff_review');
-        System.assertEquals(100,((Map<String,Object>)review.get('staff')).get('score'));
-        System.assertEquals('Staff exercises: 100.0%. Checks passed: 7 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
-            result.get('staff_summary'));
-        System.assertEquals('readiness_not_established',result.get('decision'));
-        for (Object value : (List<Object>)result.get('priorities')) {
-            System.assert(!((String)((Map<String,Object>)value).get('key')).startsWith('staff'));
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            saveStaffExercise(false);
+            Map<String,Object> result = runScenario('organization');
+            System.assert(result.containsKey('staff_review'));
+            Map<String,Object> review = (Map<String,Object>)result.get('staff_review');
+            System.assertEquals(100,((Map<String,Object>)review.get('staff')).get('score'));
+            System.assertEquals('Staff exercises: 100.0%. Checks passed: 7 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
+                result.get('staff_summary'));
+            System.assertEquals('readiness_not_established',result.get('decision'));
+            for (Object value : (List<Object>)result.get('priorities')) {
+                System.assert(!((String)((Map<String,Object>)value).get('key')).startsWith('staff'));
+            }
+            System.assert(!JSON.serialize(result).contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
+            Map<String,Object> practice = runScenario('pilot');
+            System.assert(!practice.containsKey('staff_review'),'Fixed demo groups must not use actual staff reviews');
+            System.assert(!practice.containsKey('staff_summary'));
+            System.assertEquals(3,((List<Object>)practice.get('priorities')).size());
         }
-        System.assert(!JSON.serialize(result).contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
-        Map<String,Object> practice = runScenario('pilot');
-        System.assert(!practice.containsKey('staff_review'),'Fixed demo groups must not use actual staff reviews');
-        System.assert(!practice.containsKey('staff_summary'));
-        System.assertEquals(3,((List<Object>)practice.get('priorities')).size());
     }
     @IsTest static void observedCriticalStaffFailureBlocksAndCreatesTargetedHighTask() {
-        saveStaffExercise(true);
-        Map<String,Object> result = runScenario('organization');
-        System.assertEquals('not_ready',result.get('decision'));
-        System.assertEquals('Staff exercises: 85.7%. Checks passed: 6 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
-            result.get('staff_summary'));
-        Map<String,Object> first = (Map<String,Object>)((List<Object>)result.get('priorities'))[0];
-        System.assertEquals('staff_sensitive_data',first.get('key'));
-        System.assertEquals('Critical',first.get('priority'));
-        System.assert(((String)first.get('recommendation')).contains('https://trailhead.salesforce.com/'));
-        Map<String,Object> tasks = (Map<String,Object>)JSON.deserializeUntyped(NonprofitAIReadiness.createFollowUpTasks());
-        System.assert(!tasks.containsKey('error'));
-        List<Task> targeted = [SELECT Priority,Description FROM Task WHERE Subject='AI Readiness: Practice sensitive data handling'];
-        System.assertEquals(1,targeted.size());
-        System.assertEquals('High',targeted[0].Priority);
-        System.assert(targeted[0].Description.contains('Assessment priority: Critical'));
-        System.assert(!targeted[0].Description.contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
-        System.assertEquals(0,[SELECT COUNT() FROM Task WHERE Subject='AI Readiness: Complete staff readiness practice']);
+        System.runAs(new User(Id=UserInfo.getUserId())) {
+            saveStaffExercise(true);
+            Map<String,Object> result = runScenario('organization');
+            System.assertEquals('not_ready',result.get('decision'));
+            System.assertEquals('Staff exercises: 85.7%. Checks passed: 6 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
+                result.get('staff_summary'));
+            Map<String,Object> first = (Map<String,Object>)((List<Object>)result.get('priorities'))[0];
+            System.assertEquals('staff_sensitive_data',first.get('key'));
+            System.assertEquals('Critical',first.get('priority'));
+            System.assert(((String)first.get('recommendation')).contains('https://trailhead.salesforce.com/'));
+            Map<String,Object> tasks = (Map<String,Object>)JSON.deserializeUntyped(NonprofitAIReadiness.createFollowUpTasks());
+            System.assert(!tasks.containsKey('error'));
+            List<Task> targeted = [SELECT Priority,Description FROM Task WHERE Subject='AI Readiness: Practice sensitive data handling'];
+            System.assertEquals(1,targeted.size());
+            System.assertEquals('High',targeted[0].Priority);
+            System.assert(targeted[0].Description.contains('Assessment priority: Critical'));
+            System.assert(!targeted[0].Description.contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
+            System.assertEquals(0,[SELECT COUNT() FROM Task WHERE Subject='AI Readiness: Complete staff readiness practice']);
+        }
     }
 
 }

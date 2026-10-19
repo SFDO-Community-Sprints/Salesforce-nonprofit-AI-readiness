@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses><apexClass>ReadinessStaffReview</apexClass><enabled>true</enabled></classAccesses>
+    <customPermissions><enabled>true</enabled><name>Readiness_Read_Staff_Outcomes</name></customPermissions>
+    <description>Read your own calculated staff exercise outcomes through the fixed summary method. No raw review record, assessment, write, connection or Task grants.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Readiness Staff Reader</label>
+</PermissionSet>
