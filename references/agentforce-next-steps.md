@@ -59,3 +59,6 @@ The optional beta `agent test run-eval` command produced no result during a veri
 ## Current limits
 
 The demonstrated conversations used the practice administrator and fictional data. Intended employee permissions, access to the assistant in the normal Salesforce interface, staff competency, production processing, complete erasure and retention still need their own evidence. Activation alone does not establish employee access or organizational readiness.
+
+
+The setup also grants the signed-in practice user access to this specific assistant and the Salesforce Agentforce panel. Refresh Salesforce, choose **Agentforce** in the header, and open **Nonprofit Readiness**. This path has been exercised in the practice org: the assistant returned the measured 25% result with one of four checks passed and all four completed. Keep conversation memory disabled for the demonstration. Verify access separately for your intended employees before using their permissions as evidence. Learning links are available on the AI Readiness screen; the chat surface may redact them.

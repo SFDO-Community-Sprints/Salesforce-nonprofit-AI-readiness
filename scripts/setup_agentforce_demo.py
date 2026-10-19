@@ -9,13 +9,14 @@ import sys
 
 from check_agentforce_preview import command
 from demo import ROOT
-from scratch_demo import deploy, seed, sf, verify
+from scratch_demo import deploy, query, seed, sf, verify
 from seed_failure_demo import seed as seed_failures
 
 STATE = ROOT / '.local/agentforce-scratch.json'
 ALIAS = 'nonprofit-readiness-agent-test'
 DEFINITION = ROOT / 'references/nonprofit-agentforce-scratch-def.json'
 AUTHORING = ROOT / 'agentforce/main/default/aiAuthoringBundles/Nonprofit_Readiness/Nonprofit_Readiness.agent'
+ACCESS = ROOT / 'agentforce/main/default/permissionsets/Readiness_Employee_Agent_Access.permissionset-meta.xml'
 
 
 def validate_state(state):
@@ -28,6 +29,28 @@ def validate_state(state):
 def require_success(result):
     if type(result) is not dict or result.get('success') is not True:
         raise RuntimeError('Agentforce operation did not confirm success')
+
+
+def configure_employee_access(state):
+    validate_state(state)
+    verify(state)
+    if not ACCESS.is_file():
+        raise RuntimeError('Reviewed employee agent access permission set is missing')
+    require_success(command('project','deploy','start','--source-dir',str(ACCESS),
+        '--test-level','NoTestRun','--wait','5','--target-org',ALIAS,'--api-version','67.0'))
+    displayed = sf('org','display','--target-org',ALIAS)
+    username = displayed.get('username') if type(displayed) is dict else None
+    if type(username) is not str or not username or len(username)>150:
+        raise RuntimeError('Cannot identify the authenticated scratch user')
+    escaped = username.replace('\\','\\\\').replace("'","\\'")
+    for permission in ('Readiness_Employee_Agent_Access','CopilotSalesforceUser'):
+        assigned = query(ALIAS, "SELECT Id FROM PermissionSetAssignment WHERE PermissionSet.Name = '"+
+            permission+"' AND Assignee.Username = '"+escaped+"'")
+        if type(assigned) is not list:
+            raise RuntimeError('Cannot confirm employee permission assignment')
+        if not assigned:
+            sf('org','assign','permset','--name',permission,'--target-org',ALIAS)
+    print('Employee agent access and the Agentforce panel permission are assigned to the signed-in scratch user.')
 
 
 def setup(hub=None, state_path=STATE):
@@ -68,7 +91,8 @@ def setup(hub=None, state_path=STATE):
                             '--skip-retrieve',*target))
     print('Published the reviewed employee agent; reruns create a new version.')
     require_success(command('agent','activate','--api-name','Nonprofit_Readiness',*target))
-    print('Readiness agent activated. Run the published-agent checks next; activation alone is not a readiness pass.')
+    configure_employee_access(state)
+    print('Readiness agent activated. Run published-agent and employee screen checks next; activation alone is not a readiness pass.')
 
 
 def main():
