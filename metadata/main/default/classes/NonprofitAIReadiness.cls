@@ -287,6 +287,10 @@ public with sharing class NonprofitAIReadiness {
             'coverage_note'=>'Only records accessible to the current user are assessed; this is not proof of complete organization visibility.',
             'metrics'=>suppressed ? null : new Map<String,Integer>{'contacts'=>n,'email_present'=>populated,
                 'linked_contacts'=>linked,'repeated_email_rows'=>repeated},
+            'data_summary'=>suppressed
+                ? 'Data quality: Not assessed. Checks completed: 0 of 4 (0%).'
+                : 'Data quality: '+String.valueOf(passed*25)+'%. Checks passed: '+String.valueOf(passed)+
+                    ' of 4. Checks completed: 4 of 4 (100%).',
             'data'=>new Map<String,Object>{'checks'=>checks,'passed'=>passed,'applicable'=>4,
                 'score'=>suppressed ? null : passed * 25.0,'coverage'=>suppressed ? 0.0 : 100.0},
             'privacy'=>new Map<String,Object>{'mode'=>'aggregate_only','minimum_cohort'=>5,'suppressed'=>suppressed},

@@ -53,3 +53,19 @@ Additional executable screen/Python comparisons against `demo/rubric.json` passe
 The live scratch exercise `python3 scripts/check_data_improvement.py` passed. Across 94 visible fictional contacts, correcting the guarded 60-contact failure set increased populated emails from 39 to 89, account relationships from 34 to 94, and reduced repeated-email rows from 10 to 1. Data score rose from 25% to 75%. The remaining repeated-email indicator belongs to the original five practice groups, so 100% is not expected. The exercise restored the original values and independently remeasured the baseline. Sanitized results are in ignored `.local/data-improvement-results.json`.
 
 The expanded `python3 scripts/check_all.py --live` run has now passed end to end, including this exercise, all 52 local tests, all 17 Salesforce tests, connected scoring, capability inventory and the source-deletion lifecycle. Latest local verification passes 52 tests and the screen/Python threshold checks. Seven new tests cover data drift, correction, restoration after failures, atomic writes, wrong-org recovery and altered recovery-record IDs.
+
+
+## Agent response score/coverage correction
+
+The shared Salesforce action now supplies a fixed `data_summary` that distinguishes checks passed from checks completed. The fictional failure set has a 25% data score because one check passed; all four checks completed, giving 100% evidence coverage. Suppressed groups receive an unassessed summary with no record-count hints.
+
+The Employee agent quotes this summary rather than recalculating it. Live preview responses after the change correctly reported one passing check and four completed checks. The response verifier now checks this text and recognizes both Contacts and Contact count labels without matching a number on an unrelated line. The corrected authoring preview passed its exact-summary check and verified only the fixed assessment action in its completed trace. The agent was published and activated as version 2. A five-prompt native-action run against the activated agent also passed the deterministic checks; its four denial/unknown-evidence responses were inspected separately. Both practice org deployments passed all 19 Salesforce tests.
+
+
+## Reproducible setup and combined checks
+
+`python3 scripts/check_all.py --live --agentforce` passed with 59 local tests and 19 Salesforce tests, including the corrected score summary, live correction/restoration, connected collection, inventory, source deletion and the activated agent's five native-action cases. Conversation meanings were reviewed separately; native responses provide no action trace.
+
+The seven new setup tests bring the latest local suite to 66 tests, and the actual setup command was run successfully against the retained Agentforce practice org. Existing cohorts and all 60 failure contacts were reused, so the accessible total remained 94. Deployment passed 19 Salesforce tests; source validation, publication and activation succeeded. The subsequent native-action run again reported 25% with one passing and four completed checks. Raw-value/export requests were refused; arbitrary-query requests produced only the permitted summary; untested readiness remained unknown.
+
+The optional beta evaluation produced no result during a verified 20-minute wait; its local client was interrupted and is not counted as passing. The installed CLI's published Employee preview error was traced to its user-mode setting. The native invocable action is the verified published-agent route. See [the assistant walkthrough](agentforce-next-steps.md).

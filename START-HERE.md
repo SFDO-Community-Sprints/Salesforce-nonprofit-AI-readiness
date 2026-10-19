@@ -105,3 +105,16 @@ Run `python3 scripts/check_data_improvement.py` after importing the fictional fa
 If interrupted, follow the saved recovery instructions and run `python3 scripts/check_data_improvement.py --restore`. The script verifies the same disposable org and fixed fictional record set before restoring. The saved recovery file stays in ignored `.local/`.
 
 The complete `python3 scripts/check_all.py --live` command now ensures the failure contacts exist and includes this correction/restoration exercise as well as the fictional source-deletion check. These checks intentionally change practice records; ordinary **Run assessment** remains read-only.
+
+### Run the assistant inside Salesforce
+
+The Agentforce demonstration uses a separate practice org that also includes the readiness page and fictional data. Prepare it with:
+
+```sh
+python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB
+python3 scripts/check_agentforce_action.py
+```
+
+The second command tests the activated assistant through its native Salesforce action. The results show a 25% data score: one of four checks passed, while all four checks completed. Read the saved responses before accepting conversational behavior. For the full combined run, use `python3 scripts/check_all.py --live --agentforce` after both practice orgs are prepared.
+
+See [the assistant walkthrough](references/agentforce-next-steps.md) for prerequisites, current limits, and the separate authoring-preview check.

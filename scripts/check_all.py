@@ -43,10 +43,10 @@ def main(live, agentforce=False):
     print('License and feature inventory: passed; actual usage remains unverified',flush=True)
     run('scripts/check_erasure_demo.py')
     if agentforce:
-        run('scripts/check_agentforce_preview.py')
+        run('scripts/check_agentforce_action.py')
     report={'automated_checks':'passed','salesforce_tests':summary.get('testsRan'),
             'connected_scoring':'passed','synthetic_data_correction_and_restore':'passed','capability_inventory':'passed','synthetic_deletion_exercise':'passed',
-            'browser_checks':'separate_manual_evidence','agentforce_conversations':'preview_evidence_collected_review_required' if agentforce else 'not_exercised',
+            'browser_checks':'separate_manual_evidence','agentforce_conversations':'published_action_evidence_collected_review_required' if agentforce else 'not_exercised',
             'organizational_readiness':'not_established'}
     (STATE.parent/'full-check-results.json').write_text(json.dumps(report,indent=2)+'\n')
     print('PASS — all automated MVP checks. Screen behavior and Agentforce conversations are separate checks.')
@@ -55,7 +55,7 @@ def main(live, agentforce=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--live',action='store_true',help='Use verified practice scratch org; seeds fictional failures, temporarily corrects/restores them, and soft-deletes one fictional contact')
-    p.add_argument('--agentforce',action='store_true',help='Also collect live Agentforce preview evidence in the separately prepared agent scratch org; refusal text requires review')
+    p.add_argument('--agentforce',action='store_true',help='Also collect activated Agentforce action evidence in the separately prepared agent scratch org; refusal text requires review')
     args=p.parse_args()
     if args.agentforce and not args.live:
         p.error('--agentforce requires --live and the separate prepared Agentforce scratch org')

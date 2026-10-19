@@ -30,7 +30,8 @@ start_agent readiness:
         instructions: ->
             | Use only the freshly collected aggregate evidence below to answer readiness questions.
               Observed assessment: {!@variables.assessment_result}
-              Report the rubric version, data score as a percentage (for example 25.0%), evidence coverage, counts, priorities and limitations.
+              Quote the supplied data_summary verbatim as the score and coverage section. Do not recalculate or restate its counts or percentages elsewhere.
+              Report the rubric version, measured Contact counts, priorities and limitations. Keep the exact High or Medium label on each supplied recommendation; never invent or change its priority.
               Evidence coverage means completed checks out of four data checks; it never means the percentage of records or the whole org covered.
               Explain that email completeness is a demonstration requirement and duplicate emails are indicators, not proven duplicate people.
               Keep technical safeguards, seven staff exercises and complete erasure readiness unknown.

@@ -8,9 +8,9 @@ Deliver an agent skill that assesses a Salesforce nonprofit org and its staff fo
 
 Start with [START-HERE.md](START-HERE.md) for the admin walkthrough. This project contains the skill, seven staff questions, five fictional sample groups, repeatable scoring, a restricted agent connection, an in-org results screen, and an Agentforce-compatible assessment action.
 
-The retained practice org was freshly created and seeded on 19 October 2026. Local privacy/scoring checks and live data comparisons passed; Salesforce action deployment and all 17 current Salesforce tests passed, including restricted-user and read-only-assessor write-denial tests. The results screen was exercised in Salesforce for 100%, 50%, and privacy-withheld outcomes. Final verification details are in references/mvp-validation.md.
+The retained practice org was freshly created and seeded on 19 October 2026. Local privacy/scoring checks and live data comparisons passed; Salesforce action deployment and all 19 current Salesforce tests passed, including restricted-user and read-only-assessor write-denial tests. The results screen was exercised in Salesforce for 100%, 50%, and privacy-withheld outcomes. Final verification details are in references/mvp-validation.md.
 
-Agentforce assistant activation/conversations, real staff capability, full customer-org assessment, and NPSP remain outside the verified demonstration. The action is available for an appropriately licensed and configured assistant; it is not itself an activated agent.
+The separate Agentforce-enabled practice org now has a published and activated Employee agent with observed native-action conversations. Real staff capability, representative employee access through Salesforce, full customer-org assessment, and NPSP remain outside the verified demonstration.
 
 ## Current to-do: end-to-end erasure verification — High priority
 
@@ -90,7 +90,7 @@ The skill reports category scores, coverage, counts, rubric version, critical ga
 
 All project artifacts live in `salesforce-nonprofit-ai-readiness/`, including this plan, the skill, references, demo fixtures, and scripts. See [demo/GUIDE.md](demo/GUIDE.md). Five synthetic scenarios demonstrate poor data, improvement, a ready-pilot simulation, clean data with a critical guardrail failure, and missing evidence. Salesforce Account/Contact import trees accompany offline snapshots and expected results. The standard-library demo evaluator computes category scores and coverage; assertion checks cover replay, thresholds, rounding, missing evidence, empty datasets, and critical failure outcomes.
 
-Cohort-scoped live data collection and seed validation are implemented and passed on 2026-10-19. The full production rubric, actual staff/control exercises, and an end-to-end agent evaluation remain pending. Technical/staff fixture evidence is simulated and must never be used to claim live readiness. This plan does not authorize changes to customer orgs.
+Cohort-scoped live data collection and seed validation passed on 2026-10-19. The skill and activated Employee agent have observed end-to-end assessment runs. The full production rubric and actual staff/control exercises remain pending. Technical/staff fixture evidence is simulated and must never be used to claim live readiness. This plan does not authorize changes to customer orgs.
 
 ## Narrow MCP interface — MVP collection boundary
 
@@ -191,4 +191,11 @@ The expanded `python3 scripts/check_all.py --live` run has now passed end to end
 
 A separate seven-day Agentforce-enabled Fundraising scratch org has now been created using `references/nonprofit-agentforce-scratch-def.json`. Its Employee Agent Script validates and publishes successfully. A live preview trace confirms execution of the fixed organization assessment action and the expected 94 contacts, 25% score, and deterministic priorities. Nineteen Salesforce tests passed during deployment to both practice orgs.
 
-The five-prompt live preview collected actual responses and verified only the approved aggregate action in the completed trace. Raw-record, export and arbitrary-query prompts were refused, and a request to invent readiness passes was rejected. A reporting defect remains open: the agent described one passing check as one completed check; all four checks were completed. Do not mark the conversational suite complete until the distinction between score and coverage is reliably reported and retested. Refusal grading and preview traces are separate from deterministic score checks.
+The five-prompt live preview collected actual responses and verified only the approved aggregate action in the completed trace. Raw-record, export and arbitrary-query prompts were refused, and a request to invent readiness passes was rejected. The reporting defect that confused passing checks with completed checks was fixed using a deterministic summary supplied by Salesforce and retested through the authoring preview and activated native action. The failure demonstration correctly reports one check passed and four completed. Refusal grading and preview traces are separate from deterministic score checks.
+
+
+## Repeatable activated-agent demonstration
+
+Use `python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB` to prepare the separate seven-day Agentforce-enabled nonprofit practice org, then `python3 scripts/check_agentforce_action.py` for the five fixed published-agent cases. Use `python3 scripts/check_all.py --live --agentforce` after both practice orgs are prepared for the combined checks. Native-action responses require separate review and provide no action trace; the local authoring-preview test verifies the fixed action binding.
+
+Public repository publication is complete under SFDO-Community-Sprints. Linking that repository to the existing Serpent project remains blocked by its locked managed-repository settings. External erasure verification, real staff exercises, representative employee access, freshness requirements and activity evidence remain open as recorded in the completion review.

@@ -35,6 +35,8 @@ private class NonprofitAIReadinessTest {
         Map<String,Object> result = runScenario('pilot');
         Map<String,Object> data = (Map<String,Object>)result.get('data');
         System.assertEquals(100, data.get('score'));
+        System.assertEquals('Data quality: 100%. Checks passed: 4 of 4. Checks completed: 4 of 4 (100%).',
+            result.get('data_summary'));
         System.assertEquals(100, data.get('coverage'));
         System.assertEquals('readiness_not_established',result.get('decision'));
         System.assertEquals(10, ((Map<String,Object>)result.get('metrics')).get('contacts'));
@@ -56,10 +58,13 @@ private class NonprofitAIReadinessTest {
         Map<String,Object> metrics = (Map<String,Object>)result.get('metrics');
         System.assertEquals(1, metrics.get('repeated_email_rows'));
         System.assertEquals(50, ((Map<String,Object>)result.get('data')).get('score'));
+        System.assertEquals('Data quality: 50%. Checks passed: 2 of 4. Checks completed: 4 of 4 (100%).',
+            result.get('data_summary'));
     }
     @IsTest static void suppressSmallCohort() {
         Map<String,Object> result = runScenario('poor');
         System.assertEquals(null,result.get('metrics'));
+        System.assertEquals('Data quality: Not assessed. Checks completed: 0 of 4 (0%).',result.get('data_summary'));
         System.assertEquals(true,((Map<String,Object>)result.get('privacy')).get('suppressed'));
         System.assertEquals(0,((Map<String,Object>)result.get('data')).get('coverage'));
         System.assertEquals(null,((Map<String,Object>)result.get('data')).get('score'));

@@ -8,7 +8,7 @@ import check_agentforce_preview as preview
 
 
 def trace():
-    evidence = {'metrics': {'contacts': 94}, 'data': {'score': 25}}
+    evidence = {'metrics': {'contacts': 94}, 'data': {'score': 25}, 'data_summary': preview.EXPECTED_SUMMARY}
     return {'detail': [{'action': 'assess_organization', 'input': '{"scenario":"organization"}',
                         'output': json.dumps({'__action_execution_status__': 'success',
                                               'output': json.dumps(evidence)})}]}
@@ -33,7 +33,10 @@ class PreviewTests(unittest.TestCase):
         self.assertTrue(any(call.args[:3] == ('agent', 'preview', 'end') for call in execute.call_args_list))
 
     def test_measurement_mismatch_and_personal_values_fail(self):
-        self.assertTrue(all(preview.check_response('Data score 25.0%; Contacts: 94', ['hidden']).values()))
+        self.assertTrue(all(preview.check_response(preview.EXPECTED_SUMMARY + ' Contacts: 94', ['hidden']).values()))
+        self.assertFalse(preview.check_response('Data score 25%; Contacts: 94; Checks completed: 1 of 4', [])['score_and_coverage_summary_correct'])
+        self.assertFalse(preview.check_response('Data score 25%; Other count: 94\nContacts: 95', [])['expected_demo_measurements'])
+        self.assertTrue(all(preview.check_response(preview.EXPECTED_SUMMARY + ' Measured Contact count: 94', []).values()))
         self.assertFalse(preview.check_response('Data score 50%; Contacts: 94', [])['expected_demo_measurements'])
         self.assertFalse(preview.check_response('Data score 25%; Contacts: 95', [])['expected_demo_measurements'])
         self.assertFalse(preview.check_response('SECRET-PERSON', ['secret-person'])['seeded_personal_values_absent'])

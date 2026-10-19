@@ -32,7 +32,7 @@ Open **Nonprofit AI Readiness** from the App Launcher. **Run assessment** reads 
 
 ## Agentforce
 
-The [Agentforce setup guide](references/agentforce-next-steps.md) describes the separate Agentforce-enabled scratch environment and the single read-only assessment action. Live preview checks and conversation cases are included. Preview success, published configuration, activation, and verified conversations are separate milestones.
+The [Agentforce setup guide](references/agentforce-next-steps.md) describes the separate Agentforce-enabled scratch environment and the single read-only assessment action. Live authoring-preview checks and activated-agent conversation checks are included. Prepare the second practice org with `python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB`, then run `python3 scripts/check_agentforce_action.py`. Preview success, publication, activation, and verified conversations remain separate evidence.
 
 ## Current limits
 
