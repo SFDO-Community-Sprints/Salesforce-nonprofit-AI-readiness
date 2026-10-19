@@ -1,0 +1,291 @@
+@IsTest
+private class NonprofitAIReadinessTest {
+    @TestSetup static void seed() {
+        List<Account> accounts = new List<Account>{
+            new Account(Name='SYNTHETIC AI Readiness pilot'),
+            new Account(Name='SYNTHETIC AI Readiness improving'),
+            new Account(Name='SYNTHETIC AI Readiness poor')};
+        insert accounts;
+        List<Contact> contacts = new List<Contact>();
+        for (Integer a=0; a<3; a++) {
+            for (Integer i=0; i<(a == 2 ? 4 : 10); i++) {
+                contacts.add(new Contact(AccountId=accounts[a].Id, LastName='SYNTHETIC sentinel name',
+                    Email=a == 1 && i>=8 ? null : 'sentinel-'+a+'-'+(a == 1 && i<2 ? 0 : i)+'@example.invalid',
+                    Description='SYNTHETIC safeguarding sentinel must never escape'));
+            }
+        }
+        insert contacts;
+    }
+    private static Map<String,Object> runScenario(String scenario) {
+        NonprofitAIReadiness.Request request = new NonprofitAIReadiness.Request();
+        request.scenario = scenario;
+        String output = NonprofitAIReadiness.assess(new List<NonprofitAIReadiness.Request>{request})[0].output;
+        System.assert(!output.contains('sentinel'), 'Personal sentinel values must never escape');
+        System.assert(!output.contains('@'), 'Email values must never escape');
+        return (Map<String,Object>)JSON.deserializeUntyped(output);
+    }
+    @IsTest static void lightningUsesSameBoundary() {
+        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.assessScenario('poor'));
+        System.assertEquals(null,result.get('metrics'));
+        System.assertEquals('invalid_scenario',((Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.assessScenario('untrusted'))).get('error'));
+    }
+    @IsTest static void cleanData() {
+        Map<String,Object> result = runScenario('pilot');
+        Map<String,Object> data = (Map<String,Object>)result.get('data');
+        System.assertEquals(100, data.get('score'));
+        System.assertEquals(100, data.get('coverage'));
+        System.assertEquals('readiness_not_established',result.get('decision'));
+        System.assertEquals(10, ((Map<String,Object>)result.get('metrics')).get('contacts'));
+    }
+    @IsTest static void assessAccessibleOrganizationAndOrphans() {
+        insert new Contact(LastName='SYNTHETIC orphan', Email='orphan@example.invalid');
+        Map<String,Object> result = runScenario('organization');
+        Map<String,Object> metrics = (Map<String,Object>)result.get('metrics');
+        System.assertEquals('accessible_organization_records',result.get('scope'));
+        System.assertEquals(25,metrics.get('contacts'));
+        System.assertEquals(24,metrics.get('linked_contacts'));
+        System.assertEquals(23,metrics.get('email_present'));
+        System.assertEquals(1,metrics.get('repeated_email_rows'));
+        System.assertEquals(50,((Map<String,Object>)result.get('data')).get('score'));
+        System.assertEquals('readiness_not_established',result.get('decision'));
+    }
+    @IsTest static void differentScore() {
+        Map<String,Object> result = runScenario('improving');
+        Map<String,Object> metrics = (Map<String,Object>)result.get('metrics');
+        System.assertEquals(1, metrics.get('repeated_email_rows'));
+        System.assertEquals(50, ((Map<String,Object>)result.get('data')).get('score'));
+    }
+    @IsTest static void suppressSmallCohort() {
+        Map<String,Object> result = runScenario('poor');
+        System.assertEquals(null,result.get('metrics'));
+        System.assertEquals(true,((Map<String,Object>)result.get('privacy')).get('suppressed'));
+        System.assertEquals(0,((Map<String,Object>)result.get('data')).get('coverage'));
+        System.assertEquals(null,((Map<String,Object>)result.get('data')).get('score'));
+    }
+    @IsTest static void agentReceivesDeterministicSuppressedPriorities() {
+        List<Object> suppressed = (List<Object>)runScenario('poor').get('priorities');
+        List<Object> clean = (List<Object>)runScenario('pilot').get('priorities');
+        System.assertEquals(3,suppressed.size());
+        System.assertEquals(JSON.serialize(clean),JSON.serialize(suppressed),
+            'Suppression must not leak hidden data defects through recommendations');
+        List<String> genericKeys = new List<String>{'controls','privacy','staff'};
+        for (Integer i=0;i<3;i++) {
+            Map<String,Object> item = (Map<String,Object>)suppressed[i];
+            System.assertEquals(4,item.size());
+            System.assertEquals(genericKeys[i],item.get('key'));
+            System.assertEquals(i<2 ? 'High' : 'Medium',item.get('priority'));
+            System.assertNotEquals(null,item.get('impact'));
+            System.assertNotEquals(null,item.get('recommendation'));
+        }
+    }
+    @IsTest static void agentReceivesMeasuredHighPrioritiesWithoutInventingCritical() {
+        delete [SELECT Id FROM Contact];
+        List<Contact> contacts = new List<Contact>();
+        for (Integer i=0;i<5;i++) contacts.add(new Contact(LastName='SYNTHETIC sentinel priority',
+            Email=i<2 ? 'sentinel-priority@example.invalid' : null));
+        insert contacts;
+        List<Object> items = (List<Object>)runScenario('organization').get('priorities');
+        System.assertEquals(7,items.size());
+        List<String> expectedKeys = new List<String>{'controls','privacy','email_completeness',
+            'duplicate_indicator','account_linkage','staff','sufficient_data'};
+        for (Integer i=0;i<items.size();i++) {
+            Map<String,Object> item = (Map<String,Object>)items[i];
+            System.assertEquals(expectedKeys[i],item.get('key'));
+            System.assertEquals(i<5 ? 'High' : i==5 ? 'Medium' : 'Low',item.get('priority'));
+        }
+    }
+    @IsTest static void rejectInputsAndMissingCohort() {
+        System.assertEquals('invalid_scenario',runScenario('pilot WHERE Name != null').get('error'));
+        System.assertEquals('cohort_unavailable',runScenario('blocked').get('error'));
+        System.assertEquals(0,NonprofitAIReadiness.assess(null).size());
+        System.assertEquals(true,NonprofitAIReadiness.assess(new List<NonprofitAIReadiness.Request>{null})[0].output.contains('invalid_scenario'));
+    }
+    @IsTest static void restrictedUserGetsSanitizedDenial() {
+        Profile profile = [SELECT Id FROM Profile WHERE Name='Minimum Access - Salesforce' LIMIT 1];
+        String uniqueName = 'readiness-denied-'+UserInfo.getOrganizationId()+'@example.invalid';
+        User restricted = new User(ProfileId=profile.Id, Username=uniqueName,
+            Email='restricted@example.invalid', LastName='SYNTHETIC restricted', Alias='rdydny',
+            TimeZoneSidKey='Europe/Amsterdam',LocaleSidKey='en_US',
+            EmailEncodingKey='UTF-8',LanguageLocaleKey='en_US');
+        insert restricted;
+        System.runAs(restricted) {
+            String output = NonprofitAIReadiness.assessScenario('organization');
+            System.assertEquals('assessment_unavailable',
+                ((Map<String,Object>)JSON.deserializeUntyped(output)).get('error'));
+            System.assert(!output.contains('SYNTHETIC'));
+            System.assert(!output.contains('SELECT'));
+            String taskOutput = NonprofitAIReadiness.createFollowUpTasks();
+            System.assertEquals('task_creation_unavailable',
+                ((Map<String,Object>)JSON.deserializeUntyped(taskOutput)).get('error'));
+            System.assert(!taskOutput.contains('SELECT'));
+            String inventoryOutput = NonprofitAIReadiness.capabilityInventory();
+            System.assert(!inventoryOutput.contains('SELECT'));
+            System.assert(!inventoryOutput.contains('@'));
+            System.assert(!inventoryOutput.contains('sentinel'));
+            System.assertEquals(3,((List<Object>)((Map<String,Object>)
+                JSON.deserializeUntyped(inventoryOutput)).get('capabilities')).size());
+        }
+    }
+    @IsTest static void followUpTasksBelongToRunnerAndAreReused() {
+        Map<String,Object> first = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.createFollowUpTasks());
+        System.assertEquals(4,first.get('created'));
+        System.assertEquals(0,first.get('reused'));
+        List<Task> tasks = [SELECT Id,OwnerId,Subject,Description,Status,Priority FROM Task];
+        System.assertEquals(4,tasks.size());
+        for (Task task : tasks) {
+            System.assertEquals(UserInfo.getUserId(),task.OwnerId);
+            System.assert(task.Subject.startsWith('AI Readiness: '));
+            System.assert(task.Description.contains('https://trailhead.salesforce.com/') ||
+                task.Description.contains('https://www.edpb.europa.eu/'));
+            System.assertEquals('Not Started',task.Status);
+            System.assert(task.Description.startsWith('Assessment priority: '));
+            System.assert(task.Description.contains('Impact: '));
+            System.assertEquals(task.Subject.contains('safeguards') || task.Subject.contains('erasure') ? 'High' : 'Normal',task.Priority);
+        }
+        Map<String,Object> second = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.createFollowUpTasks());
+        System.assertEquals(0,second.get('created'));
+        System.assertEquals(4,second.get('reused'));
+        System.assertEquals(0,second.get('updated'));
+        tasks[0].Description='Old task recommendation';
+        tasks[0].Priority='Low';
+        update tasks[0];
+        Map<String,Object> refreshed = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.createFollowUpTasks());
+        System.assertEquals(0,refreshed.get('created'));
+        System.assertEquals(1,refreshed.get('updated'));
+        System.assert([SELECT Description FROM Task WHERE Id=:tasks[0].Id].Description.startsWith('Assessment priority: '));
+    }
+    @IsTest static void dataSeverityReflectsMeasuredImpact() {
+        delete [SELECT Id FROM Contact];
+        List<Contact> contacts = new List<Contact>();
+        for (Integer i=0;i<5;i++) contacts.add(new Contact(LastName='SYNTHETIC priority',
+            Email=i<2 ? 'priority@example.invalid' : null));
+        insert contacts;
+        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.createFollowUpTasks());
+        System.assertEquals(7,result.get('created'));
+        Map<String,String> priorities = new Map<String,String>();
+        for (Task task : [SELECT Subject,Priority,Description FROM Task]) {
+            priorities.put(task.Subject,task.Priority);
+            System.assert(!task.Description.startsWith('Assessment priority: Critical'));
+        }
+        System.assertEquals('High',priorities.get('AI Readiness: Review missing contact emails'));
+        System.assertEquals('High',priorities.get('AI Readiness: Review possible duplicate contacts'));
+        System.assertEquals('High',priorities.get('AI Readiness: Review unlinked contacts'));
+        System.assertEquals('Low',priorities.get('AI Readiness: Confirm representative assessment data'));
+    }
+    @IsTest static void suppressedAssessmentCreatesNoTasks() {
+        delete [SELECT Id FROM Contact];
+        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
+            NonprofitAIReadiness.createFollowUpTasks());
+        System.assertEquals('assessment_unavailable',result.get('error'));
+        System.assertEquals(0,[SELECT COUNT() FROM Task]);
+    }
+    @IsTest static void inventoryContainsOnlyAggregateEvidence() {
+        String output = NonprofitAIReadiness.capabilityInventory();
+        System.assert(!output.contains('sentinel'));
+        System.assert(!output.contains('@'));
+        Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(output);
+        System.assert(((String)result.get('limitations')).contains('do not prove activity'));
+        List<Object> capabilities = (List<Object>)result.get('capabilities');
+        System.assertEquals(3,capabilities.size());
+        for (Object entry : capabilities) {
+            Map<String,Object> capability = (Map<String,Object>)entry;
+            System.assertEquals('not_verified',capability.get('usage'));
+            System.assertEquals(null,capability.get('visibleRecords'));
+        }
+        for (Object entry : (List<Object>)result.get('licenses')) {
+            Map<String,Object> license = (Map<String,Object>)entry;
+            System.assert(((Decimal)license.get('remaining')) >= 0);
+            System.assertEquals(6,license.size());
+            System.assertNotEquals(null,license.get('relevance'));
+        }
+    }
+    @IsTest static void deletionLifecycleExcludesDeletedContact() {
+        Map<String,Object> beforeResult = runScenario('organization');
+        Decimal beforeCount = (Decimal)((Map<String,Object>)beforeResult.get('metrics')).get('contacts');
+        Contact fictional = new Contact(LastName='SYNTHETIC erasure sentinel',
+            Email='erasure-sentinel@example.invalid');
+        insert fictional;
+        Map<String,Object> insertedResult = runScenario('organization');
+        System.assertEquals(beforeCount+1,
+            ((Map<String,Object>)insertedResult.get('metrics')).get('contacts'));
+        delete fictional;
+        Map<String,Object> afterResult = runScenario('organization');
+        System.assertEquals(beforeCount,
+            ((Map<String,Object>)afterResult.get('metrics')).get('contacts'));
+        // Soft deletion excludes current aggregates but remains recoverable, not legal erasure.
+        System.assertEquals(1,[SELECT COUNT() FROM Contact WHERE Id=:fictional.Id AND IsDeleted=true ALL ROWS]);
+        String output = NonprofitAIReadiness.assessScenario('organization');
+        System.assert(!output.contains('erasure-sentinel'));
+        System.assert(!output.contains('SYNTHETIC erasure'));
+    }
+    @IsTest static void licenseRelevanceFiltersUnrelatedProducts() {
+        for (String label : new List<String>{'Salesforce','Agentforce','Einstein GPT','Copilot',
+            'Prompt Builder','Data Cloud','Customer Data Platform','Fundraising','Digital Agent Fundraising'}) {
+            System.assertNotEquals(null,NonprofitAIReadiness.licenseRelevance(label),label);
+        }
+        for (String label : new List<String>{'Chatter Free','Identity','Customer Community',
+            'Health Cloud','Financial Services Cloud','Code Builder','Salesforce Integration'}) {
+            System.assertEquals(null,NonprofitAIReadiness.licenseRelevance(label),label);
+        }
+        System.assertEquals(null,NonprofitAIReadiness.licenseRelevance(null));
+        System.assert(NonprofitAIReadiness.licenseRelevance('Digital Agent Fundraising').contains('does not prove'));
+    }
+    @IsTest static void readOnlyAssessorCannotCreateFollowUpTasks() {
+        Profile profile = [SELECT Id FROM Profile WHERE Name='Minimum Access - Salesforce' LIMIT 1];
+        User assessor = new User(ProfileId=profile.Id,
+            Username='readiness-readonly-'+UserInfo.getOrganizationId()+'@example.invalid',
+            Email='readonly@example.invalid',LastName='SYNTHETIC read-only',Alias='rdyread',
+            TimeZoneSidKey='Europe/Amsterdam',LocaleSidKey='en_US',
+            EmailEncodingKey='UTF-8',LanguageLocaleKey='en_US');
+        insert assessor;
+        PermissionSet readOnly = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Assessor' LIMIT 1];
+        insert new PermissionSetAssignment(AssigneeId=assessor.Id,PermissionSetId=readOnly.Id);
+        System.runAs(assessor) {
+            List<Contact> fictional = new List<Contact>();
+            for (Integer i=0;i<10;i++) fictional.add(new Contact(OwnerId=assessor.Id,
+                LastName='SYNTHETIC read-only sentinel',Email='readonly-'+i+'@example.invalid'));
+            // System-mode fixture setup does not grant the assessor write permissions.
+            insert fictional;
+            String assessmentOutput = NonprofitAIReadiness.assessScenario('organization');
+            Map<String,Object> assessment = (Map<String,Object>)JSON.deserializeUntyped(assessmentOutput);
+            System.assert(!assessment.containsKey('error'),'Read-only assessor must collect aggregate evidence');
+            System.assert(((Decimal)((Map<String,Object>)assessment.get('metrics')).get('contacts')) >= 10);
+            String taskOutput = NonprofitAIReadiness.createFollowUpTasks();
+            System.assertEquals('task_creation_unavailable',
+                ((Map<String,Object>)JSON.deserializeUntyped(taskOutput)).get('error'));
+            System.assert(!taskOutput.contains('SELECT'));
+            System.assert(!taskOutput.contains('sentinel'));
+            System.assert(!taskOutput.contains('@'));
+        }
+        System.assertEquals(0,[SELECT COUNT() FROM Task WHERE OwnerId=:assessor.Id]);
+    }
+    @IsTest static void cacheBatchQueries() {
+        NonprofitAIReadiness.Request request = new NonprofitAIReadiness.Request();
+        request.scenario='pilot';
+        Test.startTest();
+        List<NonprofitAIReadiness.Response> results = NonprofitAIReadiness.assess(
+            new List<NonprofitAIReadiness.Request>{request,request});
+        System.assertEquals(3,Limits.getQueries());
+        Test.stopTest();
+        System.assertEquals(2,results.size());
+        System.assertEquals(results[0].output,results[1].output);
+    }
+    @IsTest static void unlimitedLicenseDoesNotLookLikeZeroSpareSeats() {
+        Map<String,Object> row = NonprofitAIReadiness.licenseRow('Example',-1,3,'user');
+        System.assertEquals(null,row.get('total'));
+        System.assertEquals(null,row.get('remaining'));
+        System.assertEquals(3,row.get('assigned'));
+    }
+    @IsTest static void standardTaskPriorityMapping() {
+        System.assertEquals('High',NonprofitAIReadiness.taskPriority('Critical'));
+        System.assertEquals('High',NonprofitAIReadiness.taskPriority('High'));
+        System.assertEquals('Normal',NonprofitAIReadiness.taskPriority('Medium'));
+        System.assertEquals('Low',NonprofitAIReadiness.taskPriority('Low'));
+    }
+}

@@ -1,0 +1,95 @@
+{
+  "records": [
+    {
+      "attributes": {
+        "type": "Account",
+        "referenceId": "DemoAccount"
+      },
+      "Name": "SYNTHETIC AI Readiness pilot",
+      "Contacts": {
+        "records": [
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact1"
+            },
+            "LastName": "SYNTHETIC pilot Donor 1",
+            "Email": "pilot-donor-0@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact2"
+            },
+            "LastName": "SYNTHETIC pilot Donor 2",
+            "Email": "pilot-donor-1@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact3"
+            },
+            "LastName": "SYNTHETIC pilot Donor 3",
+            "Email": "pilot-donor-2@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact4"
+            },
+            "LastName": "SYNTHETIC pilot Donor 4",
+            "Email": "pilot-donor-3@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact5"
+            },
+            "LastName": "SYNTHETIC pilot Donor 5",
+            "Email": "pilot-donor-4@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact6"
+            },
+            "LastName": "SYNTHETIC pilot Donor 6",
+            "Email": "pilot-donor-5@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact7"
+            },
+            "LastName": "SYNTHETIC pilot Donor 7",
+            "Email": "pilot-donor-6@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact8"
+            },
+            "LastName": "SYNTHETIC pilot Donor 8",
+            "Email": "pilot-donor-7@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact9"
+            },
+            "LastName": "SYNTHETIC pilot Donor 9",
+            "Email": "pilot-donor-8@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact10"
+            },
+            "LastName": "SYNTHETIC pilot Donor 10",
+            "Email": "pilot-donor-9@example.invalid"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "name": "pilot",
+  "rubric_version": "donor-summary-demo-v1",
+  "as_of": "2026-10-19T00:00:00Z",
+  "salesforce_tree": {
+    "records": [
+      {
+        "attributes": {
+          "type": "Account",
+          "referenceId": "DemoAccount"
+        },
+        "Name": "SYNTHETIC AI Readiness pilot",
+        "Contacts": {
+          "records": [
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact1"
+              },
+              "LastName": "SYNTHETIC pilot Donor 1",
+              "Email": "pilot-donor-0@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact2"
+              },
+              "LastName": "SYNTHETIC pilot Donor 2",
+              "Email": "pilot-donor-1@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact3"
+              },
+              "LastName": "SYNTHETIC pilot Donor 3",
+              "Email": "pilot-donor-2@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact4"
+              },
+              "LastName": "SYNTHETIC pilot Donor 4",
+              "Email": "pilot-donor-3@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact5"
+              },
+              "LastName": "SYNTHETIC pilot Donor 5",
+              "Email": "pilot-donor-4@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact6"
+              },
+              "LastName": "SYNTHETIC pilot Donor 6",
+              "Email": "pilot-donor-5@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact7"
+              },
+              "LastName": "SYNTHETIC pilot Donor 7",
+              "Email": "pilot-donor-6@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact8"
+              },
+              "LastName": "SYNTHETIC pilot Donor 8",
+              "Email": "pilot-donor-7@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact9"
+              },
+              "LastName": "SYNTHETIC pilot Donor 9",
+              "Email": "pilot-donor-8@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact10"
+              },
+              "LastName": "SYNTHETIC pilot Donor 10",
+              "Email": "pilot-donor-9@example.invalid"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "simulated_evidence": {
+    "technical": {
+      "prerequisites": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "runtime_access": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "approval": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "export_block": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "stop_control": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    },
+    "staff": {
+      "scope": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "sensitive_data": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "untrusted_content": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "access": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "quality": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "review": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "incident": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    }
+  }
+}

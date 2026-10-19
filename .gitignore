@@ -1,0 +1,4 @@
+.local/
+.sf/
+.sfdx/
+__pycache__/

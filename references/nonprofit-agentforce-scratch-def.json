@@ -1,0 +1,23 @@
+{
+  "orgName": "Nonprofit AI Readiness Agent Test",
+  "edition": "Enterprise",
+  "features": [
+    "PersonAccounts",
+    "Fundraising",
+    "Einstein1AIPlatform"
+  ],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "industriesSettings": {
+      "enableFundraising": true
+    },
+    "agentPlatformSettings": {
+      "enableAgentPlatform": true
+    },
+    "einsteinGptSettings": {
+      "enableEinsteinGptPlatform": true
+    }
+  }
+}

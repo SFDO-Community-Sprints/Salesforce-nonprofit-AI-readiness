@@ -1,0 +1,83 @@
+{
+  "rubric_version": "donor-summary-demo-v1",
+  "evidence_mode": "synthetic_simulation",
+  "metrics": {
+    "contacts": 4,
+    "email_present": 1,
+    "linked_contacts": 4,
+    "repeated_email_rows": 0
+  },
+  "data": {
+    "checks": {
+      "sufficient_data": "fail",
+      "email_completeness": "fail",
+      "account_linkage": "pass",
+      "duplicate_indicator": "pass"
+    },
+    "passed": 2,
+    "applicable": 4,
+    "score": "50.0",
+    "coverage": "100.0"
+  },
+  "technical": {
+    "checks": {
+      "prerequisites": "pass",
+      "runtime_access": "unknown",
+      "approval": "fail",
+      "export_block": "fail",
+      "stop_control": "unknown"
+    },
+    "passed": 1,
+    "applicable": 5,
+    "score": "20.0",
+    "coverage": "60.0"
+  },
+  "staff": {
+    "checks": {
+      "scope": "pass",
+      "sensitive_data": "fail",
+      "untrusted_content": "fail",
+      "access": "fail",
+      "quality": "fail",
+      "review": "fail",
+      "incident": "fail"
+    },
+    "passed": 1,
+    "applicable": 7,
+    "score": "14.3",
+    "coverage": "100.0"
+  },
+  "decision": "not_ready",
+  "priorities": [
+    {
+      "key": "controls",
+      "priority": "Critical",
+      "impact": "A tested safeguard failed and can permit unauthorized or consequential actions.",
+      "recommendation": "Fix the failed safeguard and repeat the test before enabling the agent."
+    },
+    {
+      "key": "staff",
+      "priority": "Critical",
+      "impact": "A demonstrated staff knowledge gap can bypass an essential safeguard.",
+      "recommendation": "Train the affected staff and repeat the relevant guardrail exercises before access is enabled."
+    },
+    {
+      "key": "privacy",
+      "priority": "High",
+      "impact": "Sensitive-data handling and erasure have not been verified end to end.",
+      "recommendation": "Verify masking, permitted data, retention, and erasure across agent responses and logs."
+    },
+    {
+      "key": "email_completeness",
+      "priority": "High",
+      "impact": "Missing email data can make donor summaries and outreach incomplete.",
+      "recommendation": "Review missing email values using approved sources before using this data for outreach."
+    },
+    {
+      "key": "sufficient_data",
+      "priority": "Low",
+      "impact": "The sample is too small to demonstrate reliable data readiness.",
+      "recommendation": "Repeat the check with a sufficiently representative permitted sample."
+    }
+  ]
+}

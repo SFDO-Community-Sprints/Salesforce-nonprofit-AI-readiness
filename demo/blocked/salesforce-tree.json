@@ -1,0 +1,95 @@
+{
+  "records": [
+    {
+      "attributes": {
+        "type": "Account",
+        "referenceId": "DemoAccount"
+      },
+      "Name": "SYNTHETIC AI Readiness blocked",
+      "Contacts": {
+        "records": [
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact1"
+            },
+            "LastName": "SYNTHETIC blocked Donor 1",
+            "Email": "blocked-donor-0@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact2"
+            },
+            "LastName": "SYNTHETIC blocked Donor 2",
+            "Email": "blocked-donor-1@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact3"
+            },
+            "LastName": "SYNTHETIC blocked Donor 3",
+            "Email": "blocked-donor-2@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact4"
+            },
+            "LastName": "SYNTHETIC blocked Donor 4",
+            "Email": "blocked-donor-3@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact5"
+            },
+            "LastName": "SYNTHETIC blocked Donor 5",
+            "Email": "blocked-donor-4@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact6"
+            },
+            "LastName": "SYNTHETIC blocked Donor 6",
+            "Email": "blocked-donor-5@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact7"
+            },
+            "LastName": "SYNTHETIC blocked Donor 7",
+            "Email": "blocked-donor-6@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact8"
+            },
+            "LastName": "SYNTHETIC blocked Donor 8",
+            "Email": "blocked-donor-7@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact9"
+            },
+            "LastName": "SYNTHETIC blocked Donor 9",
+            "Email": "blocked-donor-8@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact10"
+            },
+            "LastName": "SYNTHETIC blocked Donor 10",
+            "Email": "blocked-donor-9@example.invalid"
+          }
+        ]
+      }
+    }
+  ]
+}

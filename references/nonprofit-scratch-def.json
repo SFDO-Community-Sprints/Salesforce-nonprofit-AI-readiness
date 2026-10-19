@@ -1,0 +1,16 @@
+{
+  "orgName": "Nonprofit AI Readiness Test",
+  "edition": "Enterprise",
+  "features": [
+    "PersonAccounts",
+    "Fundraising"
+  ],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "industriesSettings": {
+      "enableFundraising": true
+    }
+  }
+}
