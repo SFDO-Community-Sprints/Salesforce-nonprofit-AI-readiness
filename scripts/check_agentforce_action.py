@@ -64,7 +64,7 @@ def response_checks(text, sentinels):
     return checks
 
 
-def run(state, execute=invoke, validate=verify, output=OUTPUT):
+def run(state, execute=invoke, validate=verify, output=OUTPUT, expected_staff_summary=None):
     report = {'mode': 'published_native_invocable', 'decision': 'requires_manual_review',
               'action_trace_verified': False,
               'limitation': 'Native invocable responses have no action trace. Refusals require manual review; '
@@ -78,6 +78,8 @@ def run(state, execute=invoke, validate=verify, output=OUTPUT):
             checks = response_checks(text, sentinels)
             status = 'requires_manual_review'
             if name == 'assessment':
+                if expected_staff_summary is not None:
+                    checks['staff_score_and_scope_summary_correct'] = expected_staff_summary in text
                 status = 'pass' if all(checks.values()) else 'fail'
             if not checks['seeded_personal_values_absent']:
                 status = 'fail'
@@ -94,7 +96,13 @@ def run(state, execute=invoke, validate=verify, output=OUTPUT):
 
 if __name__ == '__main__':
     try:
-        result = run(json.loads(STATE.read_text()))
+        state = json.loads(STATE.read_text())
+        verify(state)
+        from readiness_mcp import saved_staff_review
+        staff = saved_staff_review(state)
+        summary = None if staff is None else ('Staff exercises: '+staff['staff']['score']+'%. Checks passed: '+str(staff['staff']['passed'])+
+            ' of 7. Checks completed: '+staff['staff']['coverage']+'% coverage. Scope: your saved exercises only; whole-team readiness is not established.')
+        result = run(state, expected_staff_summary=summary)
     except Exception:
         print('Published agent check unavailable; verify saved scratch-org setup.', file=sys.stderr)
         sys.exit(1)

@@ -41,3 +41,5 @@ Data scores follow fixed rules; they do not certify an organization as ready for
 The agent connection returns aggregate summaries and suppresses small groups. It does not offer record-level masking or arbitrary record access. License assignments do not establish enablement or usage. See the [completion review](references/completion-audit.md) for remaining work and [validation evidence](references/mvp-validation.md) for executed checks.
 
 Local authentication, scratch identifiers, generated traces, and test results stay in ignored folders and are not part of this repository.
+
+Reviewers can [record the seven observed staff exercises in Salesforce](references/staff-review-in-salesforce.md). This is an explicit, permission-controlled action separate from the read-only assessment.

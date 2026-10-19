@@ -1,5 +1,7 @@
 # MVP validation — 19 October 2026
 
+Current baseline: **76 local tests, three Node checks and 27 Salesforce tests passed**. The latest staff-integrated results and remaining scope are recorded at the end; earlier sections retain historical verification milestones.
+
 ## Completed automated checks
 
 The complete automated command passed against the prepared nonprofit scratch org:
@@ -36,7 +38,7 @@ This is desktop verification, not a completed mobile-device test. Salesforce Lig
 
 End-to-end erasure across real integrations, logs, backups, restore behavior, exports and retention rules is now an active High-priority to-do. The practice-org [configuration inventory](erasure-system-inventory.md) is complete and [concrete end-to-end test cases](erasure-test-cases.md) are recorded. The actual integration/log/backup inventory, authorized test connections and approved retention scope are still needed; a source-only deletion does not complete it.
 
-Agentforce assistant activation/conversation, staff demonstrations, full runtime access/approval/stop controls, NPSP, record-level masking, actual feature-use telemetry and production-scale validation remain separate. The Agentforce-compatible action is deployed; an assistant conversation is not claimed as tested.
+Actual staff demonstrations, full representative-runtime access/approval/stop controls, NPSP, record-level masking, actual feature-use telemetry and production-scale validation remain separate. Agentforce activation and conversations were subsequently verified in the scratch environment as recorded below; those do not establish the remaining controls.
 
 Simultaneous sessions can still race to create duplicate follow-ups. Existing exact subject matches are treated as the same open follow-up; broad historical task migration is not performed. Assessment scores apply only to the fixed MVP Contact checks and intended scope, not a complete organizational or legal compliance score.
 
@@ -52,7 +54,7 @@ Additional executable screen/Python comparisons against `demo/rubric.json` passe
 
 The live scratch exercise `python3 scripts/check_data_improvement.py` passed. Across 94 visible fictional contacts, correcting the guarded 60-contact failure set increased populated emails from 39 to 89, account relationships from 34 to 94, and reduced repeated-email rows from 10 to 1. Data score rose from 25% to 75%. The remaining repeated-email indicator belongs to the original five practice groups, so 100% is not expected. The exercise restored the original values and independently remeasured the baseline. Sanitized results are in ignored `.local/data-improvement-results.json`.
 
-The expanded `python3 scripts/check_all.py --live` run has now passed end to end, including this exercise, all 52 local tests, all 17 Salesforce tests, connected scoring, capability inventory and the source-deletion lifecycle. Latest local verification passes 52 tests and the screen/Python threshold checks. Seven new tests cover data drift, correction, restoration after failures, atomic writes, wrong-org recovery and altered recovery-record IDs.
+The expanded `python3 scripts/check_all.py --live` run has now passed end to end, including this exercise, all 52 local tests, all 17 Salesforce tests, connected scoring, capability inventory and the source-deletion lifecycle. At that historical milestone, local verification passed 52 tests and the screen/Python threshold checks. Seven new tests cover data drift, correction, restoration after failures, atomic writes, wrong-org recovery and altered recovery-record IDs.
 
 
 ## Agent response score/coverage correction
@@ -66,6 +68,16 @@ The Employee agent quotes this summary rather than recalculating it. Live previe
 
 `python3 scripts/check_all.py --live --agentforce` passed with 59 local tests and 19 Salesforce tests, including the corrected score summary, live correction/restoration, connected collection, inventory, source deletion and the activated agent's five native-action cases. Conversation meanings were reviewed separately; native responses provide no action trace.
 
-The seven new setup tests bring the latest local suite to 66 tests, and the actual setup command was run successfully against the retained Agentforce practice org. Existing cohorts and all 60 failure contacts were reused, so the accessible total remained 94. Deployment passed 19 Salesforce tests; source validation, publication and activation succeeded. The subsequent native-action run again reported 25% with one passing and four completed checks. Raw-value/export requests were refused; arbitrary-query requests produced only the permitted summary; untested readiness remained unknown.
+At that earlier setup milestone, seven new tests brought the local suite to 66 tests, and the actual setup command was run successfully against the retained Agentforce practice org. Existing cohorts and all 60 failure contacts were reused, so the accessible total remained 94. Deployment passed 19 Salesforce tests; source validation, publication and activation succeeded. The subsequent native-action run again reported 25% with one passing and four completed checks. Raw-value/export requests were refused; arbitrary-query requests produced only the permitted summary; untested readiness remained unknown.
 
 The optional beta evaluation produced no result during a verified 20-minute wait; its local client was interrupted and is not counted as passing. The installed CLI's published Employee preview error was traced to its user-mode setting. The native invocable action is the verified published-agent route. See [the assistant walkthrough](agentforce-next-steps.md).
+
+## Current staff-integrated baseline — 19 October 2026
+
+The current implementation includes the permission-controlled seven-exercise Salesforce form, saved own-review outcomes, fixed scoring, question-specific follow-ups and read-only propagation to the screen, native action, Employee assistant and restricted external connection. Reviewer confirmation remains recorded evidence, not independent verification or whole-team certification. Evidence references and source artifacts are not returned to the assistant. Native storage/sharing limits are documented in [the staff-review guide](staff-review-in-salesforce.md).
+
+The combined `python3 scripts/check_all.py --live --agentforce` run passed. The saved own review in the Agentforce org intentionally has seven unknown outcomes and 0% evidence coverage. Its assessment includes 12 priorities; no staff outcome was silently promoted to pass. The five published-agent responses were manually inspected: the assessment listed all 12 recommendations; raw-data/export requests were refused, arbitrary-query requests stayed within the permitted summary boundary, and unobserved readiness passes were rejected. These observations are separate from deterministic score checks and the earlier normal Salesforce UI conversation.
+
+The latest complete Salesforce deployment suite passed **27 tests**. After the combined run, **six targeted Salesforce tests passed in both practice orgs** for the guard-limit and related regression coverage. The final local run passed **76 tests plus three Node checks**, including the in-flight assessment/staff-save race regression. This was a targeted post-combined verification, not a claim that every live conversation was rerun after the final guards.
+
+Real staff exercises, approved evidence freshness, intended non-administrator employee access, mobile checks, feature-use evidence and complete erasure across external systems remain outstanding. Earlier 45/52/59/66/70-local and 17/19-Salesforce counts above are historical milestones, superseded by this baseline. The previously supplied Serpent project currently returns 404; its workspace org entry remains Authentication required after Serpent rejected scratch-org authentication through the sandbox flow; no working project or Salesforce-org link is verified.

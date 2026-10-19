@@ -5,9 +5,12 @@ import json
 import os
 import re
 import sys
+import subprocess
+
+from staff_readiness import KEY as STAFF_KEY, evaluate as evaluate_staff, template as staff_template
 
 from privacy import build_data_result
-from scratch_demo import SCENARIOS, STATE, query, verify
+from scratch_demo import ROOT, SCENARIOS, STATE, query, verify
 
 ASSESSMENT_SCENARIOS = [*SCENARIOS, 'organization']
 
@@ -18,7 +21,7 @@ TOOLS = [
     {'name': 'org_capabilities', 'description': 'Read AI-readiness-relevant product license allocation and fixed feature availability; assignments and available records do not establish actual feature usage.',
      'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False},
      'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
-    {'name': 'readiness_check', 'description': 'Measure accessible organization Contact records or fixed synthetic demo groups using aggregate queries only. Scope is the authenticated identity, not guaranteed whole-org access. Technical and staff readiness remain unknown.',
+    {'name': 'readiness_check', 'description': 'Measure accessible organization Contact records or fixed synthetic demo groups using aggregate queries only. Scope is the authenticated identity, not guaranteed whole-org access. Technical safeguards remain unknown; own saved reviewer-confirmed staff exercises are included when accessible.',
      'inputSchema': {'type': 'object', 'properties': {'scenario': {'type': 'string', 'enum': ASSESSMENT_SCENARIOS}},
                      'required': ['scenario'], 'additionalProperties': False},
      'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
@@ -87,6 +90,63 @@ def org_capabilities(state):
     return result
 
 
+def saved_staff_review(state):
+    """Read only the fixed assessor action; reconstruct safe canonical staff output."""
+    try:
+        process = subprocess.run(
+            ['sf', 'api', 'request', 'rest', '/services/data/v67.0/actions/custom/apex/NonprofitAIReadiness',
+             '--target-org', state['alias'], '--method', 'POST', '--header', 'Content-Type:application/json',
+             '--body', '{"inputs":[{"scenario":"organization"}]}'],
+            cwd=ROOT, capture_output=True, text=True, timeout=120)
+        if process.returncode:
+            return None
+        records = json.loads(process.stdout)
+        if type(records) is not list or len(records) != 1 or records[0].get('isSuccess') is not True:
+            return None
+        assessment = json.loads(records[0]['outputValues']['output'])
+        review = assessment.get('staff_review')
+        if review is None:
+            return None
+        allowed = {'version', 'evidence_mode', 'staff', 'critical_failures', 'follow_up',
+                   'decision', 'scope', 'limitation', 'reviewed_at'}
+        if (type(review) is not dict or set(review) != allowed
+                or review['version'] != STAFF_KEY['version']
+                or review['evidence_mode'] != 'reviewer_confirmed_observations'
+                or review['scope'] != 'reviewer_confirmed_exercises_only'):
+            return None
+        checks = review['staff']['checks']
+        question_ids = {question['id'] for question in STAFF_KEY['questions']}
+        if (type(checks) is not dict or set(checks) != question_ids
+                or any(type(status) is not str or status not in ('pass', 'fail', 'unknown') for status in checks.values())):
+            return None
+        critical = review['critical_failures']
+        allowed_critical = {question['id'] + ':' + failure['id'] for question in STAFF_KEY['questions']
+                            for failure in question['critical_failures']}
+        if (type(critical) is not list or any(type(marker) is not str or marker not in allowed_critical for marker in critical)
+                or len(critical) != len(set(critical))
+                or any(checks[marker.split(':')[0]] != 'fail' for marker in critical)):
+            return None
+        # Recompute all text and scores: source refs, messages and unclassified fields never cross this boundary.
+        snapshot = staff_template()
+        for item in snapshot['reviews']:
+            qid = item['question_id']
+            item['reviewer_confirmed'] = checks[qid] != 'unknown'
+            item['evidence_ref'] = 'confirmed_saved_review' if item['reviewer_confirmed'] else None
+            item['answer'] = 'yes' if checks[qid] == 'pass' else 'no' if checks[qid] == 'fail' else 'unknown'
+            item['actions'] = dict.fromkeys(item['actions'], 'yes' if checks[qid] == 'pass' else 'unknown')
+            item['critical_failures'] = [marker.split(':')[1] for marker in critical if marker.startswith(qid + ':')]
+        result = evaluate_staff(snapshot)
+        if result['decision'] != review['decision'] or type(review['reviewed_at']) is not str:
+            return None
+        stamp = datetime.fromisoformat(review['reviewed_at'].replace('Z', '+00:00'))
+        if stamp.tzinfo is None:
+            return None
+        result['reviewed_at'] = stamp.isoformat()
+        return result
+    except Exception:
+        return None
+
+
 def tool_call(name, arguments):
     if not isinstance(arguments, dict):
         raise ValueError('Invalid tool arguments')
@@ -125,6 +185,22 @@ def tool_call(name, arguments):
     result.update({'scenario': scenario, 'scope': 'accessible_organization_records' if scenario == 'organization' else 'fixed_synthetic_demo_cohort',
                    'source': 'salesforce', 'collected_at': datetime.now(timezone.utc).isoformat(),
                    'technical_and_staff': 'unknown; not exercised', 'decision': 'readiness_not_established'})
+    if scenario == 'organization':
+        staff = saved_staff_review(state)
+        if staff is not None:
+            result['staff_review'] = staff
+            result['staff_summary'] = ('Staff exercises: '+staff['staff']['score']+'%. Checks passed: '+str(staff['staff']['passed'])+
+                ' of 7. Checks completed: '+staff['staff']['coverage']+'% coverage. Scope: your saved exercises only; whole-team readiness is not established.')
+            result['technical_and_staff'] = 'Technical safeguards remain unknown; staff results cover only the exercise recorded by the current employee.'
+            staff_priorities = [
+                {'key': 'staff_' + item['question_id'], 'priority': item['priority'], 'impact': item['impact'],
+                 'recommendation': item['next_step'] + ' https://trailhead.salesforce.com/content/learn/modules/trusted-agentic-ai/discover-how-salesforce-builds-trusted-agentic-ai'}
+                for item in staff['follow_up']]
+            result['priorities'] = [item for item in result['priorities'] if item['key'] != 'staff'] + staff_priorities
+            order = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3}
+            result['priorities'].sort(key=lambda item: order[item['priority']])
+            if staff['critical_failures']:
+                result['decision'] = 'not_ready'
     return result
 
 

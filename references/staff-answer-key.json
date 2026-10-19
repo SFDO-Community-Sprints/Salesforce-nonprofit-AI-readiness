@@ -96,7 +96,7 @@
       "required_actions": [
         {
           "id": "map_access",
-          "criterion": "Show the approved runtime identity, permissions and integration/action boundaries."
+          "criterion": "Show which Salesforce account the assistant uses, what it can access, and which connected systems and actions are allowed."
         },
         {
           "id": "positive_probe",
@@ -108,7 +108,7 @@
         },
         {
           "id": "reject_admin_proof",
-          "criterion": "Explain why administrator success does not prove runtime restrictions."
+          "criterion": "Explain why an administrator's successful test does not prove the assistant's access is restricted."
         }
       ],
       "critical_failures": [

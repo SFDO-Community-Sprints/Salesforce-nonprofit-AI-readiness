@@ -8,9 +8,9 @@ Deliver an agent skill that assesses a Salesforce nonprofit org and its staff fo
 
 Start with [START-HERE.md](START-HERE.md) for the admin walkthrough. This project contains the skill, seven staff questions, five fictional sample groups, repeatable scoring, a restricted agent connection, an in-org results screen, and an Agentforce-compatible assessment action.
 
-The retained practice org was freshly created and seeded on 19 October 2026. Local privacy/scoring checks and live data comparisons passed; Salesforce action deployment and all 19 current Salesforce tests passed, including restricted-user and read-only-assessor write-denial tests. The results screen was exercised in Salesforce for 100%, 50%, and privacy-withheld outcomes. Final verification details are in references/mvp-validation.md.
+The retained practice org was freshly created and seeded on 19 October 2026. Local privacy/scoring checks and live data comparisons passed; Salesforce action deployment and all 27 current Salesforce tests passed, including restricted-user and read-only-assessor write-denial tests. The results screen was exercised in Salesforce for 100%, 50%, and privacy-withheld outcomes. Final verification details are in references/mvp-validation.md.
 
-The separate Agentforce-enabled practice org now has a published and activated Employee agent with observed native-action conversations. Real staff capability, representative employee access through Salesforce, full customer-org assessment, and NPSP remain outside the verified demonstration.
+The separate Agentforce-enabled practice org has a published and activated Employee agent with observed native-action conversations and a normal Salesforce header-panel conversation by the signed-in scratch administrator. Commit `b82d1fb` was the earlier 70-local/19-Salesforce milestone. The current staff-integrated baseline passes 76 local tests, three Node checks and 27 Salesforce tests, with browser and conversational observations recorded separately. Real staff capability, intended non-administrator employee access, full customer-org assessment and NPSP remain outside the verified demonstration.
 
 ## Current to-do: end-to-end erasure verification — High priority
 
@@ -27,6 +27,8 @@ Evidence and concrete procedures are tracked in [the system inventory](reference
 
 ## 1. Define the versioned assessment rubric
 
+The MVP demonstration rubric is implemented in `demo/rubric.json`; the broader customer/use-case profiles below remain to be completed.
+
 Create a machine-readable profile with stable check IDs, category, applicability, severity, evidence requirements, exact measurement, thresholds, and pass criteria. Version profiles by use case and nonprofit model. Keep queries, fixtures, scenario answer keys, and test expectations versioned alongside the rubric. Report the rubric version on every assessment.
 
 Start with three categories: data quality, technical controls, and staff readiness. Keep checks equally weighted within each category and report category scores separately. Do not introduce a blended overall score in the first version.
@@ -37,7 +39,7 @@ Select required fields and freshness thresholds for the specific use case; do no
 
 Use read-only Salesforce APIs or CLI for collection; implement scoring as ordinary code, not model judgment. Reuse existing tooling where it fits. Preserve raw numeric measurements separately from the derived status and score.
 
-Initial checks:
+Target coverage is listed below. The MVP implements the fixed Contact count, email completeness, relationship and duplicate-indicator checks; freshness and comprehensive technical/runtime coverage remain pending.
 
 | Category | Measurements or fixed tests |
 |---|---|
@@ -63,7 +65,7 @@ Example presentation: “Technical controls: 80.0% score, 90.0% coverage; pilot 
 
 Retain the existing seven topics: approved scope/human decisions, sensitive data, hallucinations/prompt injection, runtime permissions, data quality, consequential-action review, and incident response/recovery.
 
-For each question define a fictional scenario, observable required actions, a fixed answer key, evidence needed, and critical failure conditions. Map yes/partly/no/unknown answers to underlying checks explicitly; do not score self-confidence as demonstrated capability. Keep assessor decisions and evidence recorded. AI can summarize evidence, but scored judgments require the fixed rubric and accountable reviewer confirmation.
+Implemented in `references/staff-answer-key.json` and `scripts/staff_readiness.py`: seven fictional scenarios, observable required actions, fixed answer keys, evidence requirements and critical failure markers. The reviewer workflow maps yes/partly/no/unknown to underlying checks and requires confirmation plus an opaque evidence reference for conclusive results. The saved own-review form and calculated outcome display are implemented in Salesforce. Actual staff exercises and accountable evidence review remain pending; self-confidence and fictional fixtures cannot establish capability.
 
 ## 4. Separate assessment from active exercises
 
@@ -110,7 +112,7 @@ The MVP implements an aggregate-only boundary and sanitized errors; it does not 
 
 ### Deterministic acceptance tests
 
-Add a synthetic sentinel suite with fake names, email/phone/address values, beneficiary/health/safeguarding notes, custom unclassified fields, Salesforce IDs, and credential-like strings. Verify forbidden fields are rejected and no disallowed original sentinel reaches tool responses, errors, logs, traces, or persisted snapshots. Assert exact permitted response schemas and masking transformations, missing/null behavior, small-cohort suppression, per-assessment pseudonym consistency and cross-assessment separation, nested payload handling, and failure paths. Include non-pattern sensitive content to verify it is denied by policy even when a detector would miss it. Reject requests that try to override policy through parameters or record instructions.
+Aggregate-only response/input/error-stream sentinel tests are implemented and included in local verification. Broader telemetry review and all future record-level transformations remain outside that evidence. Before expanding the interface, extend the suite with fake names, email/phone/address values, beneficiary/health/safeguarding notes, custom unclassified fields, Salesforce IDs, and credential-like strings. Verify forbidden fields are rejected and no disallowed original sentinel reaches tool responses, errors, logs, traces, or persisted snapshots. Assert exact permitted response schemas and masking transformations, missing/null behavior, small-cohort suppression, per-assessment pseudonym consistency and cross-assessment separation, nested payload handling, and failure paths. Include non-pattern sensitive content to verify it is denied by policy even when a detector would miss it. Reject requests that try to override policy through parameters or record instructions.
 
 Record results as separate critical controls: classification coverage, allowlist enforcement, minimization, masking/output validation, telemetry hygiene, and suppression where applicable. A demonstrated raw-data leak blocks the pilot; an untested boundary leaves readiness not established. Never score these controls as passed from staff assurances or simulated fixture evidence. Runtime tests verify the assessed interface and version only; they do not guarantee every possible sensitive value can be detected.
 
@@ -118,13 +120,13 @@ Record results as separate critical controls: classification coverage, allowlist
 
 Included: versioned local scorer, five seed scenarios, verified scratch setup/seeding/live data checks, narrow read-only MCP, aggregate minimization, small-cohort suppression, and automated boundary tests. Test execution results are recorded separately from this scope statement.
 
-Deferred: customer/production deployment, NPSP validation, arbitrary object/schema discovery, record-level masking and pseudonymization, comprehensive inference resistance, staff demonstrations, representative-runtime permission probes, Agentforce conversation/approval/stop tests, and production certification. Live technical and staff scores remain unknown even when offline pilot fixtures score 100%. Scratch runtime credentials may be broad; the MCP method boundary does not prove a least-privilege Salesforce identity. Production deployment requires its own identity/permission design.
+Deferred: customer/production deployment, NPSP validation, arbitrary object/schema discovery, record-level masking and pseudonymization, comprehensive inference resistance, actual staff demonstrations, representative non-administrator runtime permission probes, full consequential-action approval/stop tests, and production certification. Agentforce conversations have been observed in the separate scratch environment; those observations do not complete the remaining runtime-control exercises. Live technical safeguards remain unknown. Staff scores cover only the signed-in reviewer's saved observations; missing observations remain unknown, and offline passing fixtures cannot establish actual capability. Scratch runtime credentials may be broad; the MCP method boundary does not prove a least-privilege Salesforce identity. Production deployment requires its own identity/permission design.
 
 ## In-org results and Agentforce action — implemented
 
-The Nonprofit AI Readiness app includes a native Lightning screen with Data quality, Access and safeguards, Staff readiness, and Recommended next steps. It uses the same fixed sample groups, user permissions, deterministic data checks, and summary-only boundary as the action. Small groups are withheld; no bypass is exposed inside Salesforce. The screen does not replace unknown staff or safeguard evidence with simulated passing results.
+The Nonprofit AI Readiness app includes a native Lightning screen with Data quality, Access and safeguards, Staff readiness, and Recommended next steps. It assesses Contacts accessible to the signed-in user, using the shared action's deterministic data checks and summary-only boundary. Fixed practice groups remain separate replay examples. Small groups are withheld; no bypass is exposed inside Salesforce. The screen does not replace unknown staff or safeguard evidence with simulated passing results.
 
-The shared Apex action can be selected in Agentforce Builder following references/agentforce-setup.md. No unrelated record retrieval, exports, or write actions belong in that demo agent. Activation requires verified entitlement and a separate conversational test.
+The shared Apex action can be selected in Agentforce Builder following references/agentforce-setup.md. No unrelated record retrieval, exports, or write actions belong in that demo agent. The separate Agentforce-enabled scratch org has completed publication, activation, native-action tests and a normal Salesforce header-panel conversation. These do not establish entitlement or intended-user access in another org.
 
 ## Current Salesforce assessment, follow-ups, and privacy checks
 
@@ -145,11 +147,11 @@ Run `python3 scripts/check_all.py --live` for the complete automated MVP checks.
 | Versioned scores, coverage, thresholds, rounding, empty/unknown/N/A | Local scorer assertions and five saved expected scenarios | Use-case thresholds need owner approval for customer use |
 | Read-only connection, fixed inputs, no raw values, sanitized errors | Python boundary tests and live MCP refusal checks | External logs/retention and production credential scope |
 | Salesforce screen/action/connection agreement | Live organization + fixed-example comparisons | Different sharing configurations beyond tested user |
-| User access restrictions | Restricted-user Salesforce tests, sanitized denial | Full intended Agentforce identity and conversation |
+| User access restrictions | Restricted-user Salesforce tests, sanitized denial; scratch-administrator agent conversation | Full intended non-administrator runtime identity and control exercises |
 | Relevant license inventory and no usage inference | Inclusion/exclusion tests, unlimited seats, bounded live inventory | Actual activity and AI feature activation |
 | Tasks assigned to runner and repeat-click reuse | Salesforce tests with user-mode writes | Concurrent sessions may still create duplicates |
 | Erasure lifecycle and no stale deleted-record inclusion | Salesforce rollback test + live fictional-contact soft-delete exercise | Physical erasure, backups, integrations, exports, logs and legal retention |
-| Four-card responsive screen and real Run button | Salesforce deployment and separate browser checks | Activated Agentforce conversation is separate |
+| Four-card responsive screen and real Run button | Salesforce deployment and separate desktop browser checks; activated assistant observed in normal Salesforce UI | Mobile-device checks and intended employee access remain separate |
 
 The complete automated entry point is `python3 scripts/check_all.py --live`; screen and conversational checks are never silently counted as automated passes.
 
@@ -175,19 +177,19 @@ For visible failures in the actual practice-org screen, run `python3 scripts/see
 
 ## Latest verification and remaining dependencies
 
-An independent read-only agent ran this skill against the live fictional org and produced [an observed assessment report](references/agent-assessment-report.md). The report agrees with the 25% data score, measurements and six priorities. This is one observed agent run; Agentforce conversations remain unperformed.
+An independent read-only agent ran this skill against the live fictional org and produced [an observed assessment report](references/agent-assessment-report.md). The report agrees with the 25% data score, measurements and six priorities. This is one independent skill-and-MCP agent run. Separate authoring-preview, activated native-action and normal Salesforce UI conversations have also been observed; none prove repeated model behavior.
 
-The completion review is maintained in [completion-audit.md](references/completion-audit.md). Latest local verification passes 45 tests plus screen/Python profile comparisons. The completed live run passed 17 Salesforce tests and all connected checks. Actual staff demonstrations, customer-use-case freshness requirements, external erasure evidence, an Agentforce-enabled environment and Serpent/repository setup remain open; do not mark the whole project complete from the automated results.
+The completion review is maintained in [completion-audit.md](references/completion-audit.md). The current staff-integrated baseline passes 76 local tests and three Node checks; the latest Salesforce deployment suite passed all 27 tests. Commit `b82d1fb` and its 70-local/19-Salesforce results are historical. Browser and conversation checks are separate evidence. The Agentforce-enabled environment and public SFDO-Community-Sprints repository exist. The previously supplied Serpent project now returns 404; the workspace org entry exists but remains Authentication required because Serpent rejects scratch orgs through its sandbox connection flow; no project link is verified. Actual staff demonstrations, intended employee least-privilege access, customer-use-case freshness requirements and external erasure evidence remain open; do not mark the whole project complete from these results.
 
 
 ## Live correction and restoration check — 19 October 2026
 
 The live scratch exercise `python3 scripts/check_data_improvement.py` passed. Across 94 visible fictional contacts, correcting the guarded 60-contact failure set increased populated emails from 39 to 89, account relationships from 34 to 94, and reduced repeated-email rows from 10 to 1. Data score rose from 25% to 75%. The remaining repeated-email indicator belongs to the original five practice groups, so 100% is not expected. The exercise restored the original values and independently remeasured the baseline. Sanitized results are in ignored `.local/data-improvement-results.json`.
 
-The expanded `python3 scripts/check_all.py --live` run has now passed end to end, including this exercise, all 52 local tests, all 17 Salesforce tests, connected scoring, capability inventory and the source-deletion lifecycle. Latest local verification passes 52 tests and the screen/Python threshold checks. Seven new tests cover data drift, correction, restoration after failures, atomic writes, wrong-org recovery and altered recovery-record IDs.
+At that earlier correction/restoration milestone, `python3 scripts/check_all.py --live` passed with 52 local tests and 17 Salesforce tests, connected scoring, capability inventory and the source-deletion lifecycle. Those are historical counts, superseded by the current 76-local/27-Salesforce baseline above. The correction/restoration tests cover data drift, restoration after failures, atomic writes, wrong-org recovery and altered recovery-record IDs.
 
 
-## Agentforce progress and remaining reporting check
+## Agentforce execution and reporting — verified scratch demonstration
 
 A separate seven-day Agentforce-enabled Fundraising scratch org has now been created using `references/nonprofit-agentforce-scratch-def.json`. Its Employee Agent Script validates and publishes successfully. A live preview trace confirms execution of the fixed organization assessment action and the expected 94 contacts, 25% score, and deterministic priorities. Nineteen Salesforce tests passed during deployment to both practice orgs.
 
@@ -196,6 +198,19 @@ The five-prompt live preview collected actual responses and verified only the ap
 
 ## Repeatable activated-agent demonstration
 
-Use `python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB` to prepare the separate seven-day Agentforce-enabled nonprofit practice org, then `python3 scripts/check_agentforce_action.py` for the five fixed published-agent cases. Use `python3 scripts/check_all.py --live --agentforce` after both practice orgs are prepared for the combined checks. Native-action responses require separate review and provide no action trace; the local authoring-preview test verifies the fixed action binding.
+Use `python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB` to prepare the separate seven-day Agentforce-enabled nonprofit practice org, including the specific-agent and employee-panel access for the authenticated scratch user, then `python3 scripts/check_agentforce_action.py` for the five fixed published-agent cases. The panel and assistant were observed in normal Salesforce UI under the scratch administrator; intended non-administrator employee access remains unverified. Use `python3 scripts/check_all.py --live --agentforce` after both practice orgs are prepared for the combined checks. Native-action responses require separate review and provide no action trace; the local authoring-preview test verifies the fixed action binding.
 
-Public repository publication is complete under SFDO-Community-Sprints. Linking that repository to the existing Serpent project remains blocked by its locked managed-repository settings. External erasure verification, real staff exercises, representative employee access, freshness requirements and activity evidence remain open as recorded in the completion review.
+Public repository publication is complete under SFDO-Community-Sprints. The previously supplied Serpent project now returns 404. The workspace org entry exists but remains Authentication required: Serpent rejected both initial setup and a fresh reauthentication because scratch orgs must use its scratch workflow. No working repository or Salesforce-org connection is claimed. External erasure verification, real staff exercises, intended non-administrator employee access, mobile checks, freshness requirements and activity evidence remain open as recorded in the completion review. The optional beta evaluation produced no result during a 20-minute wait and is not a passing test; remote cancellation was not established.
+
+
+## Saved staff exercises in Salesforce
+
+A seven-section reviewer form now records structured observed actions, critical failures and opaque evidence references. Saving requires the separate Readiness Staff Reviewer permission; the ordinary assessment remains read-only. Salesforce computes scores from the fixed staff-readiness-v1 answer key, stores private review records, and returns only calculated own-review outcomes. The current reviewer’s latest exercises feed the screen, shared action, restricted connection, prioritized recommendations and optional own Tasks. A complete passing exercise review does not establish whole-team capability or overall pilot readiness. Missing observations stay unknown. Fictional simulation imports are rejected as actual evidence. See [the admin walkthrough](references/staff-review-in-salesforce.md) for scope and native sharing limits.
+
+Cross-runtime verification includes a fixed 42-case staff scoring corpus; observed critical failures, missing actions, unconfirmed evidence and one-of-seven rounding are checked against Python and Salesforce. A screen regression check covers saving a critical review during an in-flight assessment. Actual team exercises, approved evidence review, representative employee access, freshness and whole-system erasure remain outstanding.
+
+## Latest staff-integrated verification
+
+`python3 scripts/check_all.py --live --agentforce` passed with the saved own-review integration. The Agentforce practice user has a saved review with all seven outcomes unknown and 0% evidence coverage; this is not a staff exercise pass. Its assessment returns 12 priorities: the data/control/privacy recommendations plus seven question-specific staff follow-ups. All five published-agent responses were manually inspected: the assessment listed all 12, unsafe raw-data/export/query requests stayed within the permitted summary boundary, and invented readiness passes were refused.
+
+After that combined run, the guard-limit and in-flight-save regression checks passed: six targeted Salesforce tests passed in both practice orgs. Final local verification passed 76 tests and all three Node checks. The latest complete Salesforce deployment suite passed 27 tests; the targeted post-combined rerun is distinct from rerunning that entire suite. Real staff observations, evidence freshness, intended non-administrator access and external erasure scope remain unverified.

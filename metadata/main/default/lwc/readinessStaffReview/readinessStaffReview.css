@@ -1,0 +1,6 @@
+.review { padding: 1.25rem; border: 1px solid #d8dde6; border-radius: .5rem; background: white; }
+.loading { position: relative; min-height: 4rem; }
+.summary { padding: .75rem; background: #f3f6fa; border-radius: .25rem; }
+.scenario { padding: .75rem; background: #f3f6fa; margin-bottom: .75rem; }
+.critical { padding: .75rem; border: 1px solid #d8dde6; }
+lightning-combobox { display: block; margin-top: .75rem; }

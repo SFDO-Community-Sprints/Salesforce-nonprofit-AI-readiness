@@ -42,9 +42,20 @@ def main():
     connected = payload(exchange([('tools/call', {'name':'readiness_check','arguments':{'scenario':'organization'}})])[0])
     if (organization['metrics'] != connected['metrics']
             or organization['data']['checks'] != connected['data']['checks']
+            or organization['decision'] != connected['decision']
             or [(item['key'],item['priority']) for item in organization['priorities']] != [(item['key'],item['priority']) for item in connected['priorities']]
             or organization['scope'] != 'accessible_organization_records'):
         raise RuntimeError('Salesforce screen/action and restricted connection do not agree')
+    if ('staff_review' in organization) != ('staff_review' in connected):
+        raise RuntimeError('Saved staff review availability differs between connection paths')
+    if 'staff_review' in organization:
+        native_staff, connected_staff = organization['staff_review'], connected['staff_review']
+        if (native_staff['staff']['checks'] != connected_staff['staff']['checks']
+                or native_staff['critical_failures'] != connected_staff['critical_failures']
+                or native_staff['decision'] != connected_staff['decision']
+                or organization['staff_summary'] != connected['staff_summary']
+                or any(float(native_staff['staff'][key]) != float(connected_staff['staff'][key]) for key in ('score','coverage'))):
+            raise RuntimeError('Saved staff review scores or scope differ between connection paths')
     score = connected['data']['score']
     if organization['data']['score'] != (None if score is None else float(score)):
         raise RuntimeError('Organization scores differ between connection paths')

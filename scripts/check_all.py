@@ -18,6 +18,8 @@ def main(live, agentforce=False):
     run('scripts/demo.py','test')
     run('scripts/demo_failures.py')
     subprocess.run(['node',str(ROOT/'scripts/check_screen_priorities.cjs')],cwd=ROOT,check=True)
+    subprocess.run(['node',str(ROOT/'scripts/check_staff_form.cjs')],cwd=ROOT,check=True)
+    subprocess.run(['node',str(ROOT/'scripts/check_staff_refresh.cjs')],cwd=ROOT,check=True)
     if not live:
         print('Local checks passed. Use --live for Salesforce, connected assessments, inventory and deletion exercises.')
         return
@@ -25,12 +27,15 @@ def main(live, agentforce=False):
     verify(state)
     run('scripts/seed_failure_demo.py')
     run('scripts/check_data_improvement.py')
-    apex=sf('apex','run','test','--class-names','NonprofitAIReadinessTest','--synchronous',
-            '--result-format','json','--target-org',state['alias'])
-    summary=apex.get('summary',{})
-    if summary.get('outcome')!='Passed':
-        raise RuntimeError('Salesforce action tests did not pass')
-    print(f'Salesforce tests: {summary.get("testsRan")} passed',flush=True)
+    tests_ran = 0
+    for test_class in ('NonprofitAIReadinessTest','ReadinessStaffReviewTest'):
+        apex=sf('apex','run','test','--class-names',test_class,'--synchronous',
+                '--result-format','json','--target-org',state['alias'])
+        summary=apex.get('summary',{})
+        if summary.get('outcome')!='Passed':
+            raise RuntimeError('Salesforce action tests did not pass')
+        tests_ran += summary['testsRan']
+    print(f'Salesforce tests: {tests_ran} passed',flush=True)
     run('scripts/run_demo.py','--live')
     run('scripts/test_salesforce_action.py')
     inventory=payload(exchange([('tools/call',{'name':'org_capabilities','arguments':{}})])[0])
@@ -44,7 +49,7 @@ def main(live, agentforce=False):
     run('scripts/check_erasure_demo.py')
     if agentforce:
         run('scripts/check_agentforce_action.py')
-    report={'automated_checks':'passed','salesforce_tests':summary.get('testsRan'),
+    report={'automated_checks':'passed','salesforce_tests':tests_ran,
             'connected_scoring':'passed','synthetic_data_correction_and_restore':'passed','capability_inventory':'passed','synthetic_deletion_exercise':'passed',
             'browser_checks':'separate_manual_evidence','agentforce_conversations':'published_action_evidence_collected_review_required' if agentforce else 'not_exercised',
             'organizational_readiness':'not_established'}

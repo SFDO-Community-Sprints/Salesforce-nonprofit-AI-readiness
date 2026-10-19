@@ -69,6 +69,14 @@ class PublishedActionTests(unittest.TestCase):
         self.assertFalse(result['action_trace_verified'])
         self.assertTrue(all(case['status'] == 'requires_manual_review' for case in result['cases'][1:]))
 
+    def test_saved_staff_summary_must_be_reported_when_present(self):
+        summary = 'Staff exercises: 0.0%. Checks passed: 0 of 7. Checks completed: 0.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.'
+        with tempfile.TemporaryDirectory() as directory:
+            for text, expected in ((TEXT, 'fail'), (TEXT+' '+summary, 'pass')):
+                result = action.run({'alias': 'fictional'}, lambda alias, prompt: {'response': text, 'session_id': 'fake'},
+                    lambda state: None, Path(directory) / 'result.json', expected_staff_summary=summary)
+                self.assertEqual(result['cases'][0]['status'], expected)
+
 
 if __name__ == '__main__':
     unittest.main()

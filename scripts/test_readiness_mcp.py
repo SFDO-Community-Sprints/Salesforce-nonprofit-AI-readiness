@@ -17,6 +17,11 @@ def request(name='readiness_check', arguments=None):
 
 
 class McpTests(unittest.TestCase):
+    def setUp(self):
+        self.staff_patch = patch.object(mcp, 'saved_staff_review', return_value=None)
+        self.staff_patch.start()
+        self.addCleanup(self.staff_patch.stop)
+
     def reject(self, req):
         stdout, stderr = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):

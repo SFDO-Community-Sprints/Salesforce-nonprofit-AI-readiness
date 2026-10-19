@@ -28,6 +28,11 @@ def request(arguments):
 
 
 class SensitiveMatrixTests(unittest.TestCase):
+    def setUp(self):
+        self.staff_patch = patch.object(mcp, 'saved_staff_review', return_value=None)
+        self.staff_patch.start()
+        self.addCleanup(self.staff_patch.stop)
+
     def test_all_raw_fields_rejected_without_echo(self):
         for key, sentinel in SENTINELS.items():
             with self.subTest(field=key):

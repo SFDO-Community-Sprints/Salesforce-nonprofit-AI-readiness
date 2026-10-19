@@ -293,4 +293,62 @@ private class NonprofitAIReadinessTest {
         System.assertEquals('Normal',NonprofitAIReadiness.taskPriority('Medium'));
         System.assertEquals('Low',NonprofitAIReadiness.taskPriority('Low'));
     }
+    private static void saveStaffExercise(Boolean critical) {
+        Map<String,Object> key = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getQuestions());
+        List<Object> reviews = new List<Object>();
+        for (Object value : (List<Object>)key.get('questions')) {
+            Map<String,Object> question = (Map<String,Object>)value;
+            Map<String,String> actions = new Map<String,String>();
+            for (Object action : (List<Object>)question.get('required_actions')) {
+                actions.put((String)((Map<String,Object>)action).get('id'),'yes');
+            }
+            List<String> failures = new List<String>();
+            if (critical && question.get('id') == 'sensitive_data') {
+                failures.add((String)((Map<String,Object>)((List<Object>)question.get('critical_failures'))[0]).get('id'));
+            }
+            reviews.add(new Map<String,Object>{'question_id'=>question.get('id'),'answer'=>'yes',
+                'reviewer_confirmed'=>true,'evidence_ref'=>'PRIVATE_REVIEW_REFERENCE_SENTINEL',
+                'actions'=>actions,'critical_failures'=>failures});
+        }
+        insert new AI_Readiness_Staff_Review__c(Version__c=(String)key.get('version'),
+            Snapshot__c=JSON.serialize(new Map<String,Object>{'version'=>key.get('version'),'mode'=>'actual','reviews'=>reviews}));
+    }
+    @IsTest static void organizationUsesOnlyOwnSafeStaffExercise() {
+        saveStaffExercise(false);
+        Map<String,Object> result = runScenario('organization');
+        System.assert(result.containsKey('staff_review'));
+        Map<String,Object> review = (Map<String,Object>)result.get('staff_review');
+        System.assertEquals(100,((Map<String,Object>)review.get('staff')).get('score'));
+        System.assertEquals('Staff exercises: 100.0%. Checks passed: 7 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
+            result.get('staff_summary'));
+        System.assertEquals('readiness_not_established',result.get('decision'));
+        for (Object value : (List<Object>)result.get('priorities')) {
+            System.assert(!((String)((Map<String,Object>)value).get('key')).startsWith('staff'));
+        }
+        System.assert(!JSON.serialize(result).contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
+        Map<String,Object> practice = runScenario('pilot');
+        System.assert(!practice.containsKey('staff_review'),'Fixed demo groups must not use actual staff reviews');
+        System.assert(!practice.containsKey('staff_summary'));
+        System.assertEquals(3,((List<Object>)practice.get('priorities')).size());
+    }
+    @IsTest static void observedCriticalStaffFailureBlocksAndCreatesTargetedHighTask() {
+        saveStaffExercise(true);
+        Map<String,Object> result = runScenario('organization');
+        System.assertEquals('not_ready',result.get('decision'));
+        System.assertEquals('Staff exercises: 85.7%. Checks passed: 6 of 7. Checks completed: 100.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.',
+            result.get('staff_summary'));
+        Map<String,Object> first = (Map<String,Object>)((List<Object>)result.get('priorities'))[0];
+        System.assertEquals('staff_sensitive_data',first.get('key'));
+        System.assertEquals('Critical',first.get('priority'));
+        System.assert(((String)first.get('recommendation')).contains('https://trailhead.salesforce.com/'));
+        Map<String,Object> tasks = (Map<String,Object>)JSON.deserializeUntyped(NonprofitAIReadiness.createFollowUpTasks());
+        System.assert(!tasks.containsKey('error'));
+        List<Task> targeted = [SELECT Priority,Description FROM Task WHERE Subject='AI Readiness: Practice sensitive data handling'];
+        System.assertEquals(1,targeted.size());
+        System.assertEquals('High',targeted[0].Priority);
+        System.assert(targeted[0].Description.contains('Assessment priority: Critical'));
+        System.assert(!targeted[0].Description.contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
+        System.assertEquals(0,[SELECT COUNT() FROM Task WHERE Subject='AI Readiness: Complete staff readiness practice']);
+    }
+
 }

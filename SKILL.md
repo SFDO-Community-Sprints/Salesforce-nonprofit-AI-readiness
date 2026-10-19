@@ -48,7 +48,7 @@ Verify changing feature and licensing requirements against current sources:
 
 ## Project plan and score demonstrations
 
-See [PLAN.md](PLAN.md) for implementation scope and [demo/GUIDE.md](demo/GUIDE.md) for synthetic seed data, a versioned demo rubric, expected scores, and replay commands. Use `scripts/demo.py score <fixture.json>` only for these explicitly simulated assessments. Report deterministic category scores when demonstrating fixtures and the available live aggregate data checks. Live technical and staff readiness remains unknown; use the evidence-based conclusions above. Never present fixture control/staff results as observed org evidence.
+See [PLAN.md](PLAN.md) for implementation scope and [demo/GUIDE.md](demo/GUIDE.md) for synthetic seed data, a versioned demo rubric, expected scores, and replay commands. Use `scripts/demo.py score <fixture.json>` only for these explicitly simulated assessments. Report deterministic category scores when demonstrating fixtures and the available live aggregate data checks. Live technical readiness remains unknown. A saved staff review reports only the current reviewer’s exercises; absent or incomplete review evidence leaves staff capability unestablished. Use the evidence-based conclusions above. Never present fixture control/staff results as observed org evidence.
 
 ## Collection interface
 
@@ -84,3 +84,5 @@ Run `python3 scripts/demo_failures.py` from the project folder. It compares fict
 Compare staff improvement with `python3 scripts/staff_readiness.py evaluate demo/staff-ready.json`. For an actual staff review, start with `python3 scripts/staff_readiness.py template`; a reviewer must confirm observed actions and supply an opaque evidence reference. Never substitute demo answers for staff observations.
 
 The versioned scoring rules are in `demo/rubric.json`. The erasure checklist measures evidence coverage and keeps overall erasure unassessed until actual systems and outcomes have been verified. Importing demo records cannot turn off safeguards or establish erasure readiness.
+
+Saved staff reviews use [the structured Salesforce reviewer workflow](references/staff-review-in-salesforce.md). Report its scope and saved time, score and coverage separately from data scores. A reviewer assertion is not independent verification or evidence that all staff are trained. Preserve observed critical failures and their priorities. Never reveal evidence references or source training documents to the agent.

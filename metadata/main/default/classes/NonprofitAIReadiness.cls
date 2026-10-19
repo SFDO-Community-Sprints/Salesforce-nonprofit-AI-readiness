@@ -4,7 +4,7 @@ public with sharing class NonprofitAIReadiness {
         public String scenario;
     }
     public class Response {
-        @InvocableVariable(label='Assessment summary' description='Data readiness results only. Technical and staff readiness remain unknown.')
+        @InvocableVariable(label='Assessment summary' description='Data readiness and the current employee recorded staff exercise only. Technical safeguards remain unknown.')
         public String output;
     }
     private static final Set<String> SCENARIOS = new Set<String>{'organization','poor','improving','pilot','blocked','unknown'};
@@ -99,6 +99,13 @@ public with sharing class NonprofitAIReadiness {
             'controls'=>'AI Readiness: Review access and safeguards',
             'privacy'=>'AI Readiness: Review erasure request process',
             'staff'=>'AI Readiness: Complete staff readiness practice',
+            'staff_scope'=>'AI Readiness: Practice approved AI scope',
+            'staff_sensitive_data'=>'AI Readiness: Practice sensitive data handling',
+            'staff_untrusted_content'=>'AI Readiness: Practice untrusted content handling',
+            'staff_access'=>'AI Readiness: Practice access boundaries',
+            'staff_quality'=>'AI Readiness: Practice data quality review',
+            'staff_review'=>'AI Readiness: Practice human review',
+            'staff_incident'=>'AI Readiness: Practice incident response',
             'sufficient_data'=>'AI Readiness: Confirm representative assessment data',
             'email_completeness'=>'AI Readiness: Review missing contact emails',
             'account_linkage'=>'AI Readiness: Review unlinked contacts',
@@ -162,6 +169,44 @@ public with sharing class NonprofitAIReadiness {
             }
         }
         return priorities;
+    }
+
+    private static void applyStaffReview(Map<String,Object> assessment) {
+        Map<String,Object> review;
+        try {
+            String saved = ReadinessStaffReview.getLatestReview();
+            if (saved == null) return;
+            review = (Map<String,Object>)JSON.deserializeUntyped(saved);
+            if (review.containsKey('error')) return;
+        } catch (Exception ignored) {
+            return;
+        }
+        List<Map<String,String>> items = new List<Map<String,String>>();
+        for (Map<String,String> item : (List<Map<String,String>>)assessment.get('priorities')) {
+            if (item.get('key') != 'staff') items.add(item);
+        }
+        Map<String,String> subjects = recommendationSubjects();
+        for (Object entry : (List<Object>)review.get('follow_up')) {
+            Map<String,Object> followUp = (Map<String,Object>)entry;
+            String key = 'staff_'+(String)followUp.get('question_id');
+            if (!subjects.containsKey(key)) continue;
+            items.add(new Map<String,String>{'key'=>key,'priority'=>(String)followUp.get('priority'),
+                'impact'=>(String)followUp.get('impact'),
+                'recommendation'=>(String)followUp.get('next_step')+
+                    ' https://trailhead.salesforce.com/content/learn/modules/trusted-agentic-ai/discover-how-salesforce-builds-trusted-agentic-ai'});
+        }
+        List<Map<String,String>> sorted = new List<Map<String,String>>();
+        for (String priority : new List<String>{'Critical','High','Medium','Low'}) {
+            for (Map<String,String> item : items) if (item.get('priority') == priority) sorted.add(item);
+        }
+        assessment.put('priorities',sorted);
+        assessment.put('staff_review',review);
+        Map<String,Object> staff = (Map<String,Object>)review.get('staff');
+        assessment.put('staff_summary','Staff exercises: '+String.valueOf(staff.get('score'))+
+            '%. Checks passed: '+String.valueOf(staff.get('passed'))+' of 7. Checks completed: '+
+            String.valueOf(staff.get('coverage'))+'% coverage. Scope: your saved exercises only; whole-team readiness is not established.');
+        assessment.put('technical_and_staff','Technical safeguards remain unknown; staff results cover only the exercise recorded by the current employee.');
+        if (!((List<Object>)review.get('critical_failures')).isEmpty()) assessment.put('decision','not_ready');
     }
 
     @TestVisible private static String taskPriority(String severity) {
@@ -281,7 +326,7 @@ public with sharing class NonprofitAIReadiness {
             checks.put('duplicate_indicator', repeated == 0 ? 'pass' : 'fail');
             for (String status : checks.values()) if (status == 'pass') passed++;
         }
-        return new Map<String,Object>{
+        Map<String,Object> assessment = new Map<String,Object>{
             'rubric_version'=>'donor-summary-demo-v1', 'evidence_mode'=>'live_aggregate',
             'scenario'=>scenario, 'scope'=>organization ? 'accessible_organization_records' : 'fixed_synthetic_demo_cohort',
             'coverage_note'=>'Only records accessible to the current user are assessed; this is not proof of complete organization visibility.',
@@ -298,5 +343,7 @@ public with sharing class NonprofitAIReadiness {
             'priorities'=>assessmentPriorities(checks,suppressed ? null : new Map<String,Object>{
                 'contacts'=>n,'email_present'=>populated,'linked_contacts'=>linked,'repeated_email_rows'=>repeated})
         };
+        if (organization) applyStaffReview(assessment);
+        return assessment;
     }
 }

@@ -55,6 +55,15 @@ export default class NonprofitAIReadiness extends LightningElement {
     taskError;
     inventory;
     inventoryError;
+    staffReview;
+    refreshAfterAssessment = false;
+    get staffScore() { return this.staffReview?.staff?.score == null ? 'Not assessed' : `${this.staffReview.staff.score}%`; }
+    get staffCoverage() { return this.staffReview ? `Checks completed: ${this.staffReview.staff.coverage}%. Your reviewed exercises only.` : 'Staff practice and review required'; }
+    async handleStaffReview(event) {
+        this.staffReview = event.detail;
+        if (this.loading) { this.refreshAfterAssessment = true; return; }
+        if (this.result) { await this.handleRun(); }
+    }
     get licenses() { return (this.inventory?.licenses || []).map(item => ({ ...item, total: item.total == null ? 'Not specified' : item.total, remaining: item.remaining == null ? 'Not specified' : item.remaining, key: `${item.kind}:${item.name}` })); }
     get capabilities() {
         return (this.inventory?.capabilities || []).map(item => ({
@@ -82,9 +91,14 @@ export default class NonprofitAIReadiness extends LightningElement {
         ];
     }
     get banner() {
+        if (this.result?.staff_review?.critical_failures?.length) {
+            return 'An observed unsafe action in your staff review blocks a pilot. Correct it and repeat the exercise. Access safeguards and complete erasure still need review.';
+        }
         return this.suppressed
             ? 'Not assessed: fewer than five accessible contacts. Counts and scores are withheld to protect personal information.'
-            : 'More checks are needed before an AI pilot. These results cover contact data only; access, safeguards and staff readiness and erasure procedures still need review.';
+            : this.result?.staff_review
+                ? 'More checks are needed before an AI pilot. Staff scores cover only your saved exercises; whole-team readiness, access safeguards and complete erasure are not established.'
+                : 'More checks are needed before an AI pilot. These results cover contact data only; access, safeguards and staff readiness and erasure procedures still need review.';
     }
     get checks() {
         return Object.entries(this.result?.data?.checks || {}).map(([key, status]) => ({
@@ -105,13 +119,22 @@ export default class NonprofitAIReadiness extends LightningElement {
                 .forEach(([key]) => actions.push({ key, owner: 'Data owner', text: ACTIONS[key] }));
         }
         const order = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+        if (this.result?.staff_review) {
+            const generic = actions.findIndex(action => action.key === 'staff');
+            if (generic >= 0) { actions.splice(generic, 1); }
+            (this.result.priorities || []).filter(item => item.key.startsWith('staff_')).forEach(item => {
+                actions.push({ key: item.key, owner: 'Training lead', text: item.recommendation.replace(` ${LEARNING.staff.url}`, ''),
+                    reviewedPriority: item.priority, reviewedImpact: item.impact });
+            });
+        }
         return actions.map(action => {
-            const details = priorityDetails(action.key, this.result?.metrics || {});
+            const details = action.reviewedPriority ? { priority: action.reviewedPriority, impact: action.reviewedImpact }
+                : priorityDetails(action.key, this.result?.metrics || {});
             return {
                 ...action,
                 ...details,
                 priorityClass: `priority-badge ${details.priority.toLowerCase()}`,
-                learning: LEARNING[action.key] || (action.key === 'duplicate_indicator' ? LEARNING.duplicates : LEARNING.data)
+                learning: LEARNING[action.key] || (action.key.startsWith('staff_') ? LEARNING.staff : action.key === 'duplicate_indicator' ? LEARNING.duplicates : LEARNING.data)
             };
         }).sort((a, b) => order[a.priority] - order[b.priority]);
     }
@@ -162,12 +185,17 @@ export default class NonprofitAIReadiness extends LightningElement {
             const result = JSON.parse(await assess({ scenario: 'organization' }));
             if (result.error) { throw new Error('Assessment unavailable'); }
             this.result = result;
+            this.staffReview = result.staff_review || undefined;
             this.lastChecked = new Date().toLocaleString();
         } catch (error) {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
             await inventoryRequest;
             this.loading = false;
+            if (this.refreshAfterAssessment) {
+                this.refreshAfterAssessment = false;
+                await this.handleRun();
+            }
         }
     }
 }

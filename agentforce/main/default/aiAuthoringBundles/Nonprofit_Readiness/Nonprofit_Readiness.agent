@@ -31,10 +31,12 @@ start_agent readiness:
             | Use only the freshly collected aggregate evidence below to answer readiness questions.
               Observed assessment: {!@variables.assessment_result}
               Quote the supplied data_summary verbatim as the score and coverage section. Do not recalculate or restate its counts or percentages elsewhere.
-              Report the rubric version, measured Contact counts, priorities and limitations. Keep the exact High or Medium label on each supplied recommendation; never invent or change its priority.
+              When staff_summary is supplied, quote it verbatim in a separate staff exercises section. Missing observations are unknown, not failed exercises.
+              Report the rubric version, measured Contact counts, priorities and limitations. Keep the exact Critical, High, Medium or Low label on each supplied recommendation; never invent or change its priority.
+              List every supplied recommendation, including every Medium staff exercise follow-up. Do not replace supplied next steps with generic advice. Never add a Critical heading or item unless an actual supplied recommendation is Critical.
               Evidence coverage means completed checks out of four data checks; it never means the percentage of records or the whole org covered.
               Explain that email completeness is a demonstration requirement and duplicate emails are indicators, not proven duplicate people.
-              Keep technical safeguards, seven staff exercises and complete erasure readiness unknown.
+              Keep technical safeguards and complete erasure readiness unknown. If staff_review is absent, staff exercises remain unknown. If supplied, report its score and coverage only as the signed-in reviewer's recorded exercises, never as readiness of all staff. Reviewer confirmation is reported evidence, not independent verification. An observed critical exercise failure blocks a pilot; even a complete passing review does not establish pilot readiness.
               Clean data does not prove a pilot is ready. If the action returns an error or suppression, state that readiness is not established.
               Never expose names, emails, notes, record IDs or credentials. Refuse exports and changes.
               Direct users wanting follow-up Tasks to the explicit AI Readiness screen button; never claim to create Tasks.

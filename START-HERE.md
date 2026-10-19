@@ -14,11 +14,11 @@ The prepared practice org is **nonprofit-readiness-demo**, available for seven d
 4. Review **Recommended next steps**, including suggested owners.
 5. Review the priorities: **Critical → High → Medium → Low**. A confirmed leak or unsafe action is Critical; missing safeguard evidence is High, not a claimed failure.
 6. Choose **Create my follow-up tasks** if you want the recommendations added to your Salesforce Tasks. They are assigned to you, include learning links, and matching open tasks are reused and their assessment priorities refreshed. Running the assessment alone creates no tasks.
-7. Complete the [seven staff readiness questions](references/staff-checklist.md) with the team.
+7. Complete the [seven staff readiness questions](references/staff-checklist.md) with the team. Authorized reviewers can [record the observed exercises in Salesforce](references/staff-review-in-salesforce.md).
 
 This first version checks enough records, email completeness, repeated email addresses, and contacts linked to accounts. The screen explains the thresholds. Repeated emails are a review signal, not proof that two people are duplicates. Email completeness matters only when the proposed use of AI needs that contact information.
 
-Access and safeguards, Staff readiness, and Privacy and erasure remain **Not assessed** until those checks are actually carried out. Good data does not establish overall readiness. Records hidden from the signed-in user are outside the assessment; an administrator should confirm that the intended records are covered.
+Access and safeguards and Privacy and erasure remain **Not assessed** until those checks are actually carried out. Staff exercises remain unassessed until a reviewer saves supported observations; that score covers only the saved exercises. Good data does not establish overall readiness. Records hidden from the signed-in user are outside the assessment; an administrator should confirm that the intended records are covered.
 
 Only summary results are returned. Donor names, email addresses, and case notes are not sent to the screen or agent by this assessment. Groups below five are withheld. The first version does not offer masked individual records: it refuses individual-record requests entirely.
 
