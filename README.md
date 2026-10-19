@@ -4,7 +4,7 @@ Assess nonprofit AI readiness with repeatable Salesforce data checks, seven staf
 
 This project includes a Salesforce results page, a restricted read-only agent connection, an Agentforce assessment agent, fictional demonstration data, and automated tests. The current demonstration uses Nonprofit Cloud Fundraising in disposable scratch orgs. NPSP requires separate validation.
 
-Start with the [Salesforce administrator walkthrough](START-HERE.md), [project plan](PLAN.md), or [demonstration guide](demo/GUIDE.md).
+Start with the [Salesforce administrator walkthrough](START-HERE.md), [project plan](PLAN.md), [remaining-work tracker](TODO.md), or [demonstration guide](demo/GUIDE.md).
 
 ## Try the fictional examples
 

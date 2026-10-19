@@ -17,6 +17,10 @@ public with sharing class ReadinessStaffReview {
         if (snapshot == null || snapshot.length() > 32768) return error('review_unavailable');
         try {
             Map<String,Object> input = (Map<String,Object>)JSON.deserializeUntyped(snapshot);
+            if (input.containsKey('freshness_policy')) {
+                Map<String,Object> policy = (Map<String,Object>)input.get('freshness_policy');
+                require(policy != null && policy.get('as_of') == String.valueOf(Date.today()));
+            }
             Map<String,Object> result = evaluate(input);
             AI_Readiness_Staff_Review__c record = new AI_Readiness_Staff_Review__c(
                 Snapshot__c=JSON.serialize(input), Version__c=(String)result.get('version'));
@@ -34,7 +38,13 @@ public with sharing class ReadinessStaffReview {
                 FROM AI_Readiness_Staff_Review__c WHERE OwnerId = :UserInfo.getUserId()
                 WITH USER_MODE ORDER BY CreatedDate DESC, Id DESC LIMIT 1];
             if (records.isEmpty()) return 'null';
-            Map<String,Object> result = evaluate((Map<String,Object>)JSON.deserializeUntyped(records[0].Snapshot__c));
+            Map<String,Object> input = (Map<String,Object>)JSON.deserializeUntyped(records[0].Snapshot__c);
+            if (input.containsKey('freshness_policy')) {
+                Map<String,Object> policy = (Map<String,Object>)input.get('freshness_policy');
+                require(evidenceDate(policy.get('as_of')) <= Date.today());
+                policy.put('as_of',String.valueOf(Date.today()));
+            }
+            Map<String,Object> result = evaluate(input);
             result.put('reviewed_at', records[0].CreatedDate);
             return JSON.serialize(result);
         } catch (Exception ignored) {
@@ -55,10 +65,17 @@ public with sharing class ReadinessStaffReview {
         for (Object definition : definitions) result.add((String)((Map<String,Object>)definition).get('id'));
         return result;
     }
+    private static Date evidenceDate(Object value) {
+        require(value instanceof String && Pattern.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}',(String)value));
+        Date parsed = Date.valueOf((String)value);
+        require(String.valueOf(parsed) == value);
+        return parsed;
+    }
     @TestVisible
     private static Map<String,Object> evaluate(Map<String,Object> input) {
         Map<String,Object> key = answerKey();
-        require(input != null && input.keySet().equals(new Set<String>{'version','mode','reviews'}));
+        require(input != null && (input.keySet().equals(new Set<String>{'version','mode','reviews'}) ||
+            input.keySet().equals(new Set<String>{'version','mode','reviews','freshness_policy'})));
         require(input.get('version') == key.get('version') && input.get('mode') == 'actual');
         require(input.get('reviews') instanceof List<Object>);
         List<Object> reviews = (List<Object>)input.get('reviews');
@@ -70,6 +87,29 @@ public with sharing class ReadinessStaffReview {
             Map<String,Object> question = (Map<String,Object>)value;
             String qid = (String)question.get('id');
             questions.put(qid, question); checks.put(qid, 'unknown'); questionOrder.add(qid);
+        }
+        Map<String,Object> freshness;
+        Map<String,String> freshnessChecks = new Map<String,String>();
+        if (input.containsKey('freshness_policy')) {
+            require(input.get('freshness_policy') instanceof Map<String,Object>);
+            Map<String,Object> policy = (Map<String,Object>)input.get('freshness_policy');
+            require(policy.keySet().equals(new Set<String>{'as_of','max_age_days','observed_on'}));
+            Date asOf = evidenceDate(policy.get('as_of'));
+            require(policy.get('max_age_days') instanceof Integer && (Integer)policy.get('max_age_days') >= 0);
+            require(policy.get('observed_on') instanceof Map<String,Object>);
+            Map<String,Object> observed = (Map<String,Object>)policy.get('observed_on');
+            require(questions.keySet().containsAll(observed.keySet()));
+            for (String qid : questionOrder) {
+                String status = 'missing';
+                if (observed.containsKey(qid)) {
+                    Integer age = evidenceDate(observed.get(qid)).daysBetween(asOf);
+                    require(age >= 0);
+                    status = age <= (Integer)policy.get('max_age_days') ? 'current' : 'expired';
+                }
+                freshnessChecks.put(qid,status);
+            }
+            freshness = new Map<String,Object>{'scope'=>'saved_review_reassessed_today','as_of'=>policy.get('as_of'),
+                'max_age_days'=>policy.get('max_age_days'),'checks'=>freshnessChecks};
         }
         Set<String> seen = new Set<String>();
         List<String> critical = new List<String>();
@@ -104,6 +144,8 @@ public with sharing class ReadinessStaffReview {
             if (!failures.isEmpty()) {
                 checks.put(qid, 'fail');
                 for (String failure : failures) critical.add(qid + ':' + failure);
+            } else if (freshness != null && freshnessChecks.get(qid) != 'current') {
+                continue;
             } else if (review.get('answer') == 'partly' || review.get('answer') == 'no' || failedAction) {
                 checks.put(qid, 'fail');
             } else if (review.get('answer') == 'yes' && actions.keySet().equals(requiredActions) && allYes) {
@@ -132,12 +174,14 @@ public with sharing class ReadinessStaffReview {
         urgent.addAll(high); urgent.addAll(medium); critical.sort();
         Decimal score = (Decimal.valueOf(String.valueOf(passed)) * 100 / 7).setScale(1, RoundingMode.HALF_UP);
         Decimal coverage = (Decimal.valueOf(String.valueOf(passed + failed)) * 100 / 7).setScale(1, RoundingMode.HALF_UP);
-        return new Map<String,Object>{'version'=>key.get('version'),'evidence_mode'=>'reviewer_confirmed_observations',
+        Map<String,Object> result = new Map<String,Object>{'version'=>key.get('version'),'evidence_mode'=>'reviewer_confirmed_observations',
             'staff'=>new Map<String,Object>{'checks'=>checks,'score'=>score,'coverage'=>coverage,'passed'=>passed,
                 'failed'=>failed,'unknown'=>7-passed-failed,'applicable'=>7},
             'critical_failures'=>critical,'follow_up'=>urgent,
             'decision'=>!critical.isEmpty() ? 'blocked_by_observed_critical_failure' : passed == 7 ? 'staff_evidence_complete' : 'staff_readiness_not_established',
             'scope'=>'reviewer_confirmed_exercises_only',
             'limitation'=>'Reviewer-confirmed exercises only; no organization-wide training, technical control, legal compliance or pilot approval is established.'};
+        if (freshness != null) result.put('freshness',freshness);
+        return result;
     }
 }

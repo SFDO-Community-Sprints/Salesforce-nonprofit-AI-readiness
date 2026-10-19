@@ -29,7 +29,9 @@ def main():
         report=json.loads(result['outputValues']['output'])
         expected=json.loads((ROOT/'demo'/name/'expected.json').read_text())
         private=build_data_result(expected['metrics'])
-        if (report['metrics'] != private['metrics'] or report['data']['score'] !=
+        if (report['specification_version'] != private['specification_version']
+                or report['profile_overrides'] != private['profile_overrides']
+                or report['metrics'] != private['metrics'] or report['data']['score'] !=
                 (float(private['data']['score']) if private['data']['score'] is not None else None)
                 or [(item['key'],item['priority']) for item in report['priorities']] != [(item['key'],item['priority']) for item in private['priorities']]
                 or report['privacy'] != private['privacy']
@@ -40,7 +42,9 @@ def main():
         print(f'{name}: PASS — '+('withheld for privacy' if score is None else f'data score {score}%'))
     organization = json.loads(results[-2]['outputValues']['output'])
     connected = payload(exchange([('tools/call', {'name':'readiness_check','arguments':{'scenario':'organization'}})])[0])
-    if (organization['metrics'] != connected['metrics']
+    if (organization['specification_version'] != connected['specification_version']
+            or organization['profile_overrides'] != connected['profile_overrides']
+            or organization['metrics'] != connected['metrics']
             or organization['data']['checks'] != connected['data']['checks']
             or organization['decision'] != connected['decision']
             or [(item['key'],item['priority']) for item in organization['priorities']] != [(item['key'],item['priority']) for item in connected['priorities']]
@@ -50,7 +54,8 @@ def main():
         raise RuntimeError('Saved staff review availability differs between connection paths')
     if 'staff_review' in organization:
         native_staff, connected_staff = organization['staff_review'], connected['staff_review']
-        if (native_staff['staff']['checks'] != connected_staff['staff']['checks']
+        if (native_staff.get('freshness') != connected_staff.get('freshness')
+                or native_staff['staff']['checks'] != connected_staff['staff']['checks']
                 or native_staff['critical_failures'] != connected_staff['critical_failures']
                 or native_staff['decision'] != connected_staff['decision']
                 or organization['staff_summary'] != connected['staff_summary']

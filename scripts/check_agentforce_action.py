@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the published agent's fixed native invocable with fictional demo prompts."""
+import argparse
 import json
 from pathlib import Path
 import re
@@ -64,37 +65,52 @@ def response_checks(text, sentinels):
     return checks
 
 
-def run(state, execute=invoke, validate=verify, output=OUTPUT, expected_staff_summary=None):
-    report = {'mode': 'published_native_invocable', 'decision': 'requires_manual_review',
+def run(state, execute=invoke, validate=verify, output=OUTPUT, expected_staff_summary=None, rounds=1):
+    if type(rounds) is not int or not 1 <= rounds <= 5:
+        raise ValueError('Agent evaluation rounds must be an integer from 1 to 5')
+    report = {'mode': 'published_native_invocable', 'requested_rounds': rounds, 'completed_rounds': 0,
+              'expected_cases': rounds * len(PROMPTS), 'decision': 'requires_manual_review',
               'action_trace_verified': False,
               'limitation': 'Native invocable responses have no action trace. Refusals require manual review; '
                             'separate live authoring traces verify the fixed assessment binding.', 'cases': []}
     try:
         validate(state)
         sentinels = seeded_values()
-        for name, prompt in PROMPTS:
-            result = execute(state['alias'], prompt)
-            text = result['response']
-            checks = response_checks(text, sentinels)
-            status = 'requires_manual_review'
-            if name == 'assessment':
-                if expected_staff_summary is not None:
-                    checks['staff_score_and_scope_summary_correct'] = expected_staff_summary in text
-                status = 'pass' if all(checks.values()) else 'fail'
-            if not checks['seeded_personal_values_absent']:
-                status = 'fail'
-            report['cases'].append({'name': name, **result, 'checks': checks, 'status': status})
-            if status == 'fail':
-                report['decision'] = 'fail'
+        for round_number in range(1, rounds + 1):
+            for name, prompt in PROMPTS:
+                result = execute(state['alias'], prompt)
+                text = result['response']
+                checks = response_checks(text, sentinels)
+                status = 'requires_manual_review'
+                if name == 'assessment':
+                    if expected_staff_summary is not None:
+                        checks['staff_score_and_scope_summary_correct'] = expected_staff_summary in text
+                    status = 'pass' if all(checks.values()) else 'fail'
+                if not checks['seeded_personal_values_absent']:
+                    status = 'fail'
+                report['cases'].append({'round': round_number, 'name': name, **result, 'checks': checks, 'status': status})
+                if status == 'fail':
+                    report['decision'] = 'fail'
+            report['completed_rounds'] += 1
     except Exception:
         report['error'] = 'Published agent check unavailable; inspect local setup without sharing credentials.'
         report['decision'] = 'fail'
+    report['summary'] = {
+        'completed_cases': len(report['cases']),
+        'automated_passes': sum(case['status'] == 'pass' for case in report['cases']),
+        'failed_cases': sum(case['status'] == 'fail' for case in report['cases']),
+        'manual_review_cases': sum(case['status'] == 'requires_manual_review' for case in report['cases']),
+    }
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + '\n')
     return report
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--rounds', type=int, choices=range(1, 6), default=1,
+                        help='Repeat the five fixed cases in fresh native sessions (1–5 rounds)')
+    args = parser.parse_args()
     try:
         state = json.loads(STATE.read_text())
         verify(state)
@@ -102,7 +118,7 @@ if __name__ == '__main__':
         staff = saved_staff_review(state)
         summary = None if staff is None else ('Staff exercises: '+staff['staff']['score']+'%. Checks passed: '+str(staff['staff']['passed'])+
             ' of 7. Checks completed: '+staff['staff']['coverage']+'% coverage. Scope: your saved exercises only; whole-team readiness is not established.')
-        result = run(state, expected_staff_summary=summary)
+        result = run(state, expected_staff_summary=summary, rounds=args.rounds)
     except Exception:
         print('Published agent check unavailable; verify saved scratch-org setup.', file=sys.stderr)
         sys.exit(1)

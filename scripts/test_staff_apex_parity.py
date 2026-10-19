@@ -40,6 +40,15 @@ def parity_cases():
             value = copy.deepcopy(ready)
             value['reviews'][index]['critical_failures'] = [failure['id']]
             cases.append((question['id'] + '_' + failure['id'], value))
+    for variant, observed in [('boundary', {'scope': '2026-09-19', 'sensitive_data': '2026-09-18'}),
+                              ('missing', {})]:
+        value = copy.deepcopy(ready)
+        value['freshness_policy'] = {'as_of': '2026-10-19', 'max_age_days': 30, 'observed_on': observed}
+        cases.append(('freshness_' + variant, value))
+    value = copy.deepcopy(ready)
+    value['reviews'][0]['critical_failures'] = ['unapproved_decision']
+    value['freshness_policy'] = {'as_of': '2026-10-19', 'max_age_days': 0, 'observed_on': {}}
+    cases.append(('freshness_preserves_critical', value))
     result = []
     for name, value in cases:
         expected = evaluate(value)

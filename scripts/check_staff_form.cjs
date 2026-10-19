@@ -40,4 +40,23 @@ assert.equal(evidence.decision, 'blocked_by_observed_critical_failure');
 assert.equal(evidence.staff.checks.scope, 'fail');
 assert.equal(evidence.staff.checks.sensitive_data, 'unknown', 'Answers alone cannot prove competence');
 assert.equal(evidence.staff.coverage, '14.3');
-console.log('Staff review form mapping and evaluator checks passed.');
+const datedQuestions = form('yes');
+for (const question of datedQuestions) {
+    question.reviewer_confirmed = true;
+    question.evidence_ref = 'TRAINING-001';
+}
+datedQuestions[0].observed_on = '2026-09-19';
+datedQuestions[1].observed_on = '2026-09-18';
+const dated = JSON.parse(JSON.stringify(build(key.version, datedQuestions, {asOf: '2026-10-19', maxAgeDays: '30'})));
+assert.deepEqual(dated.freshness_policy, {as_of: '2026-10-19', max_age_days: 30,
+    observed_on: {scope: '2026-09-19', sensitive_data: '2026-09-18'}});
+assert(!Object.hasOwn(build(key.version, datedQuestions), 'freshness_policy'));
+const datedOutput = require('node:child_process').spawnSync('python3', ['-c',
+    'import json,sys; sys.path.insert(0,sys.argv[1]); from staff_readiness import evaluate; print(json.dumps(evaluate(json.load(sys.stdin))))',
+    __dirname], {input: JSON.stringify(dated), encoding: 'utf8'});
+assert.equal(datedOutput.status, 0);
+const datedResult = JSON.parse(datedOutput.stdout);
+assert.equal(datedResult.staff.checks.scope, 'pass');
+assert.equal(datedResult.staff.checks.sensitive_data, 'unknown');
+assert.equal(datedResult.staff.checks.quality, 'unknown');
+console.log('Staff review form mapping, opt-in freshness and evaluator checks passed.');

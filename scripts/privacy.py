@@ -1,5 +1,5 @@
 """Fail-closed output boundary: only validated aggregate counts may reach agents."""
-from demo import VERSION, data_checks, summarize, recommendations
+from demo import SPECIFICATION_VERSION, VERSION, data_checks, summarize, recommendations
 
 METRIC_KEYS = frozenset({'contacts', 'email_present', 'linked_contacts', 'repeated_email_rows'})
 MINIMUM_COHORT = 5
@@ -25,6 +25,8 @@ def build_data_result(metrics, synthetic=False):
         data['score'] = None
     return {
         'rubric_version': VERSION,
+        'specification_version': SPECIFICATION_VERSION,
+        'profile_overrides': {},
         'evidence_mode': 'synthetic_simulation' if synthetic else 'live_aggregate',
         'metrics': None if suppressed else dict(metrics),
         'data': data,

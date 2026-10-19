@@ -32,6 +32,7 @@ def validate_profile(profile):
 
 PROFILE = validate_profile(json.loads((ROOT / 'demo' / 'rubric.json').read_text()))
 VERSION = PROFILE['version']
+SPECIFICATION_VERSION = json.loads((ROOT / 'references/check-specifications.json').read_text())['version']
 THRESHOLDS = PROFILE['thresholds']
 TECH = PROFILE['categories']['technical']['checks']
 STAFF = PROFILE['categories']['staff']['checks']

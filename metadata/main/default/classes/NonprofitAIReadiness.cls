@@ -326,7 +326,11 @@ public with sharing class NonprofitAIReadiness {
             checks.put('duplicate_indicator', repeated == 0 ? 'pass' : 'fail');
             for (String status : checks.values()) if (status == 'pass') passed++;
         }
+        Map<String,Object> specification = (Map<String,Object>)JSON.deserializeUntyped(
+            [SELECT Body FROM StaticResource WHERE Name='CheckSpecifications' LIMIT 1].Body.toString());
         Map<String,Object> assessment = new Map<String,Object>{
+            'specification_version'=>specification.get('version'),
+            'profile_overrides'=>new Map<String,Object>(),
             'rubric_version'=>'donor-summary-demo-v1', 'evidence_mode'=>'live_aggregate',
             'scenario'=>scenario, 'scope'=>organization ? 'accessible_organization_records' : 'fixed_synthetic_demo_cohort',
             'coverage_note'=>'Only records accessible to the current user are assessed; this is not proof of complete organization visibility.',

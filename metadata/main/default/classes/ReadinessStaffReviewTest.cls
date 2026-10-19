@@ -128,6 +128,53 @@ private class ReadinessStaffReviewTest {
             }
         }
     }
+    @IsTest static void nativeFreshnessSaveAndDynamicReadback() {
+        System.runAs(userFor('srview')) {
+            Map<String,Object> input = snapshot();
+            input.put('freshness_policy',new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),
+                'max_age_days'=>30,'observed_on'=>new Map<String,Object>{
+                    'scope'=>String.valueOf(Date.today().addDays(-30)),
+                    'sensitive_data'=>String.valueOf(Date.today().addDays(-31))}});
+            Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.saveReview(JSON.serialize(input)));
+            System.assertEquals('staff_readiness_not_established',result.get('decision'));
+            Map<String,Object> checks = (Map<String,Object>)((Map<String,Object>)result.get('staff')).get('checks');
+            System.assertEquals('pass',checks.get('scope'));
+            System.assertEquals('unknown',checks.get('sensitive_data'));
+            System.assertEquals('unknown',checks.get('quality'));
+            System.assertEquals('saved_review_reassessed_today',((Map<String,Object>)result.get('freshness')).get('scope'));
+            System.assert(!JSON.serialize(result).contains('private_artifact_ref'));
+            System.assert(!JSON.serialize(result).contains('observed_on'));
+
+            // Retain the old policy date to prove retrieval uses today's date, not the stored assessment date.
+            AI_Readiness_Staff_Review__c saved = [SELECT Snapshot__c FROM AI_Readiness_Staff_Review__c LIMIT 1];
+            Map<String,Object> policy = (Map<String,Object>)input.get('freshness_policy');
+            policy.put('as_of',String.valueOf(Date.today().addDays(-1)));
+            policy.put('max_age_days',0);
+            policy.put('observed_on',new Map<String,Object>{'scope'=>String.valueOf(Date.today().addDays(-1))});
+            saved.Snapshot__c = JSON.serialize(input); update saved;
+            result = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
+            checks = (Map<String,Object>)((Map<String,Object>)result.get('staff')).get('checks');
+            System.assertEquals('unknown',checks.get('scope'));
+            System.assertEquals(String.valueOf(Date.today()),((Map<String,Object>)result.get('freshness')).get('as_of'));
+            System.assertEquals(JSON.serialize(input),[SELECT Snapshot__c FROM AI_Readiness_Staff_Review__c LIMIT 1].Snapshot__c);
+        }
+    }
+    @IsTest static void invalidNativeFreshnessFailsClosed() {
+        System.runAs(userFor('srview')) {
+            List<Map<String,Object>> policies = new List<Map<String,Object>>{
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today().addDays(-1)),'max_age_days'=>30,'observed_on'=>new Map<String,Object>()},
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),'max_age_days'=>-1,'observed_on'=>new Map<String,Object>()},
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),'max_age_days'=>true,'observed_on'=>new Map<String,Object>()},
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),'max_age_days'=>30,'observed_on'=>new Map<String,Object>{'scope'=>String.valueOf(Date.today().addDays(1))}},
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),'max_age_days'=>30,'observed_on'=>new Map<String,Object>{'unknown'=>'2026-01-01'}},
+                new Map<String,Object>{'as_of'=>String.valueOf(Date.today()),'max_age_days'=>30,'observed_on'=>new Map<String,Object>{'scope'=>'2026-02-30'}}};
+            for (Map<String,Object> policy : policies) {
+                Map<String,Object> input = snapshot(); input.put('freshness_policy',policy);
+                System.assert(ReadinessStaffReview.saveReview(JSON.serialize(input)).contains('review_unavailable'));
+            }
+            System.assertEquals(0,[SELECT COUNT() FROM AI_Readiness_Staff_Review__c]);
+        }
+    }
     @IsTest static void invalidEvidenceIsAtomicAndSanitized() {
         System.runAs(userFor('srview')) {
             List<Map<String,Object>> invalid = new List<Map<String,Object>>();

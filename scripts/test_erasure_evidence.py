@@ -1,12 +1,16 @@
 import json
 import unittest
 
-from erasure_evidence import REQUIRED, evaluate
+from erasure_evidence import ACTUAL_SYSTEM_REFS, REQUIRED, evaluate
 
 
 class ErasureEvidenceTests(unittest.TestCase):
     def inventory(self, mode='actual'):
         systems = [{'id': category, 'category': category} for category in REQUIRED]
+        if mode == 'actual':
+            for system in systems:
+                system.update(destination_ref=system['id'] + '_registry_entry', owner_ref='system_owner',
+                              retention_policy_ref='approved_policy', privacy_approver_ref='privacy_lead')
         evidence = [{'system_id': system['id'], 'probe_id': probe, 'result': 'observed',
                      'evidence_ref': 'run_20261019_probe', 'reviewer_ref': 'reviewer_01'}
                     for system in systems for probe in REQUIRED[system['category']]]
@@ -40,7 +44,7 @@ class ErasureEvidenceTests(unittest.TestCase):
         result = evaluate(inventory)
         self.assertEqual(result['reported_observations'], 0)
         self.assertEqual({check['status'] for check in result['checks']}, {'simulated_observed'})
-        inventory['mode'] = 'actual'
+        inventory = self.inventory()
         inventory['evidence'][0]['result'] = 'failed'
         self.assertEqual(evaluate(inventory)['reported_failures'], 1)
 
@@ -80,6 +84,37 @@ class ErasureEvidenceTests(unittest.TestCase):
         self.assertEqual(len(result['follow_ups']), 5)
         self.assertEqual({item['basis'] for item in result['follow_ups']}, {'missing_evidence'})
         self.assertEqual({item['priority'] for item in result['follow_ups']}, {'High'})
+
+    def test_actual_destinations_require_owner_and_approved_retention_references(self):
+        for key in ACTUAL_SYSTEM_REFS:
+            for invalid_value in (None, '', 'person@example.invalid'):
+                value = self.inventory()
+                value['systems'][0][key] = invalid_value
+                with self.subTest(key=key, value=invalid_value), self.assertRaises(ValueError):
+                    evaluate(value)
+            value = self.inventory()
+            del value['systems'][0][key]
+            with self.subTest(missing=key), self.assertRaises(ValueError):
+                evaluate(value)
+
+    def test_simulation_cannot_be_relabelled_as_actual_inventory(self):
+        value = self.inventory('simulation')
+        value['mode'] = 'actual'
+        with self.assertRaises(ValueError):
+            evaluate(value)
+
+    def test_evidence_from_one_destination_does_not_cover_another(self):
+        value = self.inventory()
+        second = dict(value['systems'][1], id='second_integration', destination_ref='other_registry_entry')
+        value['systems'].append(second)
+        result = evaluate(value)
+        missing = [check for check in result['checks'] if check['status'] == 'unknown']
+        self.assertEqual({check['system_id'] for check in missing}, {'second_integration'})
+        self.assertEqual({check['probe_id'] for check in missing}, set(REQUIRED['integrations']))
+        self.assertEqual(result['decision'], 'not_assessed')
+        report = json.dumps(result)
+        for key in ACTUAL_SYSTEM_REFS:
+            self.assertNotIn(second[key], report)
 
     def test_replay_is_deterministic(self):
         value = self.inventory()

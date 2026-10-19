@@ -70,6 +70,8 @@ Start at [START-HERE.md](START-HERE.md). The native AI Readiness screen checks t
 
 For the current org, use `readiness_check` with `scenario: organization` and `org_capabilities`. These fixed tools return summary evidence only. Product seats assigned are not proof of actual feature use. Privacy and erasure controls remain unknown until evidenced; a soft-deleted record can remain recoverable. Follow-up Tasks require the explicit in-org button and are not exposed as a write tool through MCP.
 
+Aggregate assessments report `rubric_version`, `specification_version`, and explicit empty `profile_overrides` for the fixed profile. Saved staff reviews may include an opt-in freshness policy recalculated on the current Salesforce date: missing/expired observation dates remain unknown and confirmed critical failures remain blocking. A review without freshness metadata has no assessed observation-age policy; a reviewer-selected policy is not proof of customer approval.
+
 Run `python3 scripts/check_all.py --live` from the project root for the complete automated checks against the prepared scratch org. Keep this test run distinct from Run assessment, which performs the actual read-only assessment rather than exercising every test.
 
 ## Active erasure work

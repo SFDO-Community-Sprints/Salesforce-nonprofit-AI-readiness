@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Narrow, read-only MCP interface to the saved, verified demo scratch org."""
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import json
 import os
 import re
@@ -109,7 +109,7 @@ def saved_staff_review(state):
             return None
         allowed = {'version', 'evidence_mode', 'staff', 'critical_failures', 'follow_up',
                    'decision', 'scope', 'limitation', 'reviewed_at'}
-        if (type(review) is not dict or set(review) != allowed
+        if (type(review) is not dict or set(review) not in (allowed, allowed | {'freshness'})
                 or review['version'] != STAFF_KEY['version']
                 or review['evidence_mode'] != 'reviewer_confirmed_observations'
                 or review['scope'] != 'reviewer_confirmed_exercises_only'):
@@ -136,6 +136,28 @@ def saved_staff_review(state):
             item['actions'] = dict.fromkeys(item['actions'], 'yes' if checks[qid] == 'pass' else 'unknown')
             item['critical_failures'] = [marker.split(':')[1] for marker in critical if marker.startswith(qid + ':')]
         result = evaluate_staff(snapshot)
+        if 'freshness' in review:
+            freshness = review['freshness']
+            if (type(freshness) is not dict
+                    or set(freshness) != {'scope', 'as_of', 'max_age_days', 'checks'}
+                    or freshness['scope'] != 'saved_review_reassessed_today'
+                    or type(freshness['as_of']) is not str
+                    or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', freshness['as_of'])
+                    or date.fromisoformat(freshness['as_of']).isoformat() != freshness['as_of']
+                    or type(freshness['max_age_days']) is not int
+                    or not 0 <= freshness['max_age_days'] <= 2147483647
+                    or type(freshness['checks']) is not dict
+                    or set(freshness['checks']) != question_ids
+                    or any(type(status) is not str or status not in ('current', 'expired', 'missing')
+                           for status in freshness['checks'].values())):
+                return None
+            critical_questions = {marker.split(':')[0] for marker in critical}
+            if any(status != 'current' and checks[qid] != 'unknown' and qid not in critical_questions
+                   for qid, status in freshness['checks'].items()):
+                return None
+            result['freshness'] = {'scope': 'saved_review_reassessed_today',
+                                   'as_of': freshness['as_of'], 'max_age_days': freshness['max_age_days'],
+                                   'checks': dict(freshness['checks'])}
         if result['decision'] != review['decision'] or type(review['reviewed_at']) is not str:
             return None
         stamp = datetime.fromisoformat(review['reviewed_at'].replace('Z', '+00:00'))

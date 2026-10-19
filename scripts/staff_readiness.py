@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Score structured reviewer observations; never infer competence from prose."""
 import argparse
+import copy
+from datetime import date
 import json
 from pathlib import Path
 import re
@@ -20,7 +22,7 @@ def template():
          'critical_failures': []} for q in KEY['questions']]}
 
 
-def evaluate(snapshot):
+def _evaluate(snapshot):
     def invalid():
         raise ValueError('Invalid staff review evidence')
     if (type(snapshot) is not dict or set(snapshot) not in ({'version', 'reviews'}, {'version', 'mode', 'reviews'})
@@ -90,20 +92,65 @@ def evaluate(snapshot):
             'limitation': 'Staff results do not establish technical controls, legal compliance or pilot approval.'}
 
 
+def evaluate(snapshot):
+    if type(snapshot) is dict and 'freshness_policy' in snapshot:
+        return evaluate_with_freshness({key: value for key, value in snapshot.items()
+                                       if key != 'freshness_policy'}, snapshot['freshness_policy'])
+    return _evaluate(snapshot)
+
+
+def evaluate_with_freshness(snapshot, policy):
+    """Apply an explicit offline policy without changing Salesforce scoring defaults."""
+    _evaluate(snapshot)  # Validate the evidence before applying any policy.
+    questions = {q['id'] for q in KEY['questions']}
+    if (type(policy) is not dict or set(policy) != {'as_of', 'max_age_days', 'observed_on'}
+            or type(policy['max_age_days']) is not int or not 0 <= policy['max_age_days'] <= 2147483647
+            or type(policy['observed_on']) is not dict
+            or not set(policy['observed_on']).issubset(questions)):
+        raise ValueError('Invalid staff freshness policy')
+
+    def parse_date(value):
+        if type(value) is not str or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+            raise ValueError('Invalid staff freshness policy')
+        return date.fromisoformat(value)
+
+    as_of = parse_date(policy['as_of'])
+    statuses = dict.fromkeys(sorted(questions), 'missing')
+    for qid, value in policy['observed_on'].items():
+        age = (as_of - parse_date(value)).days
+        if age < 0:
+            raise ValueError('Invalid staff freshness policy')
+        statuses[qid] = 'current' if age <= policy['max_age_days'] else 'expired'
+    adjusted = copy.deepcopy(snapshot)
+    for review in adjusted['reviews']:
+        # Expiry cannot clear an observed critical failure; correction needs a new review.
+        if statuses[review['question_id']] != 'current' and not review['critical_failures']:
+            review['reviewer_confirmed'] = False
+    result = _evaluate(adjusted)
+    result['freshness'] = {'scope': 'offline_reviewer_validation_only',
+                           'as_of': policy['as_of'], 'max_age_days': policy['max_age_days'],
+                           'checks': statuses}
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['template', 'evaluate'])
     parser.add_argument('snapshot', nargs='?', type=Path)
+    parser.add_argument('--freshness-policy', type=Path,
+                        help='Offline JSON policy: as_of, max_age_days, observed_on by question ID')
     args = parser.parse_args()
     try:
         if args.action == 'template':
-            if args.snapshot is not None:
+            if args.snapshot is not None or args.freshness_policy is not None:
                 raise ValueError()
             output = template()
         else:
             if args.snapshot is None:
                 raise ValueError()
-            output = evaluate(json.loads(args.snapshot.read_text()))
+            snapshot = json.loads(args.snapshot.read_text())
+            output = (evaluate_with_freshness(snapshot, json.loads(args.freshness_policy.read_text()))
+                      if args.freshness_policy else evaluate(snapshot))
         print(json.dumps(output, indent=2))
     except (ValueError, OSError, TypeError, KeyError):
         print('Staff review unavailable: invalid or unreadable structured evidence.', file=sys.stderr)

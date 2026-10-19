@@ -35,3 +35,26 @@ For every test retain: request ID, destination/environment, test version, operat
 Use **Pass / Fail / Not run / Not applicable** with an evidence-based justification. A signed checklist without observations is not a pass. Unknown destination behavior stays **High priority**. A verified leak or reintroduction of subject data contrary to the approved test expectation is **Critical** and blocks a pilot until corrected and retested. Expected isolated backup presence before ledger application is not by itself a failed test; exposure after activation is.
 
 Still needed from the organization: system/recipient inventory, test-environment access, connector and cache owners, backup restore procedure, retention schedules, applicable exception decisions and evidence storage location. Until those are supplied and observed tests run, end-to-end erasure readiness remains **unknown**.
+
+## Machine-readable coverage inventory
+
+Run `python3 scripts/erasure_evidence.py path/to/restricted-inventory.json` to find missing or failed checks. The command reads evidence references only; it does not delete data, connect to destinations, validate documents, or approve an erasure outcome.
+
+An `actual` inventory must provide `mode`, `systems` and `evidence`. Each system must identify one actual destination using these fields:
+
+```json
+{
+  "id": "crm_primary",
+  "category": "salesforce",
+  "destination_ref": "system_register_crm_primary",
+  "owner_ref": "owner_register_crm",
+  "retention_policy_ref": "approved_retention_record",
+  "privacy_approver_ref": "privacy_approval_record"
+}
+```
+
+All references are opaque lowercase identifiers (`a-z`, digits, underscores and hyphens, beginning with a letter, maximum 80 characters). Keep the actual destination names, accountable people, policy scope, retention duration/expiry and signed privacy approval in the restricted records those references identify. A generic category name or reference does not establish that the inventory is complete. The references are required for actual inventories and excluded from the generated report; their existence and content are not independently verified by this tool.
+
+Each evidence entry requires `system_id`, `probe_id`, `result` (`observed` or `failed`), `evidence_ref` and `reviewer_ref`. Supported categories and required probes are defined in `scripts/erasure_evidence.py`. An observation for one destination does not cover another destination in the same category. Every actual destination needs its own observations, including retention approval and the applicable synchronization or restore check. Keep the before/after observations and review record behind the evidence references; do not put subject identifiers or raw artifacts in the inventory.
+
+The bundled `demo/erasure-failures.json` remains a simulation and cannot be relabelled as an actual inventory without supplying the accountable destination and policy records. Simulation observations never count as actual observations. Even a complete actual inventory returns `decision: not_assessed` and `independently_verified: false`: source-only observations, self-reported references and fictional exercises cannot earn an end-to-end pass.

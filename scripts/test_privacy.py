@@ -2,6 +2,7 @@
 import json
 import unittest
 
+from demo import SPECIFICATION_VERSION, VERSION
 from privacy import build_data_result
 
 
@@ -15,6 +16,15 @@ class PrivacyTests(unittest.TestCase):
             build_data_result(value, **kwargs)
         self.assertEqual(str(caught.exception), 'Invalid aggregate metrics')
         self.assertNotIn(self.sentinel, str(caught.exception))
+
+    def test_fixed_profile_metadata_survives_suppression_without_mutable_shared_state(self):
+        for metrics in (self.metrics, dict(contacts=0, email_present=0, linked_contacts=0, repeated_email_rows=0)):
+            result = build_data_result(metrics)
+            self.assertEqual(result['rubric_version'], VERSION)
+            self.assertEqual(result['specification_version'], SPECIFICATION_VERSION)
+            self.assertEqual(result['profile_overrides'], {})
+            result['profile_overrides']['unapproved'] = True
+            self.assertEqual(build_data_result(metrics)['profile_overrides'], {})
 
     def test_exact_schema_rejects_raw_unclassified_and_nested_data(self):
         for value in [None, [], self.sentinel,

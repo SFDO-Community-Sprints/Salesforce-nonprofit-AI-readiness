@@ -78,6 +78,30 @@ class StaffMcpTests(unittest.TestCase):
         self.assertNotIn(SENTINEL, json.dumps(result))
         self.assertIn('Technical safeguards remain unknown', result['technical_and_staff'])
 
+    def test_native_freshness_is_validated_and_sanitized(self):
+        value = review_result(critical=True)
+        value['freshness'] = {'scope': 'saved_review_reassessed_today', 'as_of': '2026-10-20',
+                              'max_age_days': 90, 'checks': dict.fromkeys(value['staff']['checks'], 'current')}
+        value['freshness']['checks']['sensitive_data'] = 'expired'
+        with patch.object(mcp.subprocess, 'run', return_value=response(value)):
+            actual = mcp.saved_staff_review({'alias': 'fictional'})
+        self.assertEqual(actual['freshness'], value['freshness'])
+        self.assertEqual(actual['staff']['checks']['sensitive_data'], 'fail')
+        self.assertNotIn('private_source_reference', json.dumps(actual))
+        for field, unsafe in [('as_of', '2026-02-30'), ('max_age_days', True),
+                              ('scope', SENTINEL), ('observed_on', SENTINEL)]:
+            broken = json.loads(json.dumps(value))
+            broken['freshness'][field] = unsafe
+            with self.subTest(field=field), patch.object(mcp.subprocess, 'run', return_value=response(broken)):
+                self.assertIsNone(mcp.saved_staff_review({'alias': 'fictional'}))
+        value['freshness']['checks']['scope'] = 'expired'
+        with patch.object(mcp.subprocess, 'run', return_value=response(value)):
+            self.assertIsNone(mcp.saved_staff_review({'alias': 'fictional'}), 'Expired evidence cannot retain a pass')
+        value['staff']['checks']['scope'] = 'unknown'
+        value['decision'] = 'blocked_by_observed_critical_failure'
+        with patch.object(mcp.subprocess, 'run', return_value=response(value)):
+            self.assertEqual(mcp.saved_staff_review({'alias': 'fictional'})['staff']['checks']['scope'], 'unknown')
+
     def test_saved_review_not_applied_to_demo_groups(self):
         with patch.object(mcp, 'STATE') as state, patch.object(mcp, 'verify'), patch.object(mcp, 'query') as query, patch.object(mcp, 'saved_staff_review') as staff:
             state.read_text.return_value = '{"alias":"fictional"}'

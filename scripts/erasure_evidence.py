@@ -24,6 +24,8 @@ ACTIONS = {
     'export_copy_absent': ('Data owner', 'Locate exported copies, contact their owners and verify the approved removal or retention outcome.'),
 }
 
+ACTUAL_SYSTEM_REFS = {'destination_ref', 'owner_ref', 'retention_policy_ref', 'privacy_approver_ref'}
+
 IDENTIFIER = re.compile(r'[a-z][a-z0-9_-]{0,79}\Z')
 
 
@@ -40,9 +42,12 @@ def evaluate(inventory):
         raise invalid
     systems = {}
     for system in inventory['systems']:
-        if (type(system) is not dict or set(system) != {'id', 'category'}
+        required_fields = {'id', 'category'} | (ACTUAL_SYSTEM_REFS if inventory['mode'] == 'actual' else set())
+        if (type(system) is not dict or set(system) != required_fields
                 or not identifier(system['id']) or type(system['category']) is not str
                 or system['category'] not in REQUIRED or system['id'] in systems):
+            raise invalid
+        if inventory['mode'] == 'actual' and not all(identifier(system[key]) for key in ACTUAL_SYSTEM_REFS):
             raise invalid
         systems[system['id']] = system['category']
     evidence = {}

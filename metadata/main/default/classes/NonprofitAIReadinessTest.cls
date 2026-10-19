@@ -24,6 +24,17 @@ private class NonprofitAIReadinessTest {
         System.assert(!output.contains('@'), 'Email values must never escape');
         return (Map<String,Object>)JSON.deserializeUntyped(output);
     }
+    @IsTest static void fixedProfileMetadataPersistsOnNormalAndSuppressedAssessments() {
+        Map<String,Object> specification = (Map<String,Object>)JSON.deserializeUntyped(
+            [SELECT Body FROM StaticResource WHERE Name='CheckSpecifications' LIMIT 1].Body.toString());
+        for (String scenario : new List<String>{'pilot','poor'}) {
+            Map<String,Object> result = runScenario(scenario);
+            System.assertEquals('donor-summary-demo-v1',result.get('rubric_version'));
+            System.assertEquals(specification.get('version'),result.get('specification_version'));
+            System.assertEquals(0,((Map<String,Object>)result.get('profile_overrides')).size());
+            System.assertEquals('readiness_not_established',result.get('decision'));
+        }
+    }
     @IsTest static void lightningUsesSameBoundary() {
         Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(
             NonprofitAIReadiness.assessScenario('poor'));
@@ -270,13 +281,61 @@ private class NonprofitAIReadinessTest {
         }
         System.assertEquals(0,[SELECT COUNT() FROM Task WHERE OwnerId=:assessor.Id]);
     }
+    @IsTest static void nonAdminFollowUpPermissionCreatesAndRefreshesOnlyOwnTasks() {
+        Profile profile = [SELECT Id FROM Profile WHERE Name='Minimum Access - Salesforce' LIMIT 1];
+        User runner = new User(ProfileId=profile.Id,
+            Username='readiness-followup-'+UserInfo.getOrganizationId()+'@example.invalid',
+            Email='followup@example.invalid',LastName='SYNTHETIC follow-up',Alias='rdyflup',
+            TimeZoneSidKey='Europe/Amsterdam',LocaleSidKey='en_US',
+            EmailEncodingKey='UTF-8',LanguageLocaleKey='en_US');
+        insert runner;
+        List<PermissionSetAssignment> assignments = new List<PermissionSetAssignment>();
+        for (PermissionSet permission : [SELECT Id FROM PermissionSet
+                WHERE Name IN ('Readiness_Assessor','Readiness_Follow_Up')]) {
+            assignments.add(new PermissionSetAssignment(AssigneeId=runner.Id,PermissionSetId=permission.Id));
+        }
+        System.assertEquals(2,assignments.size());
+        insert assignments;
+        System.runAs(runner) {
+            System.assertEquals(false,Schema.sObjectType.Contact.isCreateable());
+            System.assertEquals(false,Schema.sObjectType.Contact.isUpdateable());
+            System.assertEquals(false,Schema.sObjectType.Contact.isDeletable());
+            System.assertEquals(false,[SELECT Profile.PermissionsModifyAllData FROM User
+                WHERE Id=:runner.Id].Profile.PermissionsModifyAllData);
+            List<Contact> fictional = new List<Contact>();
+            for (Integer i=0;i<10;i++) fictional.add(new Contact(OwnerId=runner.Id,
+                LastName='SYNTHETIC follow-up sentinel',Email='followup-'+i+'@example.invalid'));
+            // System-mode fixtures do not grant Contact writes to the runtime user.
+            insert fictional;
+            Map<String,Object> first = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assert(!first.containsKey('error'),'Optional permission must enable follow-up creation');
+            List<Task> tasks = [SELECT Id,OwnerId,Description FROM Task WHERE OwnerId=:runner.Id WITH USER_MODE];
+            Integer created = tasks.size();
+            System.assert(created > 0);
+            System.assertEquals(created,first.get('created'));
+            for (Task task : tasks) {
+                System.assertEquals(runner.Id,task.OwnerId);
+                System.assert(!task.Description.contains('sentinel'));
+                System.assert(!task.Description.contains('@example.invalid'));
+            }
+            update as user new Task(Id=tasks[0].Id,Description='Outdated recommendation');
+            Map<String,Object> refreshed = (Map<String,Object>)JSON.deserializeUntyped(
+                NonprofitAIReadiness.createFollowUpTasks());
+            System.assertEquals(0,refreshed.get('created'));
+            System.assertEquals(created,refreshed.get('reused'));
+            System.assertEquals(1,refreshed.get('updated'));
+            System.assert([SELECT Description FROM Task WHERE Id=:tasks[0].Id WITH USER_MODE]
+                .Description.startsWith('Assessment priority: '));
+        }
+    }
     @IsTest static void cacheBatchQueries() {
         NonprofitAIReadiness.Request request = new NonprofitAIReadiness.Request();
         request.scenario='pilot';
         Test.startTest();
         List<NonprofitAIReadiness.Response> results = NonprofitAIReadiness.assess(
             new List<NonprofitAIReadiness.Request>{request,request});
-        System.assertEquals(3,Limits.getQueries());
+        System.assertEquals(4,Limits.getQueries());
         Test.stopTest();
         System.assertEquals(2,results.size());
         System.assertEquals(results[0].output,results[1].output);

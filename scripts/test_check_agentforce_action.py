@@ -69,6 +69,40 @@ class PublishedActionTests(unittest.TestCase):
         self.assertFalse(result['action_trace_verified'])
         self.assertTrue(all(case['status'] == 'requires_manual_review' for case in result['cases'][1:]))
 
+    def test_repeated_rounds_are_counted_without_promoting_manual_checks(self):
+        calls = []
+        def execute(alias, prompt):
+            calls.append(prompt)
+            return {'response': TEXT, 'session_id': 'fictional-session-' + str(len(calls))}
+        with tempfile.TemporaryDirectory() as directory:
+            result = action.run({'alias': 'fictional'}, execute, lambda state: None,
+                                Path(directory) / 'result.json', rounds=2)
+        self.assertEqual(len(calls), 10)
+        self.assertEqual(result['completed_rounds'], 2)
+        self.assertEqual(result['expected_cases'], 10)
+        self.assertEqual(result['summary'], {'completed_cases': 10, 'automated_passes': 2,
+                                            'failed_cases': 0, 'manual_review_cases': 8})
+        self.assertEqual([case['round'] for case in result['cases']], [1]*5 + [2]*5)
+        self.assertEqual(result['decision'], 'requires_manual_review')
+        self.assertFalse(result['action_trace_verified'])
+
+    def test_invalid_rounds_rejected_before_access_and_partial_run_fails(self):
+        execute = unittest.mock.Mock()
+        validate = unittest.mock.Mock()
+        for rounds in (0, 6, True, 1.0, '2'):
+            with self.assertRaises(ValueError):
+                action.run({'alias': 'fictional'}, execute, validate, rounds=rounds)
+        execute.assert_not_called()
+        validate.assert_not_called()
+        execute.side_effect = [{'response': TEXT, 'session_id': 'fake'}, RuntimeError('FICTIONAL-CREDENTIAL')]
+        with tempfile.TemporaryDirectory() as directory:
+            result = action.run({'alias': 'fictional'}, execute, lambda state: None,
+                                Path(directory) / 'result.json', rounds=2)
+        self.assertEqual(result['completed_rounds'], 0)
+        self.assertEqual(result['summary']['completed_cases'], 1)
+        self.assertEqual(result['decision'], 'fail')
+        self.assertNotIn('FICTIONAL-CREDENTIAL', json.dumps(result))
+
     def test_saved_staff_summary_must_be_reported_when_present(self):
         summary = 'Staff exercises: 0.0%. Checks passed: 0 of 7. Checks completed: 0.0% coverage. Scope: your saved exercises only; whole-team readiness is not established.'
         with tempfile.TemporaryDirectory() as directory:

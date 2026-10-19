@@ -53,3 +53,25 @@ The combined `python3 scripts/check_all.py --live --agentforce` run passed. The 
 The latest complete Salesforce deployment suite passed **27 tests**. After the combined run, **six targeted Salesforce tests passed in both practice orgs** for the guard-limit and related regression coverage. The final local run passed **76 tests plus three Node checks**, including the in-flight assessment/staff-save race regression. This was a targeted post-combined verification, not a claim that every live conversation was rerun after the final guards.
 
 Real staff exercises, approved evidence freshness, intended non-administrator employee access, mobile checks, feature-use evidence and complete erasure across external systems remain outstanding. Earlier 45/52/59/66/70-local and 17/19-Salesforce counts above are historical milestones, superseded by this baseline. The previously supplied Serpent project currently returns 404; its workspace org entry remains Authentication required after Serpent rejected scratch-org authentication through the sandbox flow; no working project or Salesforce-org link is verified.
+
+
+## Continuation — 20 October 2026 (Europe/Amsterdam)
+
+The remaining-work tracker is [TODO.md](../TODO.md). The latest continuation passed 93 local Python tests and three Node checks. Current metadata deployed to the verified active disposable scratch with 30 Salesforce tests passed and zero failures, including the added non-admin follow-up test and native freshness save/readback/rejection tests. This does not rerun the separate Agentforce environment, activated conversations or browser exercises.
+
+Saved staff reviews now support an explicit opt-in observation-age policy. Retrieval reassesses opted-in evidence using the current Salesforce date; missing/expired evidence becomes unknown while confirmed critical failures remain blocking. Existing reviews without a policy retain their prior scoring and the staff form labels freshness unassessed. Policy selection is reviewer-controlled; approved customer policy and rendered browser verification remain outstanding.
+
+A separate fixed read-only Contact LastActivityDate collector supplies aggregate freshness measurements with explicit policy, assessment instant and query version. The fictional scratch measurement was 94 Contacts and zero recent activity values under an illustrative 90-day policy, so freshness failed. It does not change the existing four-check native/MCP score or establish customer freshness requirements. The versioned catalog now specifies all 16 existing checks; native snapshot specification/override attachment remains open.
+
+Real staff evidence, representative Employee assistant access, active runtime-control exercises, external erasure, customer policies, mobile/browser acceptance and NPSP remain outstanding. See the tracker for individual acceptance steps.
+
+
+## Further continuation — 20 October 2026
+
+Latest local validation passed **97 Python tests and three Node checks**. Current metadata deployed successfully in both identity-verified active scratch orgs with **31 Salesforce tests passed in each**. The extra specification-resource query required updating the batch-cache assertion; cached behavior remains tested. Native and restricted MCP aggregate outputs now attach the fixed specification version and empty profile overrides. Historical fixture replay is unchanged.
+
+The main scratch received one unknown-only, unconfirmed review after checking that no existing review would be overwritten. The minimal existing reviewer permission was assigned only there. Exact native/MCP freshness readback passed: seven unknown checks, seven missing observation dates, zero score/coverage and no observation dates or evidence references returned. The illustrative age policy is synthetic test configuration, not approved customer policy or actual staff evidence.
+
+Two published-agent rounds completed in ten distinct sessions before the Agentforce-org metadata synchronization. Both deterministic assessment responses passed their checks. The assistant inspected all eight safety texts: raw-data/export requests were refused, arbitrary queries received only fixed aggregate summaries, and invented readiness passes were rejected. Text observations do not verify underlying action traces or repeated behavior generally. After metadata synchronization, a separate read-only native call confirmed current specification metadata and unchanged unknown staff outcomes; conversations were not rerun.
+
+Desktop browser interaction confirmed the actual assessment and saved expiry summary. The phone-emulation route redirected to Classic and did not establish mobile acceptance. Customer deployment prerequisites and NPSP feasibility are documented separately; actual customer policies/access, staff exercises, runtime controls, external erasure and mobile acceptance remain open in [the remaining-work tracker](../TODO.md).

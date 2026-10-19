@@ -15,8 +15,8 @@ const CHOICES = [
     { label: 'Not demonstrated', value: 'no' }, { label: 'Not observed', value: 'unknown' }
 ];
 
-function buildSnapshot(version, questions) {
-    return { version, mode: 'actual', reviews: questions.map(question => {
+function buildSnapshot(version, questions, policy) {
+    const snapshot = { version, mode: 'actual', reviews: questions.map(question => {
         const actions = Object.fromEntries(question.required_actions.map(action => [action.id, action.value]));
         const values = Object.values(actions);
         const answer = values.length && values.every(value => value === 'yes') ? 'yes' :
@@ -25,6 +25,10 @@ function buildSnapshot(version, questions) {
             evidence_ref: question.evidence_ref || null, actions,
             critical_failures: question.critical_failures.filter(failure => failure.checked).map(failure => failure.id) };
     }) };
+    if (policy) snapshot.freshness_policy = { as_of: policy.asOf, max_age_days: Number(policy.maxAgeDays),
+        observed_on: Object.fromEntries(questions.filter(question => question.observed_on)
+            .map(question => [question.id, question.observed_on])) };
+    return snapshot;
 }
 
 export default class ReadinessStaffReview extends LightningElement {
@@ -37,6 +41,16 @@ export default class ReadinessStaffReview extends LightningElement {
     latest;
     choices = CHOICES;
     canReview = Boolean(hasReviewPermission);
+    useFreshness = false;
+    asOf = '';
+    maxAgeDays = '';
+
+    changePolicy(event) {
+        const field = event.target.dataset.field;
+        if (field === 'useFreshness') this.useFreshness = event.target.checked;
+        else this[field] = event.target.value;
+        this.message = undefined;
+    }
 
     async connectedCallback() {
         try {
@@ -45,7 +59,7 @@ export default class ReadinessStaffReview extends LightningElement {
             this.version = key.version;
             this.questions = key.questions.map((question, index) => ({ ...question,
                 title: `${index + 1}. ${TITLES[question.id] || 'Staff exercise'}`,
-                reviewer_confirmed: false, evidence_ref: '',
+                reviewer_confirmed: false, evidence_ref: '', observed_on: '',
                 required_actions: question.required_actions.map(action => ({ ...action, value: 'unknown' })),
                 critical_failures: question.critical_failures.map(failure => ({ ...failure, checked: false })) }));
             this.acceptResult(JSON.parse(reviewText));
@@ -69,6 +83,7 @@ export default class ReadinessStaffReview extends LightningElement {
             ...item,
             ...(field === 'confirmation' ? { reviewer_confirmed: event.target.checked } : {}),
             ...(field === 'evidence' ? { evidence_ref: event.target.value } : {}),
+            ...(field === 'observed_on' ? { observed_on: event.target.value } : {}),
             required_actions: item.required_actions.map(entry => entry.id === action ?
                 { ...entry, value: event.detail.value } : entry),
             critical_failures: item.critical_failures.map(entry => entry.id === failure ?
@@ -85,11 +100,12 @@ export default class ReadinessStaffReview extends LightningElement {
         this.error = undefined;
         this.message = undefined;
         try {
-            const result = JSON.parse(await saveReview({ snapshot: JSON.stringify(buildSnapshot(this.version, this.questions)) }));
+            const result = JSON.parse(await saveReview({ snapshot: JSON.stringify(buildSnapshot(this.version, this.questions,
+                this.useFreshness ? { asOf: this.asOf, maxAgeDays: this.maxAgeDays } : null)) }));
             this.acceptResult(result);
             this.message = 'Your observed staff review was saved. This does not establish whole-team or technical readiness.';
         } catch (error) {
-            this.error = 'Staff review was not saved. Check your access and evidence references, then try again.';
+            this.error = 'Staff review was not saved. Check access, references and dates. An opted-in assessment date must be today in Salesforce.';
         } finally {
             this.saving = false;
         }
@@ -98,6 +114,11 @@ export default class ReadinessStaffReview extends LightningElement {
     get disabled() { return !this.canReview || this.loading || this.saving || !this.questions.length; }
     get score() { return this.latest && this.latest.staff.score !== null ? `${this.latest.staff.score}%` : 'Not assessed'; }
     get coverage() { return this.latest ? `${this.latest.staff.coverage}%` : 'Not assessed'; }
+    get freshnessSummary() {
+        const policy = this.latest?.freshness;
+        return policy ? `Evidence freshness assessed as of ${policy.as_of}; maximum age ${policy.max_age_days} days. Missing or expired dates remain unknown; critical failures remain blocking.` :
+            'Evidence freshness not assessed. No observation-age policy was applied to this review.';
+    }
     get reviewedAt() { return this.latest && this.latest.reviewed_at; }
     get savedChecks() {
         return Object.keys(TITLES).map(id => ({ id,

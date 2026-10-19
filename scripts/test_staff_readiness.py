@@ -6,7 +6,7 @@ import sys
 import tempfile
 import unittest
 
-from staff_readiness import KEY, ROOT, evaluate, template
+from staff_readiness import KEY, ROOT, evaluate, evaluate_with_freshness, template
 
 
 class StaffReadinessTests(unittest.TestCase):
@@ -97,6 +97,52 @@ class StaffReadinessTests(unittest.TestCase):
         legacy.pop('mode')
         self.assertEqual(evaluate(legacy)['evidence_mode'], 'reviewer_confirmed_observations')
 
+    def test_explicit_freshness_boundary_missing_dates_and_no_mutation(self):
+        snapshot = self.passed_review()
+        original = copy.deepcopy(snapshot)
+        policy = {'as_of': '2026-10-19', 'max_age_days': 30,
+                  'observed_on': {'scope': '2026-09-19', 'sensitive_data': '2026-09-18'}}
+        result = evaluate_with_freshness(snapshot, policy)
+        self.assertEqual(result, evaluate_with_freshness(snapshot, policy))
+        self.assertEqual(result, evaluate({**snapshot, 'freshness_policy': policy}))
+        self.assertEqual(snapshot, original)
+        self.assertEqual(result['staff']['checks']['scope'], 'pass')
+        self.assertEqual(result['staff']['checks']['sensitive_data'], 'unknown')
+        self.assertEqual(result['staff']['checks']['quality'], 'unknown')
+        self.assertEqual(result['freshness']['checks']['sensitive_data'], 'expired')
+        self.assertEqual(result['freshness']['checks']['quality'], 'missing')
+        self.assertNotIn('FICTIONAL-EVIDENCE', json.dumps(result))
+        self.assertEqual(evaluate(snapshot)['staff']['score'], '100.0')
+
+    def test_expiry_preserves_critical_gates_but_cannot_confirm_evidence(self):
+        snapshot = self.passed_review()
+        snapshot['reviews'][0]['critical_failures'] = ['unapproved_decision']
+        snapshot['reviews'][1]['critical_failures'] = ['sensitive_disclosure']
+        snapshot['reviews'][1]['reviewer_confirmed'] = False
+        snapshot['reviews'][2]['answer'] = 'no'
+        policy = {'as_of': '2026-10-19', 'max_age_days': 0, 'observed_on': {}}
+        result = evaluate_with_freshness(snapshot, policy)
+        self.assertEqual(result['critical_failures'], ['scope:unapproved_decision'])
+        self.assertEqual(result['decision'], 'blocked_by_observed_critical_failure')
+        self.assertEqual(result['staff']['checks']['scope'], 'fail')
+        self.assertEqual(result['staff']['checks']['sensitive_data'], 'unknown')
+        self.assertEqual(result['staff']['checks']['untrusted_content'], 'unknown')
+        snapshot['mode'] = 'simulation'
+        self.assertEqual(evaluate_with_freshness(snapshot, policy)['decision'],
+                         'blocked_by_simulated_critical_failure')
+
+    def test_freshness_policy_rejects_ambiguous_or_future_dates_and_defaults(self):
+        policy = {'as_of': '2026-10-19', 'max_age_days': 30, 'observed_on': {}}
+        invalid = [None, {}, {**policy, 'max_age_days': True}, {**policy, 'max_age_days': -1}, {**policy, 'max_age_days': 2147483648},
+                   {**policy, 'as_of': '20261019'}, {**policy, 'as_of': '2026-02-30'},
+                   {**policy, 'observed_on': {'scope': '2026-10-20'}},
+                   {**policy, 'observed_on': {'scope': None}},
+                   {**policy, 'observed_on': {'private-sentinel': '2026-10-19'}},
+                   {**policy, 'extra': True}]
+        for value in invalid:
+            with self.subTest(policy=value), self.assertRaises(ValueError):
+                evaluate_with_freshness(self.passed_review(), value)
+
     def test_cli_template_and_observed_fixture_end_to_end(self):
         command = [sys.executable, str(ROOT/'scripts/staff_readiness.py')]
         output = subprocess.run(command+['template'], capture_output=True, text=True, check=True)
@@ -106,6 +152,17 @@ class StaffReadinessTests(unittest.TestCase):
             snapshot.write_text(json.dumps(self.passed_review()))
             output = subprocess.run(command+['evaluate',str(snapshot)], capture_output=True, text=True, check=True)
             self.assertEqual(json.loads(output.stdout)['staff']['score'],'100.0')
+            policy = Path(directory)/'policy.json'
+            policy.write_text(json.dumps({'as_of': '2026-10-19', 'max_age_days': 30, 'observed_on': {}}))
+            output = subprocess.run(command+['evaluate', str(snapshot), '--freshness-policy', str(policy)],
+                                    capture_output=True, text=True, check=True)
+            self.assertEqual(json.loads(output.stdout)['staff']['coverage'], '0.0')
+            policy.write_text('{private-policy-sentinel')
+            denied = subprocess.run(command+['evaluate', str(snapshot), '--freshness-policy', str(policy)],
+                                    capture_output=True, text=True)
+            self.assertEqual(denied.returncode, 1)
+            self.assertEqual(denied.stdout, '')
+            self.assertNotIn('private-policy-sentinel', denied.stderr)
             snapshot.write_text('{private-sentinel@example.invalid')
             denied = subprocess.run(command+['evaluate',str(snapshot)],capture_output=True,text=True)
             self.assertEqual(denied.returncode,1)
