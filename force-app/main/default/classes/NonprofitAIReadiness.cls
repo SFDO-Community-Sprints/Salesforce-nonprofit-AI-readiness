@@ -388,7 +388,7 @@ public with sharing class NonprofitAIReadiness {
             'priorities'=>assessmentPriorities(checks,suppressed ? null : new Map<String,Object>{
                 'contacts'=>n,'email_present'=>populated,'linked_contacts'=>linked,'repeated_email_rows'=>repeated})
         };
-        if (organization && !mcp) applyStaffReview(assessment);
+        if (!mcp) applyStaffReview(assessment);
         return assessment;
     }
 }

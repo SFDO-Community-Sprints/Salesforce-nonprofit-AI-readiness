@@ -26,20 +26,18 @@ class NativeSeedTests(unittest.TestCase):
             self.assertIn("String expectedHost = 'data-connect-7516-dev-ed.scratch.my.salesforce.com'", text)
             self.assertIn('IsSandbox', text)
 
-    def test_all_demo_categories_seeded_as_simulation_only(self):
+    def test_seed_contains_raw_inputs_never_assessment_results(self):
         source = (ROOT / 'scripts/apex/seed-demo.apex').read_text()
-        embedded = source.split("String demoJson = '", 1)[1].split("';", 1)[0]
-        scenarios = json.loads(embedded)
-        self.assertEqual([item['scenario'] for item in scenarios], ['poor','improving','pilot','blocked','unknown'])
-        for item in scenarios:
-            self.assertEqual(item['mode'], 'simulation')
-            self.assertEqual(item['assessment'], json.loads((ROOT / 'demo' / item['scenario'] / 'expected.json').read_text()))
-            self.assertEqual(len(item['assessment']['staff']['checks']), 7)
-            self.assertEqual(len(item['assessment']['technical']['checks']), 5)
-            self.assertEqual(item['erasure']['mode'], 'simulation')
-            self.assertFalse(item['erasure']['independently_verified'])
-        self.assertIn("Version__c='demo-scenarios-v1'", source)
-        self.assertNotIn("mode':'actual", embedded)
+        embedded = source.split("String practiceInputsJson = '", 1)[1].split("';", 1)[0]
+        inputs = json.loads(embedded)
+        self.assertEqual(set(inputs), {'poor','improving','pilot','blocked','unknown'})
+        for snapshot in inputs.values():
+            self.assertEqual(set(snapshot), {'version','mode','reviews'})
+            self.assertEqual(len(snapshot['reviews']), 7)
+            self.assertNotIn('score', json.dumps(snapshot))
+            self.assertNotIn('assessment', snapshot)
+        self.assertIn("Version__c='seeded-practice-staff-v1'", source)
+        self.assertIn('if (!presets.isEmpty()) delete presets', source)
 
     def test_post_deploy_grants_only_complete_demo_roles(self):
         source = (ROOT / 'scripts/apex/post-deploy.apex').read_text()

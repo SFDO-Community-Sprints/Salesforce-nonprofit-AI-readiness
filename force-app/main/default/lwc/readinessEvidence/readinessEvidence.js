@@ -34,7 +34,6 @@ export default class ReadinessEvidence extends LightningElement {
     safeguards = ['prerequisites', 'runtime_access', 'approval', 'export_block', 'stop_control'].map(blankCheck);
     destinations = [];
     nextDestination = 0;
-    modes = [{ label: 'Actual reported evidence', value: 'actual' }, { label: 'Fictional simulation', value: 'simulation' }];
     results = [{ label: 'Not observed', value: 'unknown' }, { label: 'Observed pass', value: 'pass' }, { label: 'Observed failure', value: 'fail' }];
     categories = [{ label: 'Salesforce', value: 'salesforce' }, { label: 'Integrations', value: 'integrations' },
         { label: 'Logs', value: 'logs' }, { label: 'Backups', value: 'backups' }, { label: 'Exports', value: 'exports' }];
@@ -59,10 +58,6 @@ export default class ReadinessEvidence extends LightningElement {
         this.evidenceResult = undefined;
         this.error = undefined;
         this.notifyEvidence(null);
-    }
-    changeMode(event) {
-        this.mode = event.detail.value;
-        this.clearEvidence();
     }
     changeCheck(event) {
         const { destination, check, field } = event.target.dataset;
@@ -90,12 +85,12 @@ export default class ReadinessEvidence extends LightningElement {
             ...(field === 'category' ? { probes: PROBES[value].map(blankCheck) } : {}) } : row);
         this.clearEvidence();
     }
-    get actualMode() { return this.mode === 'actual'; }
+    get actualMode() { return true; }
     buildEvidence() {
         const reference = check => ({ evidence_ref: check.evidence_ref, reviewer_ref: check.reviewer_ref });
-        if (!this.isErasure) return { mode: this.mode, evidence: this.safeguards.filter(check => check.hasEvidence)
+        if (!this.isErasure) return { mode: 'actual', evidence: this.safeguards.filter(check => check.hasEvidence)
             .map(check => ({ check_id: check.id, result: check.result, ...reference(check) })) };
-        return { mode: this.mode, systems: this.destinations.map(row => ({ id: row.id, category: row.category,
+        return { mode: 'actual', systems: this.destinations.map(row => ({ id: row.id, category: row.category,
             ...(this.actualMode ? { destination_ref: row.destination_ref, owner_ref: row.owner_ref,
                 retention_policy_ref: row.retention_policy_ref, privacy_approver_ref: row.privacy_approver_ref } : {}) })),
         evidence: this.destinations.flatMap(row => row.probes.filter(check => check.hasEvidence).map(check => ({
@@ -117,7 +112,6 @@ export default class ReadinessEvidence extends LightningElement {
     get evidenceSummary() {
         const result = this.evidenceResult;
         if (!result) return '';
-        if (result.mode === 'simulation') return 'Simulation only — fictional evidence does not assess this org.';
         if (this.isErasure) return `${result.reported_observations} reported observations; ${result.reported_failures} reported failures; ${result.unknown_checks} unknown checks out of ${result.required_checks}. Erasure remains not assessed.`;
         return `Reported control score: ${result.score ?? 'Not assessed'}%; coverage: ${result.coverage}%. Access and safeguards remain not assessed pending independent verification.`;
     }

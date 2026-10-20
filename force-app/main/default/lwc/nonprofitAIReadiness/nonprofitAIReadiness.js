@@ -3,7 +3,7 @@ import hasFollowUpPermission from '@salesforce/customPermission/Readiness_Create
 import assess from '@salesforce/apex/NonprofitAIReadiness.assessScenario';
 import createFollowUpTasks from '@salesforce/apex/NonprofitAIReadiness.createFollowUpTasks';
 import capabilityInventory from '@salesforce/apex/NonprofitAIReadiness.capabilityInventory';
-import getScenario from '@salesforce/apex/ReadinessDemoScenarios.getScenario';
+import assessOrgConfiguration from '@salesforce/apex/ReadinessOrgChecks.assess';
 
 const LABELS = {
     sufficient_data: 'At least 10 contact records',
@@ -11,20 +11,6 @@ const LABELS = {
     account_linkage: 'All contacts linked to accounts',
     duplicate_indicator: 'No repeated email addresses'
 };
-const STAFF = {
-    scope: ['Approved scope', 'Keep grant awards and other consequential decisions with authorized people.'],
-    sensitive_data: ['Sensitive data and deletion', 'Exclude sensitive notes and trace deletion across all retained copies.'],
-    untrusted_content: ['Untrusted content', 'Reject embedded export instructions and unsupported donation claims.'],
-    access: ['Assistant access', 'Test allowed and forbidden operations under the intended assistant identity.'],
-    quality: ['Source quality', 'Flag conflicting or missing details without inventing or merging values.'],
-    review: ['Human review', 'Reject unsafe messages and enforce approval before a send or change.'],
-    incident: ['Incident response', 'Escalate unsafe behavior, stop the assistant and rehearse recovery.']
-};
-const CONTROL_LABELS = { prerequisites: 'Required prerequisites', runtime_access: 'Assistant access', approval: 'Human approval', export_block: 'Unapproved exports blocked', stop_control: 'Stop and recovery' };
-function outcome(status) {
-    if (status === 'pass' || status === 'observed' || status?.endsWith('_observed')) return 'Passed';
-    return status === 'fail' || status === 'failed' || status?.endsWith('_failed') ? 'Needs attention' : 'Not assessed';
-}
 const LEARNING = {
     data: { url: 'https://trailhead.salesforce.com/content/learn/trails/prepare-your-data-for-ai', label: 'Prepare your data for AI' },
     duplicates: { url: 'https://trailhead.salesforce.com/content/learn/modules/sales_admin_duplicate_management/sales_admin_duplicate_management_unit_2', label: 'Learn how to manage duplicates' },
@@ -64,23 +50,20 @@ function priorityDetails(key, metrics = {}) {
 export default class NonprofitAIReadiness extends LightningElement {
     result;
     scenario = 'organization';
-    demoScenario;
     scenarioOptions = [
-        { label: 'Live organization', value: 'organization' },
-        { label: 'Simulation: poor readiness', value: 'poor' },
-        { label: 'Simulation: improving readiness', value: 'improving' },
-        { label: 'Simulation: blocked safeguard', value: 'blocked' },
-        { label: 'Simulation: bounded pilot', value: 'pilot' },
-        { label: 'Simulation: missing evidence', value: 'unknown' }
+        { label: 'All accessible Contacts', value: 'organization' },
+        { label: 'Demo records: poor', value: 'poor' },
+        { label: 'Demo records: improving', value: 'improving' },
+        { label: 'Demo records: blocked', value: 'blocked' },
+        { label: 'Demo records: pilot', value: 'pilot' },
+        { label: 'Demo records: unknown', value: 'unknown' }
     ];
-    get isDemo() { return this.scenario !== 'organization'; }
-    get isLive() { return !this.isDemo; }
-    get scopeLabel() { return this.isDemo ? 'Fictional simulation · Seeded scenario outcomes · No organization readiness conclusion' : 'Live Salesforce data · Four data checks · Records you can access'; }
+    get isOrganizationScope() { return this.scenario === 'organization'; }
+    get scopeLabel() { return 'Live Salesforce data · Four data checks · Selected Contact records you can access. Staff and configuration checks remain organization-wide.'; }
     handleScenarioChange(event) {
         if (this.assessmentDisabled) return;
         this.scenario = event.detail.value;
         this.result = undefined;
-        this.demoScenario = undefined;
         this.staffReview = undefined;
         this.safeguardEvidence = undefined;
         this.erasureEvidence = undefined;
@@ -89,33 +72,24 @@ export default class NonprofitAIReadiness extends LightningElement {
         this.taskMessage = undefined;
         this.taskError = undefined;
     }
-    get demoStaffChecks() {
-        return Object.entries(STAFF).map(([key, [label, description]]) => ({ key, label, description,
-            status: outcome(this.result?.staff?.checks?.[key]) }));
-    }
-    get demoControlChecks() {
-        return Object.entries(this.result?.technical?.checks || {}).map(([key, status]) => ({ key, label: CONTROL_LABELS[key] || key, status: outcome(status) }));
-    }
-    get demoErasureChecks() {
-        return (this.demoScenario?.erasure?.checks || []).map((check, index) => ({ key: String(index),
-            label: `${check.category}: ${(check.probe_id || '').replace(/_/g, ' ')}`, status: outcome(check.status) }));
-    }
     safeguardEvidence;
     erasureEvidence;
     handleEvidenceReview(event) {
-        if (this.isDemo) return;
         if (event.detail.kind === 'safeguards') this.safeguardEvidence = event.detail.result;
         if (event.detail.kind === 'erasure') this.erasureEvidence = event.detail.result;
     }
-    get safeguardsLabel() { if (this.isDemo) return this.result?.technical?.score == null ? 'Simulation: not assessed' : `Simulation: ${this.result.technical.score}%`; return this.safeguardEvidence ? (this.safeguardEvidence.mode === 'simulation' ? 'Simulation only' : 'Evidence evaluated') : 'Not assessed'; }
-    get safeguardsCoverage() {
-        if (this.isDemo) return `Simulated checks completed: ${this.result?.technical?.coverage ?? 0}%. No live access tests.`;
-        return this.safeguardEvidence ? `${this.safeguardEvidence.mode === 'simulation' ? 'Simulated' : 'Reported'} evidence only; independent verification required` : 'Separate access and safety tests required';
-    }
-    get erasureLabel() { if (this.isDemo) return 'Simulation only'; return this.erasureEvidence ? (this.erasureEvidence.mode === 'simulation' ? 'Simulation only' : 'Evidence evaluated') : 'Not assessed'; }
-    get erasureCoverage() {
-        if (this.isDemo) return `${this.demoScenario?.erasure?.unknown_checks ?? 0} simulated checks missing. End-to-end erasure not verified.`;
-        return this.erasureEvidence ? `${this.erasureEvidence.reported_observations} reported observations; ${this.erasureEvidence.unknown_checks} checks missing. End-to-end erasure not assessed.` : 'Deletion and retention procedures need review';
+    orgConfiguration;
+    orgConfigurationError;
+    get safeguardsLabel() { return this.orgConfiguration?.access?.score == null ? 'Not assessed' : `${this.orgConfiguration.access.score}% configuration`; }
+    get safeguardsCoverage() { return 'Deployed role configuration only; runtime controls unmeasured'; }
+    get erasureLabel() { return this.orgConfiguration?.privacy?.score == null ? 'Not assessed' : `${this.orgConfiguration.privacy.score}% configuration`; }
+    get erasureCoverage() { return 'Measured Salesforce configuration only; full erasure not measured'; }
+    get configurationSource() { return this.orgConfiguration ? `${this.orgConfiguration.scope} · ${this.orgConfiguration.version} · ${this.orgConfiguration.observed_at}` : ''; }
+    get configurationChecks() {
+        return ['access', 'privacy'].flatMap(area => (this.orgConfiguration?.[area]?.checks || []).map(check => ({
+            ...check, key: `${area}:${check.id}`, area: area === 'access' ? 'Access and safeguards' : 'Privacy and erasure',
+            statusLabel: check.status === 'pass' ? 'Passed' : check.status === 'fail' ? 'Needs attention' : 'Not assessed'
+        })));
     }
     loading = false;
     error;
@@ -128,10 +102,10 @@ export default class NonprofitAIReadiness extends LightningElement {
     inventoryError;
     staffReview;
     refreshAfterAssessment = false;
-    get staffScore() { if (this.isDemo) return this.result?.staff?.score == null ? 'Simulation: not assessed' : `Simulation: ${this.result.staff.score}%`; return this.staffReview?.staff?.score == null ? 'Not assessed' : `${this.staffReview.staff.score}%`; }
-    get staffCoverage() { if (this.isDemo) return `Simulated checks completed: ${this.result?.staff?.coverage ?? 0}%. Fictional exercises only.`; return this.staffReview ? `Checks completed: ${this.staffReview.staff.coverage}%. Your reviewed exercises only.` : 'Staff practice and review required'; }
+    get staffPractice() { return this.staffReview?.provenance === 'seeded_practice' || this.staffReview?.source === 'seeded_practice'; }
+    get staffScore() { return this.staffReview?.staff?.score == null ? 'Not assessed' : `${this.staffPractice ? 'Practice answers: ' : ''}${this.staffReview.staff.score}%`; }
+    get staffCoverage() { return this.staffPractice ? 'Seeded input records; no observed staff competency' : this.staffReview ? `Checks completed: ${this.staffReview.staff.coverage}%. Your reviewed exercises only.` : 'Staff practice and review required'; }
     async handleStaffReview(event) {
-        if (this.isDemo) return;
         this.staffReview = event.detail;
         if (this.loading) { this.refreshAfterAssessment = true; return; }
         if (this.result) { await this.handleRun(); }
@@ -146,7 +120,7 @@ export default class NonprofitAIReadiness extends LightningElement {
     }
     get actionsDisabled() { return this.loading || !this.result; }
     get assessmentDisabled() { return this.loading || this.savingTasks; }
-    get tasksDisabled() { return this.isDemo || !this.canCreateFollowUp || this.loading || this.savingTasks || !this.result || this.suppressed; }
+    get tasksDisabled() { return !this.isOrganizationScope || !this.canCreateFollowUp || this.loading || this.savingTasks || !this.result || this.suppressed; }
     get followUpCount() { return this.recommendations.length; }
     get score() { return this.result?.data?.score == null ? 'Not assessed' : `${this.result.data.score}%`; }
     get coverage() { return this.suppressed || this.result?.data?.coverage == null ? 'Not assessed' : `${this.result.data.coverage}%`; }
@@ -163,7 +137,6 @@ export default class NonprofitAIReadiness extends LightningElement {
         ];
     }
     get banner() {
-        if (this.isDemo) return 'Simulation only. These fictional outcomes demonstrate the rubric; they do not assess this organization or certify staff, access safeguards or erasure.';
         if (this.result?.staff_review?.critical_failures?.length) {
             return 'An observed unsafe action in your staff review blocks a pilot. Correct it and repeat the exercise. Access safeguards and complete erasure still need review.';
         }
@@ -180,12 +153,6 @@ export default class NonprofitAIReadiness extends LightningElement {
         }));
     }
     get recommendations() {
-        if (this.isDemo) return (this.result?.priorities || []).map(item => ({
-            key: item.key, owner: item.key === 'staff' ? 'Training lead' : item.key === 'privacy' ? 'Privacy lead' : 'Salesforce admin',
-            text: item.recommendation, priority: item.priority, impact: item.impact,
-            priorityClass: `priority-badge ${item.priority.toLowerCase()}`,
-            learning: LEARNING[item.key] || LEARNING.erasure
-        }));
         const actions = [
             { key: 'controls', owner: 'Salesforce admin', text: 'Before a pilot, test which information the agent can access, restricted exports, human approvals and how to stop it. These safeguards have not been assessed here.' },
             { key: 'erasure', owner: 'Privacy lead', text: 'Confirm how deletion requests cover Salesforce, the Recycle Bin, exports, integrations, AI logs and backups, including retention obligations. A deleted Contact alone does not establish erasure.', extraUrl: 'https://help.salesforce.com/s/articleView?id=home_delete.htm&language=en_US&type=5', extraLabel: 'Review Salesforce record deletion' },
@@ -250,25 +217,19 @@ export default class NonprofitAIReadiness extends LightningElement {
         this.error = undefined;
         this.result = undefined;
         this.lastChecked = undefined;
+        this.orgConfiguration = undefined;
+        this.orgConfigurationError = undefined;
         this.inventory = undefined;
         this.inventoryError = undefined;
         this.taskMessage = undefined;
         this.taskError = undefined;
-        if (this.isDemo) {
-            this.demoScenario = undefined;
-            try {
-                const demo = JSON.parse(await getScenario({ scenario: this.scenario }));
-                if (demo.error || demo.mode !== 'simulation' || !demo.assessment) throw new Error('Simulation unavailable');
-                this.demoScenario = demo;
-                this.result = demo.assessment;
-                this.lastChecked = new Date().toLocaleString();
-            } catch (error) {
-                this.error = 'Demo scenario unavailable. Run scripts/apex/seed-demo.apex in this demo org, then try again.';
-            } finally {
-                this.loading = false;
-            }
-            return;
-        }
+        const configurationRequest = assessOrgConfiguration().then(value => {
+            const configuration = JSON.parse(value);
+            if (!configuration || configuration.error || !configuration.access || !configuration.privacy) throw new Error('Configuration unavailable');
+            this.orgConfiguration = configuration;
+        }).catch(() => {
+            this.orgConfigurationError = 'Organization configuration unavailable for your access. These checks are not assessed.';
+        });
         const inventoryRequest = capabilityInventory().then(value => {
             const inventory = JSON.parse(value);
             if (inventory.error) { throw new Error('Inventory unavailable'); }
@@ -277,7 +238,7 @@ export default class NonprofitAIReadiness extends LightningElement {
             this.inventoryError = 'License and feature information unavailable for your access.';
         });
         try {
-            const result = JSON.parse(await assess({ scenario: 'organization' }));
+            const result = JSON.parse(await assess({ scenario: this.scenario }));
             if (result.error) { throw new Error('Assessment unavailable'); }
             this.result = result;
             this.staffReview = result.staff_review || undefined;
@@ -285,7 +246,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         } catch (error) {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
-            await inventoryRequest;
+            await Promise.all([inventoryRequest, configurationRequest]);
             this.loading = false;
             if (this.refreshAfterAssessment) {
                 this.refreshAfterAssessment = false;

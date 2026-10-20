@@ -374,7 +374,7 @@ private class NonprofitAIReadinessTest {
         Test.startTest();
         List<NonprofitAIReadiness.Response> results = NonprofitAIReadiness.assess(
             new List<NonprofitAIReadiness.Request>{request,request});
-        System.assertEquals(4,Limits.getQueries());
+        System.assertEquals(6,Limits.getQueries());
         Test.stopTest();
         System.assertEquals(2,results.size());
         System.assertEquals(results[0].output,results[1].output);
@@ -426,9 +426,9 @@ private class NonprofitAIReadinessTest {
             }
             System.assert(!JSON.serialize(result).contains('PRIVATE_REVIEW_REFERENCE_SENTINEL'));
             Map<String,Object> practice = runScenario('pilot');
-            System.assert(!practice.containsKey('staff_review'),'Fixed demo groups must not use actual staff reviews');
-            System.assert(!practice.containsKey('staff_summary'));
-            System.assertEquals(3,((List<Object>)practice.get('priorities')).size());
+            System.assert(practice.containsKey('staff_review'),'Contact scope must retain the same own recorded staff assessment');
+            System.assertEquals(review,practice.get('staff_review'));
+            System.assertEquals(2,((List<Object>)practice.get('priorities')).size());
         }
     }
     @IsTest static void observedCriticalStaffFailureBlocksAndCreatesTargetedHighTask() {

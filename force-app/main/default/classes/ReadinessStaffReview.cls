@@ -26,6 +26,7 @@ public with sharing class ReadinessStaffReview {
                 Snapshot__c=JSON.serialize(input), Version__c=(String)result.get('version'));
             insert as user record;
             result.put('reviewed_at', Datetime.now());
+            result.put('provenance', 'recorded_review');
             return JSON.serialize(result);
         } catch (Exception ignored) {
             return error('review_unavailable');
@@ -37,9 +38,14 @@ public with sharing class ReadinessStaffReview {
             !FeatureManagement.checkPermission('Readiness_Review_Staff')) return error('review_not_permitted');
         try {
             // Bypass raw-field FLS only for this owner's computed summary; class sharing still applies.
-            List<AI_Readiness_Staff_Review__c> records = [SELECT Snapshot__c, CreatedDate
+            List<AI_Readiness_Staff_Review__c> records = [SELECT Snapshot__c, CreatedDate, Version__c
                 FROM AI_Readiness_Staff_Review__c WHERE OwnerId = :UserInfo.getUserId()
                 AND Version__c = 'staff-readiness-v1'
+                ORDER BY CreatedDate DESC, Id DESC LIMIT 1];
+            // Human reviews always take precedence over newer seeded answer records.
+            if (records.isEmpty()) records = [SELECT Snapshot__c, CreatedDate, Version__c
+                FROM AI_Readiness_Staff_Review__c WHERE OwnerId = :UserInfo.getUserId()
+                AND Version__c = 'seeded-practice-staff-v1'
                 ORDER BY CreatedDate DESC, Id DESC LIMIT 1];
             if (records.isEmpty()) return 'null';
             Map<String,Object> input = (Map<String,Object>)JSON.deserializeUntyped(records[0].Snapshot__c);
@@ -50,6 +56,13 @@ public with sharing class ReadinessStaffReview {
             }
             Map<String,Object> result = evaluate(input);
             result.put('reviewed_at', records[0].CreatedDate);
+            Boolean practice = records[0].Version__c == 'seeded-practice-staff-v1';
+            result.put('provenance', practice ? 'seeded_practice' : 'recorded_review');
+            if (practice) {
+                result.put('evidence_mode', 'stored_practice_answers');
+                result.put('scope', 'practice_answer_records_only');
+                result.put('limitation', 'Calculated from seeded practice answer records using the staff rubric; these answers do not establish observed human competency.');
+            }
             return JSON.serialize(result);
         } catch (Exception ignored) {
             return error('review_unavailable');

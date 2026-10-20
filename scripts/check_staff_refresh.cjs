@@ -13,7 +13,8 @@ async function check() {
         LightningElement: class {},
         hasFollowUpPermission: false,
         assess: () => ++calls === 1 ? new Promise(resolve => { finishOld = resolve; }) : Promise.resolve(JSON.stringify({staff_review: newReview})),
-        capabilityInventory: () => Promise.resolve('{}')
+        capabilityInventory: () => Promise.resolve('{}'),
+        assessOrgConfiguration: () => Promise.resolve('{}')
     });
     const screen = new Component();
     const pending = screen.handleRun();

@@ -17,6 +17,7 @@ private class ReadinessStaffReviewTest {
         Id reader = [SELECT Id FROM PermissionSet WHERE Name='Readiness_Staff_Reader'].Id;
         insert new List<PermissionSetAssignment>{
             new PermissionSetAssignment(AssigneeId=users[0].Id,PermissionSetId=reviewer),
+            new PermissionSetAssignment(AssigneeId=users[0].Id,PermissionSetId=assessor),
             new PermissionSetAssignment(AssigneeId=users[1].Id,PermissionSetId=assessor),
             new PermissionSetAssignment(AssigneeId=users[2].Id,PermissionSetId=reviewer),
             new PermissionSetAssignment(AssigneeId=users[4].Id,PermissionSetId=reader)};
@@ -54,6 +55,9 @@ private class ReadinessStaffReviewTest {
             System.assert(result.containsKey('reviewed_at'));
             Map<String,Object> readback = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
             System.assertEquals('reviewer_confirmed_exercises_only',readback.get('scope'));
+            insert new Account(Name='SYNTHETIC AI Readiness poor');
+            Map<String,Object> cohort = (Map<String,Object>)JSON.deserializeUntyped(NonprofitAIReadiness.assessScenario('poor'));
+            System.assert(cohort.containsKey('staff_review'),'Contact scope must not discard current staff outcomes.');
             System.assertEquals(UserInfo.getUserId(),[SELECT CreatedById FROM AI_Readiness_Staff_Review__c LIMIT 1].CreatedById);
         }
         System.runAs(userFor('srother')) {
@@ -73,6 +77,32 @@ private class ReadinessStaffReviewTest {
             Map<String,Object> actual = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
             System.assertEquals('staff_evidence_complete',actual.get('decision'));
             System.assertEquals('reviewer_confirmed_observations',actual.get('evidence_mode'));
+        }
+    }
+    @IsTest static void seededPracticeIsEvaluatedFromStoredAnswers() {
+        System.runAs(userFor('srview')) {
+            Map<String,Object> input = snapshot();
+            AI_Readiness_Staff_Review__c practice = new AI_Readiness_Staff_Review__c(
+                Version__c='seeded-practice-staff-v1', Snapshot__c=JSON.serialize(input));
+            insert practice;
+            Map<String,Object> result = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
+            System.assertEquals('seeded_practice',result.get('provenance'));
+            System.assertEquals('stored_practice_answers',result.get('evidence_mode'));
+            System.assertEquals('practice_answer_records_only',result.get('scope'));
+            System.assert(((String)result.get('limitation')).contains('do not establish observed human competency'));
+            System.assertEquals(100,((Map<String,Object>)result.get('staff')).get('score'));
+            first(input).put('answer','no');
+            practice.Snapshot__c=JSON.serialize(input); update practice;
+            result = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
+            System.assertEquals(Decimal.valueOf('85.7'),((Map<String,Object>)result.get('staff')).get('score'));
+            System.assertEquals('fail',((Map<String,Object>)((Map<String,Object>)result.get('staff')).get('checks')).get('scope'));
+            System.assertEquals('seeded_practice',result.get('provenance'));
+            ReadinessStaffReview.saveReview(JSON.serialize(snapshot()));
+            Test.setCreatedDate(practice.Id,Datetime.now().addDays(1));
+            result = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
+            System.assertEquals('recorded_review',result.get('provenance'));
+            System.assertEquals('reviewer_confirmed_observations',result.get('evidence_mode'));
+            System.assertEquals(100,((Map<String,Object>)result.get('staff')).get('score'));
         }
     }
     @IsTest static void permissionCannotBeBypassed() {

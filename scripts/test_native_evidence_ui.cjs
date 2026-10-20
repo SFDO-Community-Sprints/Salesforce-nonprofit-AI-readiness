@@ -12,7 +12,7 @@ const context = {
     canReview: true,
     assessFreshness: async request => { calls.push(request); return JSON.stringify(freshnessResponse); },
     evaluateSafeguards: async request => { calls.push(request); return JSON.stringify({ mode: 'actual', score: 0, coverage: 0, checks: { approval: 'unknown' } }); },
-    evaluateErasure: async () => JSON.stringify({ mode: 'simulation', follow_ups: [] })
+    evaluateErasure: async () => JSON.stringify({ mode: 'actual', reported_observations: 0, reported_failures: 0, unknown_checks: 5, required_checks: 5, follow_ups: [] })
 };
 vm.runInNewContext(source, context);
 (async () => {
@@ -66,10 +66,10 @@ vm.runInNewContext(source, context);
     changeDestination('category', 'exports');
     assert.equal(component.buildEvidence().evidence.length, 0, 'Category change clears probes');
     assert.equal(component.destinations[0].probes[0].id, 'export_copy_absent');
-    component.changeMode({ detail: { value: 'simulation' } });
-    assert.equal(Object.keys(component.buildEvidence().systems[0]).sort().join(','), 'category,id', 'Simulation omits actual-only system fields');
+    assert.equal(component.buildEvidence().mode, 'actual');
+    assert.equal(component.buildEvidence().systems[0].owner_ref, 'owner_ref_01');
     await component.evaluate();
-    assert.match(component.evidenceSummary, /Simulation only/);
+    assert.doesNotMatch(component.evidenceSummary, /Simulation/);
     component.removeDestination({ target: { dataset: { destination: key } } });
     assert.equal(component.buildEvidence().systems.length, 0);
     component.template = { querySelectorAll: () => [{ reportValidity: () => false }] };

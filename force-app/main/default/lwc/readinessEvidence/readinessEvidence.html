@@ -15,10 +15,9 @@
         <p>Use only opaque references to protected evidence and reviewers. Do not enter donor details, names, subject identifiers or raw artifacts. Evaluating references cannot verify deletion or external controls.</p>
         <template lwc:if={canReview}>
             <lightning-combobox label="Evidence area (changing resets the input)" value={kind} options={kinds} onchange={changeKind} disabled={busy}></lightning-combobox>
-            <lightning-combobox label="Evidence source" value={mode} options={modes} onchange={changeMode} disabled={busy}></lightning-combobox>
             <p>Use references beginning with a lowercase letter, followed by lowercase letters, digits, underscores or hyphens (up to 80 characters). Keep names and sensitive details in the protected evidence store.</p>
             <template lwc:if={isErasure}>
-                <p>Add every destination receiving the information. Missing categories remain unknown. Changing a destination category clears its observed checks. Actual evidence requires ownership and retention references; fictional simulations never establish readiness.</p>
+                <p>Add every destination receiving the information. Missing categories remain unknown. Changing a destination category clears its observed checks. Evidence requires ownership and retention references.</p>
                 <template for:each={destinations} for:item="destination">
                     <fieldset key={destination.key} class="slds-box slds-m-top_medium">
                         <legend class="slds-text-title_bold">Erasure destination</legend>

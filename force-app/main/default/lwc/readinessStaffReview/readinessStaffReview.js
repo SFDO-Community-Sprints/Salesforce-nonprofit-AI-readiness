@@ -124,6 +124,7 @@ export default class ReadinessStaffReview extends LightningElement {
 
     get noSavedReview() { return this.canRead && !this.loading && !this.latest && !this.error; }
     get disabled() { return !this.canReview || this.loading || this.saving || !this.questions.length; }
+    get practiceAnswers() { return this.latest?.provenance === 'seeded_practice'; }
     get score() { return this.latest && this.latest.staff.score !== null ? `${this.latest.staff.score}%` : 'Not assessed'; }
     get coverage() { return this.latest ? `${this.latest.staff.coverage}%` : 'Not assessed'; }
     get freshnessSummary() {
