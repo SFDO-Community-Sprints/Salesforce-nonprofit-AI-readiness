@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus><enableActivities>false</enableActivities><enableHistory>false</enableHistory><enableReports>false</enableReports>
+    <label>AI Readiness Staff Review</label><nameField><displayFormat>SR-{00000}</displayFormat><label>Staff Review</label><type>AutoNumber</type></nameField><pluralLabel>AI Readiness Staff Reviews</pluralLabel><sharingModel>Private</sharingModel>
+</CustomObject>

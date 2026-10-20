@@ -1,0 +1,65 @@
+{
+  "rubric_version": "donor-summary-demo-v1",
+  "evidence_mode": "synthetic_simulation",
+  "metrics": {
+    "contacts": 10,
+    "email_present": 10,
+    "linked_contacts": 10,
+    "repeated_email_rows": 0
+  },
+  "data": {
+    "checks": {
+      "sufficient_data": "pass",
+      "email_completeness": "pass",
+      "account_linkage": "pass",
+      "duplicate_indicator": "pass"
+    },
+    "passed": 4,
+    "applicable": 4,
+    "score": "100.0",
+    "coverage": "100.0"
+  },
+  "technical": {
+    "checks": {
+      "prerequisites": "pass",
+      "runtime_access": "pass",
+      "approval": "pass",
+      "export_block": "fail",
+      "stop_control": "pass"
+    },
+    "passed": 4,
+    "applicable": 5,
+    "score": "80.0",
+    "coverage": "100.0"
+  },
+  "staff": {
+    "checks": {
+      "scope": "pass",
+      "sensitive_data": "pass",
+      "untrusted_content": "pass",
+      "access": "pass",
+      "quality": "pass",
+      "review": "pass",
+      "incident": "pass"
+    },
+    "passed": 7,
+    "applicable": 7,
+    "score": "100.0",
+    "coverage": "100.0"
+  },
+  "decision": "not_ready",
+  "priorities": [
+    {
+      "key": "controls",
+      "priority": "Critical",
+      "impact": "A tested safeguard failed and can permit unauthorized or consequential actions.",
+      "recommendation": "Fix the failed safeguard and repeat the test before enabling the agent."
+    },
+    {
+      "key": "privacy",
+      "priority": "High",
+      "impact": "Sensitive-data handling and erasure have not been verified end to end.",
+      "recommendation": "Verify masking, permitted data, retention, and erasure across agent responses and logs."
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "records": [
+    {
+      "attributes": {
+        "type": "Account",
+        "referenceId": "DemoAccount"
+      },
+      "Name": "SYNTHETIC AI Readiness poor",
+      "Contacts": {
+        "records": [
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact1"
+            },
+            "LastName": "SYNTHETIC poor Donor 1",
+            "Email": "poor-donor-0@example.invalid"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact2"
+            },
+            "LastName": "SYNTHETIC poor Donor 2"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact3"
+            },
+            "LastName": "SYNTHETIC poor Donor 3"
+          },
+          {
+            "attributes": {
+              "type": "Contact",
+              "referenceId": "Contact4"
+            },
+            "LastName": "SYNTHETIC poor Donor 4"
+          }
+        ]
+      }
+    }
+  ]
+}

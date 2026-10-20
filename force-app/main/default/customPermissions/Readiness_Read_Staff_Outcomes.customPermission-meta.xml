@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Read Own Staff Readiness Outcomes</label>
+    <description>Read only calculated outcomes of your own saved staff exercises without raw snapshot access.</description>
+</CustomPermission>

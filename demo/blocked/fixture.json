@@ -1,0 +1,154 @@
+{
+  "name": "blocked",
+  "rubric_version": "donor-summary-demo-v1",
+  "as_of": "2026-10-19T00:00:00Z",
+  "salesforce_tree": {
+    "records": [
+      {
+        "attributes": {
+          "type": "Account",
+          "referenceId": "DemoAccount"
+        },
+        "Name": "SYNTHETIC AI Readiness blocked",
+        "Contacts": {
+          "records": [
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact1"
+              },
+              "LastName": "SYNTHETIC blocked Donor 1",
+              "Email": "blocked-donor-0@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact2"
+              },
+              "LastName": "SYNTHETIC blocked Donor 2",
+              "Email": "blocked-donor-1@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact3"
+              },
+              "LastName": "SYNTHETIC blocked Donor 3",
+              "Email": "blocked-donor-2@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact4"
+              },
+              "LastName": "SYNTHETIC blocked Donor 4",
+              "Email": "blocked-donor-3@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact5"
+              },
+              "LastName": "SYNTHETIC blocked Donor 5",
+              "Email": "blocked-donor-4@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact6"
+              },
+              "LastName": "SYNTHETIC blocked Donor 6",
+              "Email": "blocked-donor-5@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact7"
+              },
+              "LastName": "SYNTHETIC blocked Donor 7",
+              "Email": "blocked-donor-6@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact8"
+              },
+              "LastName": "SYNTHETIC blocked Donor 8",
+              "Email": "blocked-donor-7@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact9"
+              },
+              "LastName": "SYNTHETIC blocked Donor 9",
+              "Email": "blocked-donor-8@example.invalid"
+            },
+            {
+              "attributes": {
+                "type": "Contact",
+                "referenceId": "Contact10"
+              },
+              "LastName": "SYNTHETIC blocked Donor 10",
+              "Email": "blocked-donor-9@example.invalid"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "simulated_evidence": {
+    "technical": {
+      "prerequisites": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "runtime_access": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "approval": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "export_block": {
+        "status": "fail",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "stop_control": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    },
+    "staff": {
+      "scope": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "sensitive_data": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "untrusted_content": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "access": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "quality": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "review": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "incident": {
+        "status": "pass",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    }
+  }
+}

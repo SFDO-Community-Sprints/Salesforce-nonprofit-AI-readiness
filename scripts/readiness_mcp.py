@@ -1,0 +1,278 @@
+#!/usr/bin/env python3
+"""Narrow, read-only MCP interface to the saved, verified demo scratch org."""
+from datetime import date, datetime, timezone
+import json
+import re
+import sys
+import subprocess
+
+from staff_readiness import KEY as STAFF_KEY, evaluate as evaluate_staff, template as staff_template
+
+from privacy import build_data_result
+from scratch_demo import ROOT, SCENARIOS, query
+from mcp_connection import load_connection
+
+ASSESSMENT_SCENARIOS = [*SCENARIOS, 'organization']
+
+TOOLS = [
+    {'name': 'org_identity', 'description': 'Verify the saved active disposable scratch org; return no identifying values.',
+     'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False},
+     'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
+    {'name': 'org_capabilities', 'description': 'Read AI-readiness-relevant product license allocation and fixed feature availability; assignments and available records do not establish actual feature usage.',
+     'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False},
+     'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
+    {'name': 'readiness_check', 'description': 'Measure accessible organization Contact records or fixed synthetic demo groups using aggregate queries only. Scope is the authenticated identity, not guaranteed whole-org access. Technical safeguards and staff evidence remain unknown. The dedicated MCP identity cannot read or save staff reviews.',
+     'inputSchema': {'type': 'object', 'properties': {'scenario': {'type': 'string', 'enum': ASSESSMENT_SCENARIOS}},
+                     'required': ['scenario'], 'additionalProperties': False},
+     'annotations': {'readOnlyHint': True, 'destructiveHint': False, 'idempotentHint': True, 'openWorldHint': True}},
+]
+
+
+def license_relevance(name):
+    label = name.lower()
+    if label == 'salesforce':
+        return 'Core Salesforce access for assessment'
+    if 'fundraising' in label and any(term in label for term in ('agent', 'einstein')):
+        return 'Fundraising agent entitlement; assignment does not prove the feature is enabled'
+    if any(term in label for term in ('data cloud', 'customer data platform')):
+        return 'Data grounding option; not required for every AI use case'
+    if any(term in label for term in ('agentforce', 'einstein', 'copilot', 'prompt')):
+        return 'AI feature entitlement; verify setup and use-case requirements'
+    if 'fundraising' in label:
+        return 'Fundraising grounding; does not itself enable AI'
+    return None
+
+
+def org_capabilities(state):
+    result = {'source': 'salesforce', 'collected_at': datetime.now(timezone.utc).isoformat(),
+              'licenses': [], 'capabilities': [], 'sections': {},
+              'limitations': 'Only AI-readiness-relevant licenses are shown. Allocation does not establish enablement or actual feature usage. Feature record counts below five are withheld. Missing access is unknown, not disabled. Accessible records do not establish whole-org coverage.'}
+    def count(value):
+        if type(value) is not int or value < 0:
+            raise ValueError('Invalid aggregate count')
+        return value if value >= 5 else None
+    for table, label, kind, section in [('UserLicense', 'Name', 'user', 'user_licenses'),
+                                       ('PermissionSetLicense', 'MasterLabel', 'permission_set', 'permission_set_licenses')]:
+        try:
+            rows = query(state['alias'], f'SELECT {label}, TotalLicenses, UsedLicenses FROM {table} ORDER BY {label} LIMIT 100')
+            if not isinstance(rows, list) or len(rows) > 100:
+                raise ValueError('Invalid license result')
+            licenses = []
+            for row in rows:
+                if set(row) - {label, 'TotalLicenses', 'UsedLicenses', 'attributes'}:
+                    raise ValueError('Invalid license result')
+                name, total, assigned = row[label], row['TotalLicenses'], row['UsedLicenses']
+                if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9 ()+.,/_&:'-]{1,120}", name):
+                    raise ValueError('Invalid product label')
+                if type(total) is not int or total < -1 or type(assigned) is not int or assigned < 0 or (total != -1 and assigned > total):
+                    raise ValueError('Invalid license counts')
+                relevance = license_relevance(name)
+                if relevance is None:
+                    continue
+                licenses.append({'name': name, 'relevance': relevance, 'total': total if total >= 0 else None, 'assigned': assigned,
+                                 'remaining': total - assigned if total >= 0 else None,
+                                 'kind': kind})
+            result['licenses'].extend(licenses)
+            result['sections'][section] = 'limited' if len(rows) == 100 else 'available'
+        except Exception:
+            result['sections'][section] = 'unavailable'
+    for name, table in [('Fundraising', 'GiftTransaction'), ('Service cases', 'Case'), ('Knowledge', 'KnowledgeArticleVersion')]:
+        feature = {'name': name, 'availability': 'unknown', 'visibleRecords': None, 'usage': 'not_verified'}
+        try:
+            rows = query(state['alias'], f'SELECT COUNT(Id) visible_records FROM {table}')
+            if len(rows) != 1 or set(rows[0]) - {'attributes', 'visible_records'}:
+                raise ValueError('Invalid aggregate result')
+            feature['visibleRecords'] = count(rows[0]['visible_records'])
+            feature['availability'] = 'available'
+        except Exception:
+            pass
+        result['capabilities'].append(feature)
+    return result
+
+
+def saved_staff_review(state):
+    """Read only the fixed assessor action; reconstruct safe canonical staff output."""
+    try:
+        process = subprocess.run(
+            ['sf', 'api', 'request', 'rest', '/services/data/v67.0/actions/custom/apex/NonprofitAIReadiness',
+             '--target-org', state['alias'], '--method', 'POST', '--header', 'Content-Type:application/json',
+             '--body', '{"inputs":[{"scenario":"organization"}]}'],
+            cwd=ROOT, capture_output=True, text=True, timeout=120)
+        if process.returncode:
+            return None
+        records = json.loads(process.stdout)
+        if type(records) is not list or len(records) != 1 or records[0].get('isSuccess') is not True:
+            return None
+        assessment = json.loads(records[0]['outputValues']['output'])
+        review = assessment.get('staff_review')
+        if review is None:
+            return None
+        allowed = {'version', 'evidence_mode', 'staff', 'critical_failures', 'follow_up',
+                   'decision', 'scope', 'limitation', 'reviewed_at'}
+        if (type(review) is not dict or set(review) not in (allowed, allowed | {'freshness'})
+                or review['version'] != STAFF_KEY['version']
+                or review['evidence_mode'] != 'reviewer_confirmed_observations'
+                or review['scope'] != 'reviewer_confirmed_exercises_only'):
+            return None
+        checks = review['staff']['checks']
+        question_ids = {question['id'] for question in STAFF_KEY['questions']}
+        if (type(checks) is not dict or set(checks) != question_ids
+                or any(type(status) is not str or status not in ('pass', 'fail', 'unknown') for status in checks.values())):
+            return None
+        critical = review['critical_failures']
+        allowed_critical = {question['id'] + ':' + failure['id'] for question in STAFF_KEY['questions']
+                            for failure in question['critical_failures']}
+        if (type(critical) is not list or any(type(marker) is not str or marker not in allowed_critical for marker in critical)
+                or len(critical) != len(set(critical))
+                or any(checks[marker.split(':')[0]] != 'fail' for marker in critical)):
+            return None
+        # Recompute all text and scores: source refs, messages and unclassified fields never cross this boundary.
+        snapshot = staff_template()
+        for item in snapshot['reviews']:
+            qid = item['question_id']
+            item['reviewer_confirmed'] = checks[qid] != 'unknown'
+            item['evidence_ref'] = 'confirmed_saved_review' if item['reviewer_confirmed'] else None
+            item['answer'] = 'yes' if checks[qid] == 'pass' else 'no' if checks[qid] == 'fail' else 'unknown'
+            item['actions'] = dict.fromkeys(item['actions'], 'yes' if checks[qid] == 'pass' else 'unknown')
+            item['critical_failures'] = [marker.split(':')[1] for marker in critical if marker.startswith(qid + ':')]
+        result = evaluate_staff(snapshot)
+        if 'freshness' in review:
+            freshness = review['freshness']
+            if (type(freshness) is not dict
+                    or set(freshness) != {'scope', 'as_of', 'max_age_days', 'checks'}
+                    or freshness['scope'] != 'saved_review_reassessed_today'
+                    or type(freshness['as_of']) is not str
+                    or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', freshness['as_of'])
+                    or date.fromisoformat(freshness['as_of']).isoformat() != freshness['as_of']
+                    or type(freshness['max_age_days']) is not int
+                    or not 0 <= freshness['max_age_days'] <= 2147483647
+                    or type(freshness['checks']) is not dict
+                    or set(freshness['checks']) != question_ids
+                    or any(type(status) is not str or status not in ('current', 'expired', 'missing')
+                           for status in freshness['checks'].values())):
+                return None
+            critical_questions = {marker.split(':')[0] for marker in critical}
+            if any(status != 'current' and checks[qid] != 'unknown' and qid not in critical_questions
+                   for qid, status in freshness['checks'].items()):
+                return None
+            result['freshness'] = {'scope': 'saved_review_reassessed_today',
+                                   'as_of': freshness['as_of'], 'max_age_days': freshness['max_age_days'],
+                                   'checks': dict(freshness['checks'])}
+        if result['decision'] != review['decision'] or type(review['reviewed_at']) is not str:
+            return None
+        stamp = datetime.fromisoformat(review['reviewed_at'].replace('Z', '+00:00'))
+        if stamp.tzinfo is None:
+            return None
+        result['reviewed_at'] = stamp.isoformat()
+        return result
+    except Exception:
+        return None
+
+
+def tool_call(name, arguments):
+    if not isinstance(arguments, dict):
+        raise ValueError('Invalid tool arguments')
+    if name in ('org_identity', 'org_capabilities'):
+        if arguments:
+            raise ValueError('Invalid tool arguments')
+    elif name == 'readiness_check':
+        if set(arguments) != {'scenario'} or arguments['scenario'] not in ASSESSMENT_SCENARIOS:
+            raise ValueError('Invalid tool arguments')
+    else:
+        raise ValueError('Unknown tool')
+    state = load_connection()
+    if name == 'org_identity':
+        return {'target_type': 'disposable_scratch', 'active': True, 'identity_verified': True,
+                'access': 'read_only', 'scope': 'dedicated_mcp_identity'}
+    if name == 'org_capabilities':
+        return org_capabilities(state)
+    scenario = arguments['scenario']
+    process = subprocess.run(
+        ['sf', 'api', 'request', 'rest', '/services/data/v67.0/actions/custom/apex/ReadinessMCP',
+         '--target-org', state['alias'], '--method', 'POST', '--header', 'Content-Type:application/json',
+         '--body', json.dumps({'inputs': [{'scenario': scenario}]})],
+        cwd=ROOT, capture_output=True, text=True, timeout=120)
+    if process.returncode:
+        raise ValueError('Aggregate action unavailable')
+    responses = json.loads(process.stdout)
+    if (type(responses) is not list or len(responses) != 1 or type(responses[0]) is not dict
+            or responses[0].get('isSuccess') is not True):
+        raise ValueError('Aggregate action unavailable')
+    native = json.loads(responses[0]['outputValues']['output'])
+    if type(native) is not dict or 'error' in native:
+        raise ValueError('Aggregate action unavailable')
+    privacy = native.get('privacy')
+    if (type(privacy) is not dict or set(privacy) != {'mode', 'minimum_cohort', 'suppressed'}
+            or privacy['mode'] != 'aggregate_only' or type(privacy['minimum_cohort']) is not int
+            or privacy['minimum_cohort'] != 5 or type(privacy['suppressed']) is not bool):
+        raise ValueError('Invalid aggregate result')
+    metrics = native.get('metrics')
+    if privacy['suppressed']:
+        if metrics is not None:
+            raise ValueError('Invalid aggregate result')
+        result = build_data_result(dict(contacts=0, email_present=0, linked_contacts=0, repeated_email_rows=0))
+    else:
+        result = build_data_result(metrics)
+    if (privacy != result['privacy'] or native.get('specification_version') != result['specification_version']
+            or native.get('rubric_version') != result['rubric_version'] or native.get('profile_overrides') != {}
+            or native.get('data', {}).get('checks') != result['data']['checks']
+            or native.get('decision') != 'readiness_not_established' or 'staff_review' in native):
+        raise ValueError('Invalid aggregate result')
+    result.update({'scenario': scenario, 'scope': 'sharing_scoped_organization_records' if scenario == 'organization' else 'sharing_scoped_fixed_synthetic_demo_cohort',
+                   'source': 'salesforce', 'collected_at': datetime.now(timezone.utc).isoformat(),
+                   'technical_and_staff': 'unknown; dedicated MCP identity has no staff evidence access',
+                   'coverage_note': 'Fixed aggregate computation only; sharing-scoped rows. Object/field access and restriction-rule enforcement are not established by these counts.',
+                   'decision': 'readiness_not_established'})
+    return result
+
+
+def dispatch(request):
+    if not isinstance(request, dict) or request.get('jsonrpc') != '2.0' or not isinstance(request.get('method'), str):
+        return {'jsonrpc': '2.0', 'id': None, 'error': {'code': -32600, 'message': 'Invalid request'}}
+    if 'id' not in request:
+        return None
+    response = {'jsonrpc': '2.0', 'id': request['id']}
+    method = request['method']
+    params = request.get('params', {})
+    if not isinstance(params, dict):
+        response['error'] = {'code': -32602, 'message': 'Invalid parameters'}
+        return response
+    if method == 'initialize':
+        supported = ('2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05')
+        requested = params.get('protocolVersion')
+        response['result'] = {'protocolVersion': requested if requested in supported else supported[0], 'capabilities': {'tools': {'listChanged': False}},
+                              'serverInfo': {'name': 'salesforce-nonprofit-ai-readiness', 'version': '0.1.0'}}
+    elif method == 'ping':
+        response['result'] = {}
+    elif method == 'tools/list':
+        response['result'] = {'tools': TOOLS}
+    elif method == 'tools/call':
+        try:
+            if set(params) - {'name', 'arguments', '_meta'}:
+                raise ValueError('Invalid parameters')
+            value = tool_call(params.get('name'), params.get('arguments', {}))
+            response['result'] = {'content': [{'type': 'text', 'text': json.dumps(value, separators=(',', ':'))}],
+                                  'structuredContent': value, 'isError': False}
+        except Exception:
+            # Exceptions can contain CLI credentials or record values; never serialize them.
+            response['result'] = {'content': [{'type': 'text', 'text': 'Readiness request rejected or unavailable; inspect local setup.'}],
+                                  'isError': True}
+    else:
+        response['error'] = {'code': -32601, 'message': 'Method not found'}
+    return response
+
+
+def main():
+    for line in sys.stdin:
+        try:
+            request = json.loads(line)
+        except ValueError:
+            response = {'jsonrpc': '2.0', 'id': None, 'error': {'code': -32700, 'message': 'Parse error'}}
+        else:
+            response = dispatch(request)
+        if response is not None:
+            print(json.dumps(response, separators=(',', ':')), flush=True)
+
+
+if __name__ == '__main__':
+    main()

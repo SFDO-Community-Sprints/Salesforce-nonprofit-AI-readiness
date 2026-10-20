@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Practice nonprofit AI readiness checks and review recommended next steps.</description>
+    <formFactors>Large</formFactors>
+    <label>Nonprofit AI Readiness</label>
+    <navType>Standard</navType>
+    <tabs>AI_Readiness</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

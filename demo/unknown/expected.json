@@ -1,0 +1,71 @@
+{
+  "rubric_version": "donor-summary-demo-v1",
+  "evidence_mode": "synthetic_simulation",
+  "metrics": {
+    "contacts": 0,
+    "email_present": 0,
+    "linked_contacts": 0,
+    "repeated_email_rows": 0
+  },
+  "data": {
+    "checks": {
+      "sufficient_data": "unknown",
+      "email_completeness": "unknown",
+      "account_linkage": "unknown",
+      "duplicate_indicator": "unknown"
+    },
+    "passed": 0,
+    "applicable": 4,
+    "score": "0.0",
+    "coverage": "0.0"
+  },
+  "technical": {
+    "checks": {
+      "prerequisites": "unknown",
+      "runtime_access": "unknown",
+      "approval": "unknown",
+      "export_block": "unknown",
+      "stop_control": "unknown"
+    },
+    "passed": 0,
+    "applicable": 5,
+    "score": "0.0",
+    "coverage": "0.0"
+  },
+  "staff": {
+    "checks": {
+      "scope": "unknown",
+      "sensitive_data": "unknown",
+      "untrusted_content": "unknown",
+      "access": "unknown",
+      "quality": "unknown",
+      "review": "unknown",
+      "incident": "unknown"
+    },
+    "passed": 0,
+    "applicable": 7,
+    "score": "0.0",
+    "coverage": "0.0"
+  },
+  "decision": "readiness_not_established",
+  "priorities": [
+    {
+      "key": "controls",
+      "priority": "High",
+      "impact": "Required safeguards have not all been verified.",
+      "recommendation": "Test access restrictions, approvals, export blocking, and the stop control."
+    },
+    {
+      "key": "privacy",
+      "priority": "High",
+      "impact": "Sensitive-data handling and erasure have not been verified end to end.",
+      "recommendation": "Verify masking, permitted data, retention, and erasure across agent responses and logs."
+    },
+    {
+      "key": "staff",
+      "priority": "Medium",
+      "impact": "Staff readiness is incomplete or has not been demonstrated.",
+      "recommendation": "Complete the seven staff readiness questions and observed safety exercises."
+    }
+  ]
+}

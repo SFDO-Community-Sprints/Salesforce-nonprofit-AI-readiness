@@ -1,0 +1,7 @@
+{
+  "mode": "simulation",
+  "systems": [{"id": "salesforce_demo", "category": "salesforce"}],
+  "evidence": [
+    {"system_id": "salesforce_demo", "probe_id": "active_read_absent", "result": "observed", "evidence_ref": "synthetic_component_run", "reviewer_ref": "demo_reviewer"}
+  ]
+}

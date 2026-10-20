@@ -1,0 +1,14 @@
+{
+  "records": [
+    {
+      "attributes": {
+        "type": "Account",
+        "referenceId": "DemoAccount"
+      },
+      "Name": "SYNTHETIC AI Readiness unknown",
+      "Contacts": {
+        "records": []
+      }
+    }
+  ]
+}

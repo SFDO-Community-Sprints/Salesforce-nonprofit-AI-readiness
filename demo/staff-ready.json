@@ -1,0 +1,94 @@
+{
+  "version": "staff-readiness-v1",
+  "mode": "simulation",
+  "reviews": [
+    {
+      "question_id": "scope",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-scope",
+      "actions": {
+        "identify_scope": "yes",
+        "human_boundary": "yes",
+        "escalate": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "sensitive_data",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-sensitive_data",
+      "actions": {
+        "exclude_sensitive": "yes",
+        "purpose_rules": "yes",
+        "trace_erasure": "yes",
+        "privacy_owner": "yes",
+        "verify_removal": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "untrusted_content",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-untrusted_content",
+      "actions": {
+        "verify_source": "yes",
+        "refuse_instruction": "yes",
+        "report_issue": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "access",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-access",
+      "actions": {
+        "map_access": "yes",
+        "positive_probe": "yes",
+        "negative_probe": "yes",
+        "reject_admin_proof": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "quality",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-quality",
+      "actions": {
+        "measured_quality": "yes",
+        "handle_conflict": "yes",
+        "steward": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "review",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-review",
+      "actions": {
+        "catch_unsafe_output": "yes",
+        "approval_enforced": "yes",
+        "safe_rehearsal": "yes"
+      },
+      "critical_failures": []
+    },
+    {
+      "question_id": "incident",
+      "answer": "yes",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-READY-incident",
+      "actions": {
+        "detect_escalate": "yes",
+        "stop": "yes",
+        "recover": "yes",
+        "maintain": "yes"
+      },
+      "critical_failures": []
+    }
+  ]
+}

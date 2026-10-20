@@ -1,0 +1,83 @@
+{
+  "rubric_version": "donor-summary-demo-v1",
+  "evidence_mode": "synthetic_simulation",
+  "metrics": {
+    "contacts": 10,
+    "email_present": 8,
+    "linked_contacts": 10,
+    "repeated_email_rows": 1
+  },
+  "data": {
+    "checks": {
+      "sufficient_data": "pass",
+      "email_completeness": "fail",
+      "account_linkage": "pass",
+      "duplicate_indicator": "fail"
+    },
+    "passed": 2,
+    "applicable": 4,
+    "score": "50.0",
+    "coverage": "100.0"
+  },
+  "technical": {
+    "checks": {
+      "prerequisites": "pass",
+      "runtime_access": "pass",
+      "approval": "pass",
+      "export_block": "unknown",
+      "stop_control": "unknown"
+    },
+    "passed": 3,
+    "applicable": 5,
+    "score": "60.0",
+    "coverage": "60.0"
+  },
+  "staff": {
+    "checks": {
+      "scope": "pass",
+      "sensitive_data": "pass",
+      "untrusted_content": "pass",
+      "access": "pass",
+      "quality": "pass",
+      "review": "unknown",
+      "incident": "unknown"
+    },
+    "passed": 5,
+    "applicable": 7,
+    "score": "71.4",
+    "coverage": "71.4"
+  },
+  "decision": "readiness_not_established",
+  "priorities": [
+    {
+      "key": "controls",
+      "priority": "High",
+      "impact": "Required safeguards have not all been verified.",
+      "recommendation": "Test access restrictions, approvals, export blocking, and the stop control."
+    },
+    {
+      "key": "privacy",
+      "priority": "High",
+      "impact": "Sensitive-data handling and erasure have not been verified end to end.",
+      "recommendation": "Verify masking, permitted data, retention, and erasure across agent responses and logs."
+    },
+    {
+      "key": "duplicate_indicator",
+      "priority": "High",
+      "impact": "Repeated email values can cause duplicate outreach or misleading donor summaries.",
+      "recommendation": "Review repeated email values and confirm the intended donor records without automatically merging them."
+    },
+    {
+      "key": "staff",
+      "priority": "Medium",
+      "impact": "Staff readiness is incomplete or has not been demonstrated.",
+      "recommendation": "Complete the seven staff readiness questions and observed safety exercises."
+    },
+    {
+      "key": "email_completeness",
+      "priority": "Medium",
+      "impact": "Missing email data can make donor summaries and outreach incomplete.",
+      "recommendation": "Review missing email values using approved sources before using this data for outreach."
+    }
+  ]
+}

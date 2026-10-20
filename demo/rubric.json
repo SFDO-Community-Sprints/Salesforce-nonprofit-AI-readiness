@@ -1,0 +1,109 @@
+{
+  "version": "donor-summary-demo-v1",
+  "use_case": "Read-only donor data summary readiness; no autonomous outreach or record changes",
+  "nonprofit_model": "Nonprofit Cloud Fundraising; NPSP not validated",
+  "categories": {
+    "data": {
+      "checks": [
+        "sufficient_data",
+        "email_completeness",
+        "account_linkage",
+        "duplicate_indicator"
+      ],
+      "evidence": "Fixed aggregate Contact counts accessible to the assessment identity; zero or suppressed cohorts are unknown"
+    },
+    "technical": {
+      "checks": [
+        "prerequisites",
+        "runtime_access",
+        "approval",
+        "export_block",
+        "stop_control"
+      ],
+      "evidence": "Observed configuration and controlled action tests; synthetic fixture evidence is simulation only"
+    },
+    "staff": {
+      "checks": [
+        "scope",
+        "sensitive_data",
+        "untrusted_content",
+        "access",
+        "quality",
+        "review",
+        "incident"
+      ],
+      "evidence": "Seven fixed staff questions and observed demonstrations; self-attestation alone is not a verified pass"
+    }
+  },
+  "thresholds": {
+    "minimum_contacts": 10,
+    "email_completeness_pass_percent": 90,
+    "account_linkage_pass_percent": 100,
+    "maximum_repeated_email_rows": 0,
+    "minimum_privacy_cohort": 5,
+    "email_high_below_percent": 50,
+    "duplicate_high_at_least_percent": 10,
+    "unlinked_high_above_percent": 20
+  },
+  "critical_gates": [
+    "runtime_access",
+    "approval",
+    "export_block",
+    "stop_control",
+    "sensitive_data",
+    "untrusted_content",
+    "review",
+    "incident"
+  ],
+  "scoring": {
+    "statuses": [
+      "pass",
+      "fail",
+      "unknown",
+      "not_applicable"
+    ],
+    "weights": "equal per check within category",
+    "score": "passed / applicable * 100",
+    "coverage": "completed pass-or-fail / applicable * 100",
+    "rounding": "one decimal ROUND_HALF_UP",
+    "unknown": "Included in applicable denominator; earns no points",
+    "empty_applicable": "score and coverage null",
+    "decision_order": [
+      "critical_failure_not_ready",
+      "unknown_readiness_not_established",
+      "other_failure_not_ready",
+      "all_pass_ready_for_bounded_pilot_simulation"
+    ],
+    "live_decision": "readiness_not_established; no simulated controls merged"
+  },
+  "not_applicable": {
+    "automatic_checks": [],
+    "rule": "Only a documented use-case exclusion with rationale may mark a check not_applicable; missing access, missing evidence, zero records, and privacy suppression remain unknown",
+    "exclusion": "Removed from score and coverage denominators; no automatic exclusion of critical gates"
+  },
+  "priority": {
+    "order": [
+      "Critical",
+      "High",
+      "Medium",
+      "Low"
+    ],
+    "confirmed_critical_gate_failure": "Critical",
+    "unverified_controls": "High",
+    "unverified_privacy_erasure": "High",
+    "unverified_staff": "Medium",
+    "data_default": "Medium",
+    "data_threshold_exceeded": "High",
+    "insufficient_data": "Low"
+  },
+  "privacy": {
+    "suppressed_score": null,
+    "suppressed_data_checks": "unknown",
+    "suppressed_recommendations": "Only generic controls, privacy and staff recommendations; no hidden data quality signals",
+    "synthetic_override": "Explicit local synthetic demo only; never organization or Agentforce action"
+  },
+  "scope_limits": [
+    "Data scores do not establish staff competence, runtime guardrails, end-to-end erasure, licensing enablement, or actual product usage",
+    "Privacy/erasure is a separate High-priority unknown; not part of the simulated pass decision"
+  ]
+}

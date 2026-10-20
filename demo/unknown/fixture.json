@@ -1,0 +1,73 @@
+{
+  "name": "unknown",
+  "rubric_version": "donor-summary-demo-v1",
+  "as_of": "2026-10-19T00:00:00Z",
+  "salesforce_tree": {
+    "records": [
+      {
+        "attributes": {
+          "type": "Account",
+          "referenceId": "DemoAccount"
+        },
+        "Name": "SYNTHETIC AI Readiness unknown",
+        "Contacts": {
+          "records": []
+        }
+      }
+    ]
+  },
+  "simulated_evidence": {
+    "technical": {
+      "prerequisites": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "runtime_access": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "approval": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "export_block": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "stop_control": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    },
+    "staff": {
+      "scope": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "sensitive_data": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "untrusted_content": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "access": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "quality": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "review": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      },
+      "incident": {
+        "status": "unknown",
+        "source": "SIMULATED demo evidence; no actual control test or staff assessment"
+      }
+    }
+  }
+}

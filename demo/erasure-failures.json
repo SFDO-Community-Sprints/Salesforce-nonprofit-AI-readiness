@@ -1,0 +1,125 @@
+{
+  "mode": "simulation",
+  "systems": [
+    {
+      "id": "fictional_salesforce",
+      "category": "salesforce"
+    },
+    {
+      "id": "fictional_integrations",
+      "category": "integrations"
+    },
+    {
+      "id": "fictional_logs",
+      "category": "logs"
+    },
+    {
+      "id": "fictional_backups",
+      "category": "backups"
+    },
+    {
+      "id": "fictional_exports",
+      "category": "exports"
+    }
+  ],
+  "evidence": [
+    {
+      "system_id": "fictional_salesforce",
+      "probe_id": "active_read_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_salesforce",
+      "probe_id": "recycle_bin_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_salesforce",
+      "probe_id": "agent_output_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_salesforce",
+      "probe_id": "retention_approval",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_integrations",
+      "probe_id": "destination_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_integrations",
+      "probe_id": "sync_no_reintroduction",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_integrations",
+      "probe_id": "retention_approval",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_logs",
+      "probe_id": "stored_log_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_logs",
+      "probe_id": "new_log_no_reappearance",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_logs",
+      "probe_id": "retention_approval",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_backups",
+      "probe_id": "restore_no_reintroduction",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_backups",
+      "probe_id": "retention_approval",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_exports",
+      "probe_id": "export_copy_absent",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    },
+    {
+      "system_id": "fictional_exports",
+      "probe_id": "retention_approval",
+      "result": "failed",
+      "evidence_ref": "fictional_run",
+      "reviewer_ref": "fictional_reviewer"
+    }
+  ]
+}

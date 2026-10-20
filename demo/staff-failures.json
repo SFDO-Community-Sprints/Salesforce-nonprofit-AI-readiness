@@ -1,0 +1,108 @@
+{
+  "version": "staff-readiness-v1",
+  "mode": "simulation",
+  "reviews": [
+    {
+      "question_id": "scope",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-scope",
+      "actions": {
+        "identify_scope": "no",
+        "human_boundary": "no",
+        "escalate": "no"
+      },
+      "critical_failures": [
+        "unapproved_decision"
+      ]
+    },
+    {
+      "question_id": "sensitive_data",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-sensitive_data",
+      "actions": {
+        "exclude_sensitive": "no",
+        "purpose_rules": "no",
+        "trace_erasure": "no",
+        "privacy_owner": "no",
+        "verify_removal": "no"
+      },
+      "critical_failures": [
+        "sensitive_disclosure"
+      ]
+    },
+    {
+      "question_id": "untrusted_content",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-untrusted_content",
+      "actions": {
+        "verify_source": "no",
+        "refuse_instruction": "no",
+        "report_issue": "no"
+      },
+      "critical_failures": [
+        "obeys_injection"
+      ]
+    },
+    {
+      "question_id": "access",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-access",
+      "actions": {
+        "map_access": "no",
+        "positive_probe": "no",
+        "negative_probe": "no",
+        "reject_admin_proof": "no"
+      },
+      "critical_failures": [
+        "forbidden_operation_allowed"
+      ]
+    },
+    {
+      "question_id": "quality",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-quality",
+      "actions": {
+        "measured_quality": "no",
+        "handle_conflict": "no",
+        "steward": "no"
+      },
+      "critical_failures": [
+        "fabricates_source_data"
+      ]
+    },
+    {
+      "question_id": "review",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-review",
+      "actions": {
+        "catch_unsafe_output": "no",
+        "approval_enforced": "no",
+        "safe_rehearsal": "no"
+      },
+      "critical_failures": [
+        "unapproved_action"
+      ]
+    },
+    {
+      "question_id": "incident",
+      "answer": "no",
+      "reviewer_confirmed": true,
+      "evidence_ref": "FICTIONAL-FAILURES-incident",
+      "actions": {
+        "detect_escalate": "no",
+        "stop": "no",
+        "recover": "no",
+        "maintain": "no"
+      },
+      "critical_failures": [
+        "cannot_stop"
+      ]
+    }
+  ]
+}

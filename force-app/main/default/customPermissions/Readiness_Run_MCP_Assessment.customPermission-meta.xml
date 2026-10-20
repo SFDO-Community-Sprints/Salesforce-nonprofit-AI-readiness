@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata"><label>Run Fixed MCP Readiness Assessment</label><description>Run only fixed sharing-scoped aggregate readiness checks without raw CRM read access, staff evidence or writes.</description></CustomPermission>
