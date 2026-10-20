@@ -145,7 +145,7 @@ Readiness roles are separate: data assessment, staff outcome reading, staff revi
 
 ## Optional fictional demo data through Serpent
 
-Deploy the latest repo first, then use Execute Apex on `data-connect-7516-dev-ed.scratch.my` with `scripts/apex/seed-demo.apex`. It calls the deployed `ReadinessDemoSeed` class and imports the same five scenarios as the original Python seed: five Accounts and 34 Contacts, all fictional. Refresh AI Readiness and select Run assessment.
+Deploy the latest repo first, then use Execute Apex on `data-connect-7516-dev-ed.scratch.my` with `scripts/apex/seed-demo.apex`. It is self-contained anonymous Apex (no helper class or static resource deployment required) and imports the same five scenarios as the original Python seed: five Accounts and 34 Contacts, all fictional. Refresh AI Readiness and select Run assessment.
 
 Optionally execute `scripts/apex/seed-failures.apex` to add 60 fictional unlinked Contacts, 50 missing email and ten sharing one fictional email. This intentionally lowers the organization-wide data score; it is not part of normal setup.
 

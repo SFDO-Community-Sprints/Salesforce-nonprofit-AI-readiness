@@ -13,3 +13,15 @@ class NativeSeedTests(unittest.TestCase):
                 for item in row.get('Contacts', {}).get('records', [])]})
         actual = json.loads((ROOT / 'force-app/main/default/staticresources/ReadinessSeedData.resource').read_text())
         self.assertEqual(actual, expected)
+
+    def test_standalone_script_has_exact_fixture_and_no_deployed_dependencies(self):
+        source = (ROOT / 'scripts/apex/seed-demo.apex').read_text()
+        embedded = source.split("String fixtureJson = '", 1)[1].split("';", 1)[0]
+        expected = json.loads((ROOT / 'force-app/main/default/staticresources/ReadinessSeedData.resource').read_text())
+        self.assertEqual(json.loads(embedded), expected)
+        for name in ('seed-demo.apex', 'seed-failures.apex'):
+            text = (ROOT / 'scripts/apex' / name).read_text()
+            self.assertNotIn('ReadinessDemoSeed.', text)
+            self.assertNotIn('FROM StaticResource', text)
+            self.assertIn("String expectedHost = 'data-connect-7516-dev-ed.scratch.my.salesforce.com'", text)
+            self.assertIn('IsSandbox', text)
