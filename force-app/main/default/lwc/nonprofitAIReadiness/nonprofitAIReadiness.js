@@ -50,7 +50,7 @@ function priorityDetails(key, metrics = {}) {
 export default class NonprofitAIReadiness extends LightningElement {
     activeResultTab = 'overview';
     get resultTabs() {
-        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Verification'],['evidence','Evidence and freshness'],['staff','Staff exercises']].map(([value,label]) => ({
+        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Safeguard tests'],['evidence','Evidence and freshness'],['staff','Staff exercises']].map(([value,label]) => ({
             value, label, id: `readiness-tab-${value}`, panelId: `readiness-panel-${value}`,
             selected: this.activeResultTab === value ? 'true' : 'false',
             tabIndex: this.activeResultTab === value ? 0 : -1,
