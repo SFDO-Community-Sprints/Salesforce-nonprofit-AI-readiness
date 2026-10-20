@@ -109,7 +109,7 @@ public with sharing class ReadinessOrgHealth {
     private static void collectPrivacy(List<Object> rows) {
         Map<String,Readiness_Operation__c> latest=new Map<String,Readiness_Operation__c>();
         try {
-            for(Readiness_Operation__c event:[SELECT Check__c,Outcome__c,CreatedDate FROM Readiness_Operation__c WHERE OwnerId=:UserInfo.getUserId() AND Source__c='erasure_probe' AND Check__c IN ('source_deletion','recycle_bin') AND CreatedDate=LAST_N_DAYS:1 ORDER BY CreatedDate DESC LIMIT 100]) if(!latest.containsKey(event.Check__c)) latest.put(event.Check__c,event);
+            for(Readiness_Operation__c event:[SELECT Check__c,Outcome__c,CreatedDate FROM Readiness_Operation__c WHERE OwnerId=:UserInfo.getUserId() AND Source__c='erasure_probe' AND Check__c IN ('source_deletion','recycle_bin') AND CreatedDate=LAST_N_DAYS:1 WITH USER_MODE ORDER BY CreatedDate DESC LIMIT 100]) if(!latest.containsKey(event.Check__c)) latest.put(event.Check__c,event);
         } catch(Exception ignored) {}
         for(String id:new List<String>{'source_deletion','recycle_bin'}) {
             Readiness_Operation__c event=latest.get(id);
