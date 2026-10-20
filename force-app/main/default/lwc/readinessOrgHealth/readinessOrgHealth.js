@@ -2,6 +2,7 @@ import { LightningElement, api } from 'lwc';
 import scan from '@salesforce/apex/ReadinessOrgHealth.scan';
 
 const SETUP_LINKS = new Set([
+    '/lightning/o/Contact/list',
     '/lightning/n/AI_Readiness', '/lightning/setup/DigitalExperiences/home',
     '/lightning/setup/PermSets/home',
     '/lightning/setup/Profiles/home', '/lightning/setup/Users/home',
@@ -46,11 +47,12 @@ export default class ReadinessOrgHealth extends LightningElement {
     })); }
     get findings() {
         const order = { fail: 0, unknown: 1, pass: 2 };
+        const severity = { Critical: 0, High: 1, Medium: 2, Low: 3, Info: 4 };
         return (this.result?.findings || []).map(row => ({ ...row,
             statusLabel: row.status === 'pass' ? 'Passed' : row.status === 'fail' ? 'Needs attention' : 'Not checked',
             badgeClass: `badge ${['pass', 'fail'].includes(row.status) ? row.status : 'unknown'}`,
             safeUrl: safeLink(row.url)
-        })).sort((a,b) => (order[a.status] ?? 1) - (order[b.status] ?? 1));
+        })).sort((a,b) => (order[a.status] ?? 1) - (order[b.status] ?? 1) || (severity[a.severity] ?? 4) - (severity[b.severity] ?? 4));
     }
     get inventory() { return (this.result?.inventory || []).map(row => ({...row, countLabel: row.count == null ? 'Not checked' : row.count})); }
 }

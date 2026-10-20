@@ -54,7 +54,7 @@ public with sharing class ReadinessOrgHealth {
         rows.add(new Map<String,Object>{'id'=>id,'label'=>label,'count'=>count,'note'=>note});
     }
     @TestVisible private static Map<String,Object> finding(String id,String label,String groupName,String severity,String status,String actual,String expected,String action,String page) {
-        return new Map<String,Object>{'id'=>id,'label'=>label,'group'=>groupName,'severity'=>severity,'status'=>status,'actual'=>actual,'expected'=>expected,'action'=>action,'url'=>page==''?'/lightning/n/AI_Readiness':SETUP+page};
+        return new Map<String,Object>{'id'=>id,'label'=>label,'group'=>groupName,'severity'=>severity,'status'=>status,'actual'=>actual,'expected'=>expected,'action'=>action,'url'=>page=='Contact/list'?'/lightning/o/Contact/list':page==''?'/lightning/n/AI_Readiness':SETUP+page};
     }
     private static Map<String,Object> parse(String text) {return (Map<String,Object>)JSON.deserializeUntyped(text);}
     private static void collectDataAndStaff(List<Object> rows) {
@@ -72,7 +72,7 @@ public with sharing class ReadinessOrgHealth {
                 Decimal count=(Decimal)metrics.get('contacts');
                 actual=id=='sufficient_data'?String.valueOf(count)+' Contacts':id=='duplicate_indicator'?String.valueOf(metrics.get('repeated_email_rows'))+' repeated rows':id=='account_linkage'?String.valueOf(metrics.get('linked_contacts'))+' of '+count+' linked':String.valueOf(metrics.get('email_present'))+' of '+count+' with email';
             }
-            rows.add(finding(id,labels.get(id),'Data quality','Medium',status,actual,expected.get(id),'Review accessible Contact data; correct only verified information.','Users/home'));
+            rows.add(finding(id,labels.get(id),'Data quality','Medium',status,actual,expected.get(id),'Review accessible Contact data; correct only verified information.','Contact/list'));
         }
         rows.add(finding('data_freshness','Approved data freshness policy','Data quality','Medium','unknown','No policy applied in this health scan','Explicit approved window and recent-activity threshold','Use the data freshness form with your approved policy.',''));
         Map<String,Object> review=report==null?null:(Map<String,Object>)report.get('staff_review');

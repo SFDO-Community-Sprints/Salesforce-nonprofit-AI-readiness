@@ -127,6 +127,6 @@ Serpent DEPLOY-18 succeeded with 58/58 components. Post-deploy and executable ru
 - [x] Add separately scoped Security Reader and retain unknown org findings without that role.
 - [x] Exclude seeded staff input from human readiness, persist scoped canary observations, and enforce critical failure gating.
 - [x] Full metadata validation passed 84 Apex tests in the validation scratch org; all seven UI checks passed.
-- [ ] Verify this dashboard deployment and native browser scan on `data-connect-7516`.
+- [x] Verify dashboard deployment and native browser scan on `data-connect-7516`: DEPLOY-26 succeeded, 24.2% score / 39.4% coverage matched native MCP readback; see health rubric live evidence.
 
 Remaining actual assistant, external erasure and human evidence requirements are unchanged. The [AI readiness rubric](references/ai-readiness-health.md) defines what the new score measures.

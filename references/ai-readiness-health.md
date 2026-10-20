@@ -20,3 +20,13 @@ Readiness Assessor can open the dashboard and collect its existing data/current-
 The original restricted MCP aggregate role is unchanged. To expose AI readiness health to an authorized tool identity, expose the invocable `ReadinessOrgHealth.invoke` action and compose the specific reader roles needed for data or staff scope. Do not give the existing API-only aggregate MCP identity broader roles without explicitly changing its connection contract.
 
 A scan writes only fixed-vocabulary sanitized runtime events. It never creates Tasks, changes configuration, or performs an erasure exercise. Package stop gates the health scan too. No names, raw emails, staff evidence references, credentials, or donor records are returned by the report.
+
+## Live verification — 20 October 2026
+
+Serpent DEPLOY-26 (`6ad7517419614192da1f9a1d`) deployed 63/63 components successfully to `data-connect-7516-dev-ed.scratch.my`. Scratch post-deploy completed, and the separate Security Reader custom permission was verified before scanning. MCP execution (`6ad751d745aea17b84c08d39`) compiled and succeeded, exercised a new disposable canary and checked the native report.
+
+Observed result: **24.2% score, 39.4% coverage; 8 passed, 5 failed, 20 unmeasured across 33 defined checks**. Data 40%/80% coverage; access 38.5%/53.8%; staff not checked/0%; privacy 12.5%/25%. Actual grant queries found one non-administrator-profile user with broad read and one broad permission assignment, zero broad-access or export-capable guest users. Inventory observed seven active users, one administrator-profile user, three unassigned permission sets and 18 roles without active users. These counts are observations, not evidence of usage or automatic reasons to delete metadata.
+
+Active canary exclusion passed and permanent erasure failed because it remained recoverable. No existing Contact was selected or purged. The browser Run assessment displayed the same score, category counts, detailed actual/expected rows and scope limitations. Desktop cards and table were visually inspected. No production, mobile, intended assistant identity, external destination or human competency acceptance is claimed.
+
+Validation: 84 Apex tests passed with full metadata; five focused native health tests passed after enforcing user-mode saved-observation access. All seven Node UI checks passed. No Salesforce Health Check, Named Credential or external runtime was configured or required.
