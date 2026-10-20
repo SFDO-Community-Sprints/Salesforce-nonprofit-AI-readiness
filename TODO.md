@@ -110,8 +110,12 @@ Validation: 119 Python tests, four Node checks, eight Python-driven Apex parity 
 - [x] Add an explicitly confirmed scratch-only canary lifecycle probe, including active-read exclusion and recoverability checks.
 - [x] Integrate executable verification into Run assessment and the post-deploy scratch role setup.
 - [x] Validate full metadata deployment with **79 Apex tests** in `nonprofit-readiness-demo`; **123 Python tests and six Node checks** pass.
-- [ ] Deploy and execute the new verification in `data-connect-7516` through Initial PoC.
+- [x] Deploy and execute the new verification in `data-connect-7516` through Initial PoC; see live evidence below.
 - [ ] Bind the actual assistant identity/workflow and named external destinations, then execute their acceptance checks.
 - [ ] Obtain actual human demonstrations and approved retention decisions.
 
 The earlier hardcoded-card and simulated-result descriptions above are historical. Current collectors use real org/configuration/input records, and executable probe results retain their measured scope. See [executable acceptance](references/executable-acceptance.md) for the remaining acceptance matrix.
+
+### Live native verification
+
+Serpent DEPLOY-18 succeeded with 58/58 components. Post-deploy and executable runtime/erasure probes compiled and succeeded. Separate transactions verified committed package stop, denied calls, resume and assessment recovery; package left enabled. Lightning Run assessment displayed executed results and missing bindings. Active canary exclusion passed; permanent erasure failed because the canary remained recoverable. Actual assistant, external destinations and human acceptance remain open. Details: [live executable evidence](references/executable-acceptance.md#live-execution--20-october-2026).

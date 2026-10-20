@@ -1,5 +1,5 @@
-// Assign the executing demo user the three focused roles needed for the complete walkthrough.
-// No API-only/MCP, agent, follow-up Task, or delete permissions are assigned.
+// Assign focused UI roles; disposable scratch orgs also receive separate verification roles.
+// MCP, agent and follow-up Task permissions are never assigned.
 Id currentUser = UserInfo.getUserId();
 Set<String> requiredRoles = new Set<String>{'Readiness_Assessor','Readiness_Staff_Reviewer','Readiness_Evidence_Reviewer'};
 // Active verification privileges are only part of this disposable scratch walkthrough.
