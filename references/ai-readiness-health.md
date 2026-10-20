@@ -32,3 +32,9 @@ Active canary exclusion passed and permanent erasure failed because it remained 
 Validation: 84 Apex tests passed with full metadata; five focused native health tests passed after enforcing user-mode saved-observation access. All seven Node UI checks passed. No Salesforce Health Check, Named Credential or external runtime was configured or required.
 
 Final action/sorting corrections deployed through Serpent DEPLOY-30 (`6ad752ac70293efa66e52603`): 63/63 components, no failures. MCP readback (`6ad752ffada4f4e411b23319`) compiled and succeeded, asserted the Contact action URL and returned unchanged totals. After a cache-only hard reload of Salesforce assets (sign-in retained), the native browser showed high-severity failures before medium ones and Contact findings linked to `/lightning/o/Contact/list`. No final UI cache limitation remains in the verified desktop session.
+
+## Category tabs — 20 October 2026
+
+Serpent DEPLOY-34 (`6ad758169aee7ce85c4bc303`) deployed both updated Lightning bundles successfully (2/2 components), including the prior equal-width Actual/Expected columns. Overview retains AI readiness findings and recommended actions. Contact data, package configuration, licenses/features, verification, evidence/freshness and staff exercises have separate panels. Panels remain mounted so switching categories retains results and unsaved form inputs.
+
+Validation: Salesforce compiled the parent component in the validation scratch org; all eight Node checks passed, including selected-tab state and keyboard navigation. Live desktop inspection verified the Overview findings, isolated Contact summary/checks, retained staff answers and View recommended actions returning to Overview and focusing its heading. Mobile tab interaction was not checked.
