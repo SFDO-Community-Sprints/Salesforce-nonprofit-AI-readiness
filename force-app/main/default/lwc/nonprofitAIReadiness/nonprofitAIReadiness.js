@@ -106,6 +106,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         this.taskMessage = undefined;
         this.taskError = undefined;
     }
+    handleVerificationChange() { this.template?.querySelector?.('c-readiness-org-health')?.runScan(); }
     safeguardEvidence;
     erasureEvidence;
     handleEvidenceReview(event) {

@@ -63,7 +63,7 @@
 </template><template lwc:else><p class="empty">Run assessment to see licenses and features.</p></template>
                 </div>
                 <div id="readiness-panel-verification" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-verification" hidden={hideVerification}>
-<c-readiness-verification></c-readiness-verification>
+<c-readiness-verification onverificationchange={handleVerificationChange}></c-readiness-verification>
                 </div>
                 <div id="readiness-panel-evidence" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-evidence" hidden={hideEvidence}>
 <c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>

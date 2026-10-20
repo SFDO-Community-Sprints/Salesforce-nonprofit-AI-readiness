@@ -1,31 +1,28 @@
 <template>
-    <section class="slds-box slds-m-top_large" aria-label="Safeguard tests">
-        <h2 class="slds-text-heading_medium">Safeguard tests</h2>
-        <p>These results come from calls made under your signed-in Salesforce identity. They do not certify another assistant identity.</p>
-        <p class="slds-m-top_small">{runtimeScope}</p>
+    <section class="safeguards" aria-label="Safeguard tests">
+        <header class="page-header">
+            <div><h2>Safeguard tests</h2><p>Check whether this app respects access permissions and blocks actions you are not allowed to take.</p><p class="scope">Tests use your signed-in Salesforce account. Your AI assistant may have different access.</p></div>
+            <lightning-button label="Run safeguard tests" variant="brand" onclick={runChecks} disabled={busy}></lightning-button>
+        </header>
+        <template lwc:if={busy}><p class="status" role="status">Working… Please wait.</p></template>
+        <template lwc:if={error}><p class="error" role="alert">{error}</p></template>
         <template lwc:if={runtime}>
-            <ul class="slds-list_dotted slds-m-top_small"><template for:each={checks} for:item="check"><li key={check.id}><strong>{check.label}: {check.outcome}</strong><p>{check.basis}</p></li></template></ul>
-            <p class="slds-m-top_small">{monitoring}</p><a href="/lightning/o/Readiness_Operation__c/list">View operational events</a>
-            <h3 class="slds-text-heading_small slds-m-top_medium">Bindings needed to finish acceptance</h3>
-            <ul class="slds-list_dotted"><template for:each={gaps} for:item="gap"><li key={gap.id}><strong>{gap.label}</strong><p>{gap.required_binding}</p></li></template></ul>
+            <div class="summary" aria-label="Test results"><div><strong>{passedCount}</strong><span>Passed</span></div><div><strong>{failedCount}</strong><span>Need attention</span></div><div><strong>{unknownCount}</strong><span>Not checked</span></div></div>
+            <p class="notice">{resultMessage}</p>
+            <h3>What we tested</h3>
+            <div class="test-list"><template for:each={checks} for:item="check"><article class="test" key={check.id}><div class="test-heading"><h4>{check.question}</h4><span class={check.badgeClass}>{check.outcome}</span></div><p>{check.explanation}</p><p class="next"><strong>Next step:</strong> {check.nextStep}</p></article></template></div>
         </template>
-        <h3 class="slds-text-heading_small slds-m-top_medium">Source erasure exercise</h3>
-        <p>This active scratch-only exercise creates and soft-deletes one fictional Contact. It leaves a recoverable Recycle Bin record, so permanent erasure must fail. It does not select existing records or purge data.</p>
-        <template lwc:if={canErase}>
-            <lightning-input type="checkbox" label="I authorize creating and soft-deleting one fictional Contact in this scratch org" checked={confirmed} onchange={changeConfirmation} disabled={busy}></lightning-input>
-            <lightning-button label="Run source erasure exercise" onclick={handleErasure} disabled={erasureDisabled}></lightning-button>
-        </template>
-        <template lwc:else><p>Requires the separate Readiness Erasure Tester role.</p></template>
-        <template lwc:if={erasure}>
-            <p>Executed against {expectedHost}. Cleanup: {erasure.cleanup}.</p>
-            <ul class="slds-list_dotted"><template for:each={erasureChecks} for:item="check"><li key={check.id}>{check.label}: {check.status}</li></template></ul>
-            <ul class="slds-list_dotted"><template for:each={external} for:item="item"><li key={item.category}><strong>{item.category}: not measured</strong><p>{item.required_binding}</p></li></template></ul>
-        </template>
-        <h3 class="slds-text-heading_small slds-m-top_medium">Package execution control: {controlState}</h3>
-        <p>This stops this package's assessment, inventory and follow-up entry points. Other agents and integrations need their own stop binding.</p>
-        <template lwc:if={canManage}><lightning-button label={controlLabel} onclick={toggleControl} disabled={busy}></lightning-button></template>
-        <template lwc:else><p>Changing execution state requires Readiness Control Manager.</p></template>
-        <template lwc:if={busy}><p role="status">Verifying…</p></template>
-        <template lwc:if={error}><p role="alert" class="slds-text-color_error">{error}</p></template>
+        <template lwc:else><p class="empty">Choose Run safeguard tests, or Run assessment at the top of the page. No tests have run in this view yet.</p></template>
+        <section class="remaining"><h3>Still to test with your AI assistant</h3><p>These app checks do not prove how your assistant behaves. Ask your Salesforce administrator and AI owner to complete the checks below.</p><ul><template for:each={gaps} for:item="gap"><li key={gap.id}><strong>{gap.title}</strong><span>{gap.instruction}</span><span class="badge unknown">Not checked</span></li></template></ul></section>
+        <h3 class="actions-heading">Optional actions</h3><p class="scope">These actions change this scratch org or pause the app. They do not run automatically.</p>
+        <div class="optional-actions">
+            <details class="action-card"><summary>Test deletion with a fictional Contact</summary><div class="action-body"><p>Create one new test Contact, delete it, then check whether it disappears from active results. Existing Contacts are not selected or changed.</p><p class="notice">The Contact remains in the Recycle Bin. This test can confirm removal from active results, but complete erasure will still need attention.</p>
+                <template lwc:if={canErase}><lightning-input type="checkbox" label="Create and delete one fictional Contact in this scratch org" checked={confirmed} onchange={changeConfirmation} disabled={busy}></lightning-input><lightning-button label="Run deletion test" onclick={handleErasure} disabled={erasureDisabled}></lightning-button></template>
+                <template lwc:else><p class="scope">Ask an administrator for Readiness Erasure Tester access to run this test. It is available only in a scratch org.</p></template>
+                <template lwc:if={erasure}><h4 class="result-title">Deletion test results</h4><ul class="deletion-results"><template for:each={erasureChecks} for:item="check"><li key={check.id}><span>{check.label}</span><span class={check.badgeClass}>{check.outcome}</span></li></template></ul><p class="scope">Copies in integrations, logs, backups, exports and assistant responses have not been checked.</p></template>
+            </div></details>
+            <details class="action-card"><summary>Pause or resume this app</summary><div class="action-body"><p class="control-state">App status: <strong>{controlState}</strong></p><p>Pause stops this app’s assessments and follow-up Task creation. It does not turn off Agentforce, other AI tools or integrations.</p><template lwc:if={controlError}><p class="error" role="alert">{controlError}</p></template><lightning-button label="Refresh app status" onclick={refreshControl} disabled={busy}></lightning-button><template lwc:if={canManage}><lightning-button label={controlLabel} onclick={toggleControl} disabled={controlDisabled}></lightning-button></template><template lwc:else><p class="scope">Ask an administrator with Readiness Control Manager access to pause or resume the app.</p></template></div></details>
+        </div>
+        <details class="technical"><summary>Technical details and audit log</summary><p class="scope">{runtimeScope}</p><template lwc:if={runtime}><p>{monitoring}</p><a href="/lightning/o/Readiness_Operation__c/list">Open test event log</a><ul><template for:each={technicalChecks} for:item="check"><li key={check.id}><strong>{check.label}: {check.outcome}</strong><p>{check.basis}</p></li></template></ul></template><template lwc:if={erasure}><p class="scope">Deletion test org: {expectedHost}. Cleanup: {erasure.cleanup}.</p></template></details>
     </section>
 </template>
