@@ -26,7 +26,7 @@ class PermissionScopeTests(unittest.TestCase):
 
     def test_assessor_has_no_staff_api_or_write_privileges(self):
         root = role('Readiness_Assessor')
-        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness'})
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness', 'ReadinessDataFreshness'})
         self.assertEqual(names(root, 'objectPermissions', 'object'), {'Account', 'Contact'})
         self.assertEqual(names(root, 'fieldPermissions', 'field'), {'Contact.Email', 'Contact.AccountId'})
         for grant in root.findall('m:objectPermissions', NS):
@@ -36,6 +36,13 @@ class PermissionScopeTests(unittest.TestCase):
             self.assertEqual(grant.find('m:editable', NS).text, 'false')
         for group in ('userPermissions', 'customPermissions', 'agentAccesses'):
             self.assertEqual(root.findall('m:' + group, NS), [])
+
+    def test_evidence_reviewer_has_only_evaluator_access(self):
+        root = role('Readiness_Evidence_Reviewer')
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'ReadinessEvidence'})
+        self.assertEqual(names(root, 'customPermissions', 'name'), {'Readiness_Review_Evidence'})
+        for group in ('objectPermissions', 'fieldPermissions', 'userPermissions', 'agentAccesses', 'applicationVisibilities'):
+            self.assertEqual(root.findall('m:' + group, NS), [], group)
 
     def test_staff_summary_reader_has_no_raw_evidence_or_write_access(self):
         root = role('Readiness_Staff_Reader')

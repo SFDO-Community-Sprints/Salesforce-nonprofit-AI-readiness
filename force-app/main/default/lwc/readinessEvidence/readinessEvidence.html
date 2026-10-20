@@ -1,0 +1,68 @@
+<template>
+    <section aria-label="Additional readiness checks" class="slds-m-top_large">
+        <h2 class="slds-text-heading_medium">Additional readiness checks</h2>
+        <p>These read-only checks do not change org data. Results are shown for this session; no evidence is saved.</p>
+        <h3 class="slds-text-heading_small slds-m-top_medium">Data freshness</h3>
+        <p>Use an agreed policy for Contact LastActivityDate over inclusive UTC calendar days. Recent activity does not establish that a record is accurate or complete. No policy is assumed.</p>
+        <lightning-input class="freshness-input" label="Approved policy version reference" value={policyVersion} required pattern="[A-Za-z0-9_-]{1,80}" maxlength="80" data-field="policyVersion" onchange={change} disabled={busy}></lightning-input>
+        <lightning-input class="freshness-input" type="number" label="Approved recent activity window (days)" value={windowDays} min="1" max="36500" step="1" required data-field="windowDays" onchange={change} disabled={busy}></lightning-input>
+        <lightning-input class="freshness-input" type="number" label="Approved minimum recent records (percent)" value={minimumRecentPercent} min="0" max="100" step="1" required data-field="minimumRecentPercent" onchange={change} disabled={busy}></lightning-input>
+        <lightning-input class="freshness-input" type="number" label="Approved minimum cohort (at least 5)" value={minimumCohort} min="5" max="2147483647" step="1" required data-field="minimumCohort" onchange={change} disabled={busy}></lightning-input>
+        <lightning-input type="checkbox" label="I confirm these values reflect an approved assessment policy" checked={approvedPolicy} data-field="approvedPolicy" onchange={change} disabled={busy}></lightning-input>
+        <lightning-button class="slds-m-top_small" label="Assess data freshness" onclick={assess} disabled={freshnessDisabled}></lightning-button>
+        <template lwc:if={freshnessResult}><p class="slds-m-top_small" role="status">{freshnessSummary}</p><p>{freshnessScope}</p></template>
+        <h3 class="slds-text-heading_small slds-m-top_large">Safeguards and erasure evidence</h3>
+        <p>Use only opaque references to protected evidence and reviewers. Do not enter donor details, names, subject identifiers or raw artifacts. Evaluating references cannot verify deletion or external controls.</p>
+        <template lwc:if={canReview}>
+            <lightning-combobox label="Evidence area (changing resets the input)" value={kind} options={kinds} onchange={changeKind} disabled={busy}></lightning-combobox>
+            <lightning-combobox label="Evidence source" value={mode} options={modes} onchange={changeMode} disabled={busy}></lightning-combobox>
+            <p>Use references beginning with a lowercase letter, followed by lowercase letters, digits, underscores or hyphens (up to 80 characters). Keep names and sensitive details in the protected evidence store.</p>
+            <template lwc:if={isErasure}>
+                <p>Add every destination receiving the information. Missing categories remain unknown. Changing a destination category clears its observed checks. Actual evidence requires ownership and retention references; fictional simulations never establish readiness.</p>
+                <template for:each={destinations} for:item="destination">
+                    <fieldset key={destination.key} class="slds-box slds-m-top_medium">
+                        <legend class="slds-text-title_bold">Erasure destination</legend>
+                        <lightning-input class="evidence-input" label="Unique destination reference" value={destination.id} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-field="id" onchange={changeDestination} disabled={busy}></lightning-input>
+                        <lightning-combobox class="evidence-input" label="Destination category" value={destination.category} options={categories} required data-destination={destination.key} data-field="category" onchange={changeDestination} disabled={busy}></lightning-combobox>
+                        <template lwc:if={actualMode}>
+                            <lightning-input class="evidence-input" label="Protected destination inventory reference" value={destination.destination_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-field="destination_ref" onchange={changeDestination} disabled={busy}></lightning-input>
+                            <lightning-input class="evidence-input" label="Destination owner reference" value={destination.owner_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-field="owner_ref" onchange={changeDestination} disabled={busy}></lightning-input>
+                            <lightning-input class="evidence-input" label="Retention policy reference" value={destination.retention_policy_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-field="retention_policy_ref" onchange={changeDestination} disabled={busy}></lightning-input>
+                            <lightning-input class="evidence-input" label="Privacy approver reference" value={destination.privacy_approver_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-field="privacy_approver_ref" onchange={changeDestination} disabled={busy}></lightning-input>
+                        </template>
+                        <template for:each={destination.probes} for:item="check">
+                            <div key={check.id} class="slds-m-top_medium">
+                                <lightning-combobox label={check.label} value={check.result} options={results} data-destination={destination.key} data-check={check.id} data-field="result" onchange={changeCheck} disabled={busy}></lightning-combobox>
+                                <template lwc:if={check.hasEvidence}>
+                                    <lightning-input class="evidence-input" label="Protected evidence reference" value={check.evidence_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-check={check.id} data-field="evidence_ref" onchange={changeCheck} disabled={busy}></lightning-input>
+                                    <lightning-input class="evidence-input" label="Reviewer reference" value={check.reviewer_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-destination={destination.key} data-check={check.id} data-field="reviewer_ref" onchange={changeCheck} disabled={busy}></lightning-input>
+                                </template>
+                            </div>
+                        </template>
+                        <lightning-button class="slds-m-top_small" label="Remove destination" data-destination={destination.key} onclick={removeDestination} disabled={busy}></lightning-button>
+                    </fieldset>
+                </template>
+                <lightning-button class="slds-m-top_small" label="Add erasure destination" onclick={addDestination} disabled={busy}></lightning-button>
+            </template>
+            <template lwc:else>
+                <template for:each={safeguards} for:item="check">
+                    <div key={check.id} class="slds-m-top_medium">
+                        <lightning-combobox label={check.label} value={check.result} options={results} data-check={check.id} data-field="result" onchange={changeCheck} disabled={busy}></lightning-combobox>
+                        <template lwc:if={check.hasEvidence}>
+                            <lightning-input class="evidence-input" label="Protected evidence reference" value={check.evidence_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-check={check.id} data-field="evidence_ref" onchange={changeCheck} disabled={busy}></lightning-input>
+                            <lightning-input class="evidence-input" label="Reviewer reference" value={check.reviewer_ref} pattern="[a-z][a-z0-9_-]{0,79}" maxlength="80" required data-check={check.id} data-field="reviewer_ref" onchange={changeCheck} disabled={busy}></lightning-input>
+                        </template>
+                    </div>
+                </template>
+            </template>
+            <lightning-button class="slds-m-top_small" label="Evaluate reported evidence" onclick={evaluate} disabled={disabled}></lightning-button>
+            <template lwc:if={evidenceResult}>
+                <p class="slds-m-top_small" role="status">{evidenceSummary}</p><p>{limitation}</p>
+                <ul class="slds-list_dotted"><template for:each={actions} for:item="action"><li key={action.id}>{action.text}</li></template></ul>
+            </template>
+        </template>
+        <template lwc:else><p>Evaluating evidence requires the narrowly scoped Readiness Evidence Reviewer permission set.</p></template>
+        <template lwc:if={busy}><p role="status">Assessing…</p></template>
+        <template lwc:if={error}><p role="alert" class="slds-text-color_error">{error}</p></template>
+    </section>
+</template>

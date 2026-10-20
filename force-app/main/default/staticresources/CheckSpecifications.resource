@@ -176,12 +176,14 @@
       "query_or_test_version": {
         "version": "runtime-control-procedure-spec-v1",
         "implementation": [
-          "scripts/demo.py:evaluate"
+          "scripts/demo.py:evaluate",
+          "force-app/main/default/classes/ReadinessEvidence.cls:evaluateSafeguards"
         ],
         "tests": [
-          "scripts/test_demo_profile.py"
+          "scripts/test_demo_profile.py",
+          "force-app/main/default/classes/ReadinessEvidenceTest.cls"
         ],
-        "limitation": "Existing scorer tests verify simulation behavior only; no completed representative-runtime control test is claimed."
+        "limitation": "Native and Python scorers evaluate reported or simulated evidence only; no completed representative-runtime control test or independent evidence verification is claimed."
       }
     },
     {
@@ -203,12 +205,14 @@
       "query_or_test_version": {
         "version": "runtime-control-procedure-spec-v1",
         "implementation": [
-          "scripts/demo.py:evaluate"
+          "scripts/demo.py:evaluate",
+          "force-app/main/default/classes/ReadinessEvidence.cls:evaluateSafeguards"
         ],
         "tests": [
-          "scripts/test_demo_profile.py"
+          "scripts/test_demo_profile.py",
+          "force-app/main/default/classes/ReadinessEvidenceTest.cls"
         ],
-        "limitation": "Existing scorer tests verify simulation behavior only; no completed representative-runtime control test is claimed."
+        "limitation": "Native and Python scorers evaluate reported or simulated evidence only; no completed representative-runtime control test or independent evidence verification is claimed."
       }
     },
     {
@@ -230,12 +234,14 @@
       "query_or_test_version": {
         "version": "runtime-control-procedure-spec-v1",
         "implementation": [
-          "scripts/demo.py:evaluate"
+          "scripts/demo.py:evaluate",
+          "force-app/main/default/classes/ReadinessEvidence.cls:evaluateSafeguards"
         ],
         "tests": [
-          "scripts/test_demo_profile.py"
+          "scripts/test_demo_profile.py",
+          "force-app/main/default/classes/ReadinessEvidenceTest.cls"
         ],
-        "limitation": "Existing scorer tests verify simulation behavior only; no completed representative-runtime control test is claimed."
+        "limitation": "Native and Python scorers evaluate reported or simulated evidence only; no completed representative-runtime control test or independent evidence verification is claimed."
       }
     },
     {
@@ -257,12 +263,14 @@
       "query_or_test_version": {
         "version": "runtime-control-procedure-spec-v1",
         "implementation": [
-          "scripts/demo.py:evaluate"
+          "scripts/demo.py:evaluate",
+          "force-app/main/default/classes/ReadinessEvidence.cls:evaluateSafeguards"
         ],
         "tests": [
-          "scripts/test_demo_profile.py"
+          "scripts/test_demo_profile.py",
+          "force-app/main/default/classes/ReadinessEvidenceTest.cls"
         ],
-        "limitation": "Existing scorer tests verify simulation behavior only; no completed representative-runtime control test is claimed."
+        "limitation": "Native and Python scorers evaluate reported or simulated evidence only; no completed representative-runtime control test or independent evidence verification is claimed."
       }
     },
     {
@@ -284,12 +292,14 @@
       "query_or_test_version": {
         "version": "runtime-control-procedure-spec-v1",
         "implementation": [
-          "scripts/demo.py:evaluate"
+          "scripts/demo.py:evaluate",
+          "force-app/main/default/classes/ReadinessEvidence.cls:evaluateSafeguards"
         ],
         "tests": [
-          "scripts/test_demo_profile.py"
+          "scripts/test_demo_profile.py",
+          "force-app/main/default/classes/ReadinessEvidenceTest.cls"
         ],
-        "limitation": "Existing scorer tests verify simulation behavior only; no completed representative-runtime control test is claimed."
+        "limitation": "Native and Python scorers evaluate reported or simulated evidence only; no completed representative-runtime control test or independent evidence verification is claimed."
       }
     },
     {
@@ -564,9 +574,9 @@
     "status": "unknown",
     "priority": "High",
     "specification": "references/erasure-test-cases.md",
-    "evaluator": "scripts/erasure_evidence.py",
+    "evaluator": "force-app/main/default/classes/ReadinessEvidence.cls:evaluateErasure",
     "decision": "not_assessed",
-    "limitation": "Source deletion, references, staff exercise success and simulated pilot decisions do not establish end-to-end erasure."
+    "limitation": "Native evaluator has Python parity with scripts/erasure_evidence.py:evaluate. Source deletion, references, staff exercise success and simulated pilot decisions do not establish end-to-end erasure."
   },
   "overrides": "No runtime/profile override or customer threshold approval is introduced by this catalog. Record separately approved policies and their versions alongside results; do not rewrite historical snapshots.",
   "severity_semantics": "confirmed_failure follows rubric gate/default recommendation severity; data thresholds may elevate Medium to High. Staff evaluator separately prioritizes any confirmed exercise failure High and explicit critical-failure markers Critical."

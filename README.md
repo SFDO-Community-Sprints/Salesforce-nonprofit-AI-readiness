@@ -17,6 +17,12 @@ python3 scripts/check_all.py
 
 The examples demonstrate different scores, failed safeguards, staff training gaps, and erasure problems with prioritized next steps. All staff and safeguard examples are clearly labelled simulations.
 
+## Run inside Salesforce
+
+After deployment, assign **Readiness Assessor** and open **Nonprofit AI Readiness**. Data quality, license/feature inventory, policy-based activity freshness, staff review scoring, safeguard scoring, and erasure evidence coverage run in Apex. Python is not required by assessment users. See [post-deployment setup](START-HERE.md#after-deploying-through-serpent).
+
+Python remains for development fixtures, scratch provisioning, and automated parity/live validation; those tools are not needed for an org assessment.
+
 ## Use a practice Salesforce org
 
 Use an authenticated Salesforce CLI and a Dev Hub that supports the requested scratch features. Follow the [setup guide](demo/GUIDE.md) to create, seed, and deploy the disposable practice org. Never run the seed or active test exercises against customer or production data.

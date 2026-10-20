@@ -78,7 +78,8 @@ def deploy(state):
     result = sf('project', 'deploy', 'start', '--source-dir', str(ROOT/'force-app'),
                 '--target-org', state['alias'], '--test-level', 'RunSpecifiedTests',
                 '--tests', 'NonprofitAIReadinessTest', '--tests', 'ReadinessStaffReviewTest',
-                '--tests', 'ReadinessMCPTest', '--wait', '5')
+                '--tests', 'ReadinessMCPTest', '--tests', 'ReadinessDataFreshnessTest',
+                '--tests', 'ReadinessEvidenceTest', '--wait', '5')
     if not result.get('success'):
         raise RuntimeError('Salesforce app deployment did not pass')
     username = sf('org', 'display', '--target-org', state['alias'])['username']

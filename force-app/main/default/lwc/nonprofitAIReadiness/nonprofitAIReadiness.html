@@ -19,9 +19,9 @@
                     <div class="notice">{banner}</div>
                     <div class="cards">
                         <article class="metric"><h2>Data quality</h2><p class="value">{score}</p><p>Checks completed: {coverage}</p></article>
-                        <article class="metric"><h2>Access and safeguards</h2><p class="value muted">Not assessed</p><p>Separate access and safety tests required</p></article>
+                        <article class="metric"><h2>Access and safeguards</h2><p class="value muted">{safeguardsLabel}</p><p>{safeguardsCoverage}</p></article>
                         <article class="metric"><h2>Staff exercises</h2><p class="value muted">{staffScore}</p><p>{staffCoverage}</p></article>
-                        <article class="metric"><h2>Privacy and erasure</h2><p class="value muted">Not assessed</p><p>Deletion and retention procedures need review</p></article>
+                        <article class="metric"><h2>Privacy and erasure</h2><p class="value muted">{erasureLabel}</p><p>{erasureCoverage}</p></article>
                     </div>
                     <template lwc:if={hasMetrics}>
                         <section class="panel" aria-label="Contact data summary"><h2>Contact data summary</h2><dl class="counts"><template for:each={metrics} for:item="metric"><div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div></template></dl><p class="scope">Repeated addresses can be shared intentionally. This is an indicator for review, not proof of duplicate people.</p></section>
@@ -44,6 +44,7 @@
                 </template>
                 <template lwc:else><template lwc:if={loading}></template><template lwc:else><p class="empty">Run an assessment to check the contact records you can access and get recommended next steps.</p></template></template>
             </div>
+            <c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
             <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>
         </div>

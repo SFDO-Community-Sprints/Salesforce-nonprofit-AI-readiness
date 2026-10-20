@@ -87,3 +87,7 @@ Both verified scratch orgs passed **37 Apex tests** after the final metadata dep
 
 
 Final role-batch local validation passed **117 Python tests and three Node checks**. See the permission-scope guide and TODO tracker for the separate live boundary evidence and unresolved overall safeguards/privacy card integration.
+
+## Native assessment migration (20 October 2026)
+
+Freshness collection and safeguard/erasure evidence evaluation now run in Apex, with structured Salesforce forms and separate reviewer access. Existing data, capability and staff assessment logic remains native. Python is retained for provisioning, fixtures, parity and isolated verification, not required by assessment users. The post-deployment access script is documented in START-HERE.md. Full scratch deployment passed 51 Apex tests; local validation passed 119 Python tests and four Node checks. New Serpent org deployment remains separately unverified. Evidence coverage is reported/simulated and does not independently assess external erasure or runtime safety.

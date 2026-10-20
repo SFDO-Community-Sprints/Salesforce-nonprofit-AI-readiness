@@ -48,6 +48,20 @@ function priorityDetails(key, metrics = {}) {
 
 export default class NonprofitAIReadiness extends LightningElement {
     result;
+    safeguardEvidence;
+    erasureEvidence;
+    handleEvidenceReview(event) {
+        if (event.detail.kind === 'safeguards') this.safeguardEvidence = event.detail.result;
+        if (event.detail.kind === 'erasure') this.erasureEvidence = event.detail.result;
+    }
+    get safeguardsLabel() { return this.safeguardEvidence ? (this.safeguardEvidence.mode === 'simulation' ? 'Simulation only' : 'Evidence evaluated') : 'Not assessed'; }
+    get safeguardsCoverage() {
+        return this.safeguardEvidence ? `${this.safeguardEvidence.mode === 'simulation' ? 'Simulated' : 'Reported'} evidence only; independent verification required` : 'Separate access and safety tests required';
+    }
+    get erasureLabel() { return this.erasureEvidence ? (this.erasureEvidence.mode === 'simulation' ? 'Simulation only' : 'Evidence evaluated') : 'Not assessed'; }
+    get erasureCoverage() {
+        return this.erasureEvidence ? `${this.erasureEvidence.reported_observations} reported observations; ${this.erasureEvidence.unknown_checks} checks missing. End-to-end erasure not assessed.` : 'Deletion and retention procedures need review';
+    }
     loading = false;
     error;
     lastChecked;

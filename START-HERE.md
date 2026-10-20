@@ -6,6 +6,25 @@ Open **Nonprofit AI Readiness** from the App Launcher in your prepared practice 
 
 The prepared practice org is **nonprofit-readiness-demo**, available for seven days from 19 October 2026. Its donor records are fictional. The assessment itself reads Salesforce when you press the button; results are not a preset sample state.
 
+## After deploying through Serpent
+
+A metadata deployment does not assign permission sets. Assign **Readiness Assessor** to each user who needs the app in Setup → Permission Sets → Readiness Assessor → Manage Assignments. No seed data or scheduled job is required.
+
+Alternatively, run `scripts/apex/post-deploy.apex` in Execute Anonymous as the intended assessor, or from a locally authenticated CLI:
+
+```sh
+sf apex run --target-org YOUR_ORG --file scripts/apex/post-deploy.apex
+sf org open --target-org YOUR_ORG --path /lightning/n/AI_Readiness
+```
+
+The setup script assigns only Readiness Assessor to the executing user and is safe to repeat. Refresh the Salesforce page, then use App Launcher → **Nonprofit AI Readiness**, or navigate directly to `/lightning/n/AI_Readiness`.
+
+The assessment runs in Apex inside this org. **Run assessment** reads accessible Contact aggregates and feature/license availability. The additional freshness form requires an explicit policy; it does not assume an approved activity window. Staff review already runs in Apex. **Readiness Evidence Reviewer** grants only the separate safeguard/erasure evidence evaluator; **Readiness Staff Reviewer** grants staff review creation. Assign specialist roles separately as needed. The MCP role remains separate and receives no new evaluator access.
+
+See the [native assessment map](references/native-assessment.md) for the Apex implementation of each check.
+
+Evidence evaluation accepts structured observations and opaque references. It cannot inspect external backups, integrations, or export copies, and reported observations do not certify readiness. Evaluation results in the evidence form are session-only; save your approved evidence inventory in your organization's controlled evidence store.
+
 ## Run an assessment
 
 1. Open **Nonprofit AI Readiness** from the App Launcher.
