@@ -25,8 +25,8 @@ const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
         assert.equal(scopes.at(-1), scenario);
         assert.equal(screen.score, '37%');
         assert.equal(screen.staffScore, '63%');
-        assert.equal(screen.safeguardsLabel, '25% configuration');
-        assert.equal(screen.erasureLabel, '75% configuration');
+        assert.equal(screen.safeguardsLabel, 'See org health findings');
+        assert.equal(screen.erasureLabel, 'Incomplete');
         assert.equal(screen.configurationChecks[0].statusLabel, 'Needs attention');
         assert.equal(screen.configurationChecks[0].basis, 'ObjectPermissions');
         assert.equal(screen.tasksDisabled, scenario !== 'organization');
@@ -42,8 +42,8 @@ const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
     for (const inaccessible of [null, {error: 'denied'}]) {
         configuration = inaccessible;
         await screen.handleRun();
-        assert.equal(screen.safeguardsLabel, 'Not assessed');
-        assert.equal(screen.erasureLabel, 'Not assessed');
+        assert.equal(screen.safeguardsLabel, 'See org health findings');
+        assert.equal(screen.erasureLabel, 'Incomplete');
         assert.match(screen.orgConfigurationError, /not assessed/);
     }
     assert.equal(taskCalls, 0, 'Contact subsets must not create organization tasks');

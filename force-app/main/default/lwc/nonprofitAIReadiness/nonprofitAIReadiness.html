@@ -2,7 +2,7 @@
     <section class="workspace" aria-label="Nonprofit AI readiness assessment">
         <header class="hero">
             <h1>AI Readiness</h1>
-            <p class="intro">Check your Salesforce data and see what needs attention before an AI pilot.</p>
+            <p class="intro">Assess data, access, staff and privacy readiness before an AI pilot.</p>
             <span class="privacy-pill">Summary results only</span>
         </header>
         <div class="body">
@@ -13,24 +13,19 @@
                 <template lwc:if={lastChecked}><p class="checked">Last checked: {lastChecked}</p></template>
             </div>
             <p class="scope">{scopeLabel}</p>
+            <c-readiness-org-health></c-readiness-org-health>
             <div class="results" aria-live="polite" aria-atomic="true">
-                <template lwc:if={loading}><div class="loading"><lightning-spinner alternative-text="Running readiness checks" size="small"></lightning-spinner><p>Checking your Salesforce contact data…</p></div></template>
+                <template lwc:if={loading}><div class="loading"><lightning-spinner alternative-text="Running readiness checks" size="small"></lightning-spinner><p>Checking org health, contact data and readiness controls…</p></div></template>
                 <template lwc:if={error}><div class="notice error" role="alert">{error}</div></template>
                 <template lwc:if={result}>
                     <div class="notice">{banner}</div>
-                    <div class="cards">
-                        <article class="metric"><h2>Data quality</h2><p class="value">{score}</p><p>Checks completed: {coverage}</p></article>
-                        <article class="metric"><h2>Access and safeguards</h2><p class="value muted">{safeguardsLabel}</p><p>{safeguardsCoverage}</p></article>
-                        <article class="metric"><h2>Staff exercises</h2><p class="value muted">{staffScore}</p><p>{staffCoverage}</p></article>
-                        <article class="metric"><h2>Privacy and erasure</h2><p class="value muted">{erasureLabel}</p><p>{erasureCoverage}</p></article>
-                    </div>
                     <template lwc:if={hasMetrics}>
                         <section class="panel" aria-label="Contact data summary"><h2>Contact data summary</h2><dl class="counts"><template for:each={metrics} for:item="metric"><div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div></template></dl><p class="scope">Repeated addresses can be shared intentionally. This is an indicator for review, not proof of duplicate people.</p></section>
                     </template>
                     <section class="panel" aria-label="Data check results"><h2>Data checks</h2><div class="table-wrap"><table class="slds-table slds-table_cell-buffer slds-table_bordered"><thead><tr><th scope="col">Check</th><th scope="col">Result</th></tr></thead><tbody><template for:each={checks} for:item="check"><tr key={check.key}><th scope="row">{check.label}</th><td><span class={check.badgeClass}>{check.status}</span></td></tr></template></tbody></table></div></section>
                     <section class="panel" aria-label="Measured organization configuration">
                         <h2>Measured organization configuration</h2>
-                        <p class="scope">Access and privacy scores cover the configuration checks below. Runtime safeguards and complete erasure require separate observations.</p>
+                        <p class="scope">Package role checks below describe this app’s configuration. Org-wide findings appear above; executed safeguards and deletion probes appear below.</p>
                         <template lwc:if={orgConfigurationError}><p class="scope">{orgConfigurationError}</p></template>
                         <template lwc:if={orgConfiguration}>
                             <p class="scope">{configurationSource}</p>

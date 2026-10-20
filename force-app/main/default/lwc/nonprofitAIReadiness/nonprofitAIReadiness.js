@@ -80,10 +80,10 @@ export default class NonprofitAIReadiness extends LightningElement {
     }
     orgConfiguration;
     orgConfigurationError;
-    get safeguardsLabel() { return this.orgConfiguration?.access?.score == null ? 'Not assessed' : `${this.orgConfiguration.access.score}% configuration`; }
-    get safeguardsCoverage() { return 'Deployed role configuration only; runtime controls unmeasured'; }
-    get erasureLabel() { return this.orgConfiguration?.privacy?.score == null ? 'Not assessed' : `${this.orgConfiguration.privacy.score}% configuration`; }
-    get erasureCoverage() { return 'Measured Salesforce configuration only; full erasure not measured'; }
+    get safeguardsLabel() { return 'See org health findings'; }
+    get safeguardsCoverage() { return 'Org-wide security and access findings are shown above; runtime probes are shown below.'; }
+    get erasureLabel() { return 'Incomplete'; }
+    get erasureCoverage() { return 'Source deletion, recoverability and downstream copies require separate evidence.'; }
     get configurationSource() { return this.orgConfiguration ? `${this.orgConfiguration.scope} · ${this.orgConfiguration.version} · ${this.orgConfiguration.observed_at}` : ''; }
     get configurationChecks() {
         return ['access', 'privacy'].flatMap(area => (this.orgConfiguration?.[area]?.checks || []).map(check => ({
@@ -230,6 +230,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         }).catch(() => {
             this.orgConfigurationError = 'Organization configuration unavailable for your access. These checks are not assessed.';
         });
+        const healthRequest = this.template?.querySelector?.('c-readiness-org-health')?.runScan();
         const verificationRequest = this.template?.querySelector?.('c-readiness-verification')?.runChecks();
         const inventoryRequest = capabilityInventory().then(value => {
             const inventory = JSON.parse(value);
@@ -247,7 +248,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         } catch (error) {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
-            await Promise.all([inventoryRequest, configurationRequest, verificationRequest]);
+            await Promise.all([inventoryRequest, configurationRequest, verificationRequest, healthRequest]);
             this.loading = false;
             if (this.refreshAfterAssessment) {
                 this.refreshAfterAssessment = false;

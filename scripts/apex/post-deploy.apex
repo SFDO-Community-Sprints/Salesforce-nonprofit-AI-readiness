@@ -4,7 +4,7 @@ Id currentUser = UserInfo.getUserId();
 Set<String> requiredRoles = new Set<String>{'Readiness_Assessor','Readiness_Staff_Reviewer','Readiness_Evidence_Reviewer'};
 // Active verification privileges are only part of this disposable scratch walkthrough.
 if (URL.getOrgDomainUrl().getHost().endsWith('.scratch.my.salesforce.com') && [SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
-    requiredRoles.addAll(new Set<String>{'Readiness_Erasure_Tester','Readiness_Control_Manager','Readiness_Operations_Reader'});
+    requiredRoles.addAll(new Set<String>{'Readiness_Erasure_Tester','Readiness_Control_Manager','Readiness_Operations_Reader','Readiness_Security_Reader'});
 }
 List<PermissionSet> roles = [SELECT Id,Name FROM PermissionSet WHERE Name IN :requiredRoles];
 if (roles.size()!=requiredRoles.size()) {

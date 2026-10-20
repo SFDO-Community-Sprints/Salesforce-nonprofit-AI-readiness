@@ -37,3 +37,9 @@ Run assessment also executes current-identity permission/API probes and writes s
 The separate **Run source erasure exercise** button requires explicit confirmation and the scratch-only Erasure Tester role. It creates and soft-deletes one new fictional Contact, observes active-read/count exclusion, and reports retained Recycle Bin data as a failed permanent-erasure check. It never purges data. The package stop/resume controls require Control Manager; Operations Reader exposes the sanitized event list. These three roles are assigned by post-deploy only in a scratch org.
 
 See [executable acceptance](references/executable-acceptance.md) for the exact implemented checks and required external/identity bindings. Runtime, source lifecycle, configuration and human evidence remain distinct; no overall pass is inferred from a partial probe.
+
+## AI readiness health dashboard
+
+**Run assessment** now also runs our own AI readiness health check: an overall score and coverage, four category cards, access inventory and actionable actual-versus-expected findings. It does not import Salesforce Security Health Check. Unknown evidence earns no score points and critical failures block the result. See the [rubric and exact scope](references/ai-readiness-health.md).
+
+Assign the separate **Readiness Security Reader** role for the org-wide grant checks. Existing Assessor access does not gain Setup visibility. Scratch post-deploy assigns that specialist role separately. No Named Credential or external runtime is needed.

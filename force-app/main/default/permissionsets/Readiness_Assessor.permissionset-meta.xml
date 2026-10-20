@@ -8,6 +8,7 @@
     <classAccesses><apexClass>ReadinessOrgChecks</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>ReadinessRuntimeProbe</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>ReadinessControl</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>ReadinessOrgHealth</apexClass><enabled>true</enabled></classAccesses>
     <description>Interactive data assessment only: read accessible Account/Contact data and open the readiness screen. No staff records, API access, agent access or Task writes.</description>
     <fieldPermissions>
         <editable>false</editable>

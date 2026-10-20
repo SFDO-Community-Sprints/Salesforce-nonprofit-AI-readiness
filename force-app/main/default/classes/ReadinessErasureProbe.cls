@@ -82,6 +82,8 @@ public with sharing class ReadinessErasureProbe {
         }
         report.put('eventRecorded',ReadinessOperationalLog.recordEvent('erasure_probe','erasure_execution',
             report.get('status') == 'observed' ? 'pass' : 'fail'));
+        ReadinessOperationalLog.recordEvent('erasure_probe','source_deletion',report.get('sourceActiveAbsent')=='pass' && report.get('aggregateExclusion')=='pass' ? 'pass' : report.get('status')=='failed' ? 'fail' : 'unknown');
+        ReadinessOperationalLog.recordEvent('erasure_probe','recycle_bin',(String)report.get('recycleBinErased'));
         return report;
     }
 }

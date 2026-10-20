@@ -119,3 +119,14 @@ The earlier hardcoded-card and simulated-result descriptions above are historica
 ### Live native verification
 
 Serpent DEPLOY-18 succeeded with 58/58 components. Post-deploy and executable runtime/erasure probes compiled and succeeded. Separate transactions verified committed package stop, denied calls, resume and assessment recovery; package left enabled. Lightning Run assessment displayed executed results and missing bindings. Active canary exclusion passed; permanent erasure failed because the canary remained recoverable. Actual assistant, external destinations and human acceptance remain open. Details: [live executable evidence](references/executable-acceptance.md#live-execution--20-october-2026).
+
+## AI readiness health dashboard — 20 October 2026
+
+- [x] Replace mixed configuration/practice headline percentages with our own AI-readiness score, coverage, four categories, inventory and actual-versus-expected findings.
+- [x] Implement native `ReadinessOrgHealth` collector and invocable tool action; no Salesforce Health Check dependency or external runtime.
+- [x] Add separately scoped Security Reader and retain unknown org findings without that role.
+- [x] Exclude seeded staff input from human readiness, persist scoped canary observations, and enforce critical failure gating.
+- [x] Full metadata validation passed 84 Apex tests in the validation scratch org; all seven UI checks passed.
+- [ ] Verify this dashboard deployment and native browser scan on `data-connect-7516`.
+
+Remaining actual assistant, external erasure and human evidence requirements are unchanged. The [AI readiness rubric](references/ai-readiness-health.md) defines what the new score measures.
