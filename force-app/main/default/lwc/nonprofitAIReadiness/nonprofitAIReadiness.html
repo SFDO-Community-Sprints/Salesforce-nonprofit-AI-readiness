@@ -7,11 +7,12 @@
         </header>
         <div class="body">
             <div class="controls">
+                <lightning-combobox label="Assessment source" value={scenario} options={scenarioOptions} onchange={handleScenarioChange} disabled={assessmentDisabled}></lightning-combobox>
                 <lightning-button label="Run assessment" variant="brand" onclick={handleRun} disabled={assessmentDisabled}></lightning-button>
                 <lightning-button label="View recommended actions" variant="neutral" onclick={handleViewActions} disabled={actionsDisabled}></lightning-button>
                 <template lwc:if={lastChecked}><p class="checked">Last checked: {lastChecked}</p></template>
             </div>
-            <p class="scope">Live Salesforce data · Four data checks · Records you can access</p>
+            <p class="scope">{scopeLabel}</p>
             <div class="results" aria-live="polite" aria-atomic="true">
                 <template lwc:if={loading}><div class="loading"><lightning-spinner alternative-text="Running readiness checks" size="small"></lightning-spinner><p>Checking your Salesforce contact data…</p></div></template>
                 <template lwc:if={error}><div class="notice error" role="alert">{error}</div></template>
@@ -27,7 +28,7 @@
                         <section class="panel" aria-label="Contact data summary"><h2>Contact data summary</h2><dl class="counts"><template for:each={metrics} for:item="metric"><div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div></template></dl><p class="scope">Repeated addresses can be shared intentionally. This is an indicator for review, not proof of duplicate people.</p></section>
                     </template>
                     <section class="panel" aria-label="Data check results"><h2>Data checks</h2><div class="table-wrap"><table class="slds-table slds-table_cell-buffer slds-table_bordered"><thead><tr><th scope="col">Check</th><th scope="col">Result</th></tr></thead><tbody><template for:each={checks} for:item="check"><tr key={check.key}><th scope="row">{check.label}</th><td><span class={check.badgeClass}>{check.status}</span></td></tr></template></tbody></table></div></section>
-                    <section class="panel" aria-label="Organization licenses and features">
+                    <template lwc:if={isLive}><section class="panel" aria-label="Organization licenses and features">
                         <h2>Organization licenses and features</h2>
                         <p class="scope">Assigned seats are not proof of active use. Feature availability does not establish that a feature is configured or used.</p>
                         <template lwc:if={inventoryError}><p class="scope">{inventoryError}</p></template>
@@ -40,12 +41,18 @@
                             <p class="scope">Counts only include records you can access. Hidden or unavailable information is not evidence of non-use. Small-group counts are withheld.</p>
                         </template>
                     </section>
-                    <section class="panel actions" aria-label="Recommended next steps"><h2 data-actions-heading tabindex="-1">Recommended next steps</h2><p class="scope">Recommendations follow the same assessment rules each time.</p><ol><template for:each={recommendations} for:item="action"><li key={action.key}><span class={action.priorityClass}>{action.priority}</span> <strong>{action.owner}:</strong> {action.text}<p class="impact">{action.impact}</p><a class="learning-link" href={action.learning.url} target="_blank" rel="noopener noreferrer">{action.learning.label}<span class="slds-assistive-text"> (opens in a new tab)</span></a><template lwc:if={action.extraUrl}><a class="learning-link" href={action.extraUrl} target="_blank" rel="noopener noreferrer">{action.extraLabel}<span class="slds-assistive-text"> (opens in a new tab)</span></a></template></li></template></ol><template lwc:if={hasMetrics}><template lwc:if={canCreateFollowUp}><div class="follow-ups"><p class="scope">{followUpCount} follow-ups, assigned to you. Matching open tasks are reused and their assessment priorities refreshed.</p><lightning-button label="Create my follow-up tasks" variant="brand" onclick={handleCreateTasks} disabled={tasksDisabled}></lightning-button><template lwc:if={savingTasks}><p class="scope" role="status">Creating your follow-up tasks…</p></template><template lwc:if={taskMessage}><p class="task-result" role="status">{taskMessage}</p><a href="/lightning/o/Task/list">View my tasks</a></template><template lwc:if={taskError}><p class="task-error" role="alert">{taskError}</p></template></div></template><template lwc:else><p class="scope">Creating follow-up tasks requires Readiness Follow Up access.</p></template></template></section>
+                    </template>
+                    <template lwc:if={isDemo}>
+                        <section class="panel" aria-label="Fictional staff exercises"><h2>Simulated staff readiness exercises</h2><p class="scope">Seven fictional outcomes. These are examples, not saved reviews of you or your staff.</p><ul><template for:each={demoStaffChecks} for:item="check"><li key={check.key}><strong>{check.label}: {check.status}</strong><p>{check.description}</p></li></template></ul></section>
+                        <section class="panel" aria-label="Fictional safeguards"><h2>Simulated access and safeguards</h2><ul><template for:each={demoControlChecks} for:item="check"><li key={check.key}>{check.label}: {check.status}</li></template></ul></section>
+                        <section class="panel" aria-label="Fictional erasure coverage"><h2>Simulated privacy and erasure</h2><p class="scope">Fictional observations only; no live deletions or external system verification.</p><ul><template for:each={demoErasureChecks} for:item="check"><li key={check.key}>{check.label}: {check.status}</li></template></ul></section>
+                    </template>
+                    <section class="panel actions" aria-label="Recommended next steps"><h2 data-actions-heading tabindex="-1">Recommended next steps</h2><p class="scope">Recommendations follow the same assessment rules each time.</p><ol><template for:each={recommendations} for:item="action"><li key={action.key}><span class={action.priorityClass}>{action.priority}</span> <strong>{action.owner}:</strong> {action.text}<p class="impact">{action.impact}</p><a class="learning-link" href={action.learning.url} target="_blank" rel="noopener noreferrer">{action.learning.label}<span class="slds-assistive-text"> (opens in a new tab)</span></a><template lwc:if={action.extraUrl}><a class="learning-link" href={action.extraUrl} target="_blank" rel="noopener noreferrer">{action.extraLabel}<span class="slds-assistive-text"> (opens in a new tab)</span></a></template></li></template></ol><template lwc:if={isLive}><template lwc:if={hasMetrics}><template lwc:if={canCreateFollowUp}><div class="follow-ups"><p class="scope">{followUpCount} follow-ups, assigned to you. Matching open tasks are reused and their assessment priorities refreshed.</p><lightning-button label="Create my follow-up tasks" variant="brand" onclick={handleCreateTasks} disabled={tasksDisabled}></lightning-button><template lwc:if={savingTasks}><p class="scope" role="status">Creating your follow-up tasks…</p></template><template lwc:if={taskMessage}><p class="task-result" role="status">{taskMessage}</p><a href="/lightning/o/Task/list">View my tasks</a></template><template lwc:if={taskError}><p class="task-error" role="alert">{taskError}</p></template></div></template><template lwc:else><p class="scope">Creating follow-up tasks requires Readiness Follow Up access.</p></template></template></template></section>
                 </template>
                 <template lwc:else><template lwc:if={loading}></template><template lwc:else><p class="empty">Run an assessment to check the contact records you can access and get recommended next steps.</p></template></template>
             </div>
-            <c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
-            <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
+            <template lwc:if={isLive}><c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
+            <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review></template>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>
         </div>
     </section>

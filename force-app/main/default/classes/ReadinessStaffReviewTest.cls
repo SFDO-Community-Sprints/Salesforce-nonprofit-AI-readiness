@@ -61,6 +61,20 @@ private class ReadinessStaffReviewTest {
             System.assertEquals(0,[SELECT COUNT() FROM AI_Readiness_Staff_Review__c WITH USER_MODE]);
         }
     }
+    @IsTest static void simulationDoesNotReplaceLatestActualReview() {
+        System.runAs(userFor('srview')) {
+            insert new AI_Readiness_Staff_Review__c(Version__c='demo-scenarios-v1',
+                Snapshot__c='{"mode":"simulation","scenario":"pilot"}');
+            System.assertEquals('null',ReadinessStaffReview.getLatestReview());
+            ReadinessStaffReview.saveReview(JSON.serialize(snapshot()));
+            AI_Readiness_Staff_Review__c simulation = [SELECT Id FROM AI_Readiness_Staff_Review__c
+                WHERE Version__c='demo-scenarios-v1' LIMIT 1];
+            Test.setCreatedDate(simulation.Id, Datetime.now().addDays(1));
+            Map<String,Object> actual = (Map<String,Object>)JSON.deserializeUntyped(ReadinessStaffReview.getLatestReview());
+            System.assertEquals('staff_evidence_complete',actual.get('decision'));
+            System.assertEquals('reviewer_confirmed_observations',actual.get('evidence_mode'));
+        }
+    }
     @IsTest static void permissionCannotBeBypassed() {
         System.runAs(userFor('srdeny')) {
             System.assert(ReadinessStaffReview.saveReview(JSON.serialize(snapshot())).contains('review_not_permitted'));

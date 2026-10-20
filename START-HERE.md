@@ -17,7 +17,7 @@ sf apex run --target-org YOUR_ORG --file scripts/apex/post-deploy.apex
 sf org open --target-org YOUR_ORG --path /lightning/n/AI_Readiness
 ```
 
-The setup script assigns only Readiness Assessor to the executing user and is safe to repeat. Refresh the Salesforce page, then use App Launcher → **Nonprofit AI Readiness**, or navigate directly to `/lightning/n/AI_Readiness`.
+The setup script assigns the three focused demo roles (Readiness Assessor, Readiness Staff Reviewer and Readiness Evidence Reviewer) to the executing user and is safe to repeat. It does not grant MCP, agent, follow-up Task or deletion access. Refresh the Salesforce page, then use App Launcher → **Nonprofit AI Readiness**, or navigate directly to `/lightning/n/AI_Readiness`.
 
 The assessment runs in Apex inside this org. **Run assessment** reads accessible Contact aggregates and feature/license availability. The additional freshness form requires an explicit policy; it does not assume an approved activity window. Staff review already runs in Apex. **Readiness Evidence Reviewer** grants only the separate safeguard/erasure evidence evaluator; **Readiness Staff Reviewer** grants staff review creation. Assign specialist roles separately as needed. The MCP role remains separate and receives no new evaluator access.
 
@@ -145,7 +145,7 @@ Readiness roles are separate: data assessment, staff outcome reading, staff revi
 
 ## Optional fictional demo data through Serpent
 
-Deploy the latest repo first, then use Execute Apex on `data-connect-7516-dev-ed.scratch.my` with `scripts/apex/seed-demo.apex`. It is self-contained anonymous Apex (no helper class or static resource deployment required) and imports the same five scenarios as the original Python seed: five Accounts and 34 Contacts, all fictional. Refresh AI Readiness and select Run assessment.
+Deploy the latest repo first, then use Execute Apex on `data-connect-7516-dev-ed.scratch.my` with `scripts/apex/seed-demo.apex`. It is self-contained anonymous Apex (no helper class or static resource dependency) and imports five Accounts, 34 Contacts and five simulation-only snapshots covering data, seven staff outcomes, safeguards and erasure. Deploy the latest UI and scenario accessor, run post-deploy.apex, refresh Salesforce, then choose a fictional scenario from Assessment source and select Run assessment. Live organization remains the default; simulated evidence is never saved as an actual staff review.
 
 Optionally execute `scripts/apex/seed-failures.apex` to add 60 fictional unlinked Contacts, 50 missing email and ten sharing one fictional email. This intentionally lowers the organization-wide data score; it is not part of normal setup.
 

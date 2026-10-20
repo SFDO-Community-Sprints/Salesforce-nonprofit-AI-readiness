@@ -24,3 +24,9 @@ Missing access and small cohorts remain unknown. Policy-based LastActivityDate m
 ## Validation
 
 On 20 October 2026 the full metadata deployed to the existing disposable demo scratch org and all 51 Apex tests passed, including non-admin freshness success/denial, dedicated reviewer permission checks and eight Python-generated evidence parity fixtures. Local validation passed 119 Python tests and four Node checks. A final LWC deployment succeeded. The post-deployment Apex script succeeded twice without duplicate assignment. Browser readback confirmed the app, additional checks, permission-gated reviewer section and a successful Run assessment. This evidence concerns the existing demo scratch org, not `data-connect-7516`, whose CLI login was not completed. No mobile acceptance or independently verified external safeguards/erasure is claimed.
+
+## Complete fictional walkthrough
+
+`seed-demo.apex` now seeds five owner-scoped simulation snapshots in addition to five Accounts and 34 Contacts. The snapshots cover the versioned data, safeguard and seven staff outcomes, plus erasure probes. They use `demo-scenarios-v1` records; actual latest staff reviews explicitly select `staff-readiness-v1`, so simulated outcomes cannot replace actual evidence. The read-only scenario accessor validates mode and owner before returning snapshots.
+
+The Assessment source selector defaults to Live organization. Five explicitly labelled Simulation options render all four cards and the staff/safeguard/erasure details, without creating tasks or saving staff reviews. `post-deploy.apex` assigns the executing demo user the three separate assessor/staff-reviewer/evidence-reviewer roles; it leaves MCP, agent and follow-up access unassigned. Refresh Salesforce after setup so custom permissions reload. Local validation passed 123 Python tests and five Node checks; full deployment passed 62 Apex tests in the existing disposable demo org.

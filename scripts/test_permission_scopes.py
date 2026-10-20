@@ -26,7 +26,7 @@ class PermissionScopeTests(unittest.TestCase):
 
     def test_assessor_has_no_staff_api_or_write_privileges(self):
         root = role('Readiness_Assessor')
-        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness', 'ReadinessDataFreshness'})
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness', 'ReadinessDataFreshness', 'ReadinessDemoScenarios'})
         self.assertEqual(names(root, 'objectPermissions', 'object'), {'Account', 'Contact'})
         self.assertEqual(names(root, 'fieldPermissions', 'field'), {'Contact.Email', 'Contact.AccountId'})
         for grant in root.findall('m:objectPermissions', NS):
