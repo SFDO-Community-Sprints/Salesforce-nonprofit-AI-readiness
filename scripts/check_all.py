@@ -29,7 +29,7 @@ def main(live, agentforce=False):
     run('scripts/seed_failure_demo.py')
     run('scripts/check_data_improvement.py')
     tests_ran = 0
-    for test_class in ('NonprofitAIReadinessTest','ReadinessStaffReviewTest','ReadinessMCPTest','ReadinessDataFreshnessTest','ReadinessEvidenceTest'):
+    for test_class in ('NonprofitAIReadinessTest','ReadinessStaffReviewTest','ReadinessMCPTest','ReadinessDataFreshnessTest','ReadinessEvidenceTest','ReadinessDemoSeedTest'):
         apex=sf('apex','run','test','--class-names',test_class,'--synchronous',
                 '--result-format','json','--target-org',state['alias'])
         summary=apex.get('summary',{})

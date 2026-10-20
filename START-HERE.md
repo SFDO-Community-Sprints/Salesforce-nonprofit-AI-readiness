@@ -142,3 +142,11 @@ The second command tests the activated assistant through its native Salesforce a
 See [the assistant walkthrough](references/agentforce-next-steps.md) for prerequisites, current limits, and the separate authoring-preview check.
 
 Readiness roles are separate: data assessment, staff outcome reading, staff review creation, follow-up Tasks, Employee agent and dedicated MCP. The assessor role no longer grants staff evidence access. See [permission scopes](references/permission-scopes.md) before assigning roles.
+
+## Optional fictional demo data through Serpent
+
+Deploy the latest repo first, then use Execute Apex on `data-connect-7516-dev-ed.scratch.my` with `scripts/apex/seed-demo.apex`. It calls the deployed `ReadinessDemoSeed` class and imports the same five scenarios as the original Python seed: five Accounts and 34 Contacts, all fictional. Refresh AI Readiness and select Run assessment.
+
+Optionally execute `scripts/apex/seed-failures.apex` to add 60 fictional unlinked Contacts, 50 missing email and ten sharing one fictional email. This intentionally lowers the organization-wide data score; it is not part of normal setup.
+
+Both scripts are pinned to this exact scratch hostname, require Salesforce's scratch domain and IsSandbox flag, and reject other targets before writes. They are safe to repeat when the original seed remains unchanged. Duplicate, incomplete or modified seed records cause refusal; they are never overwritten or deleted. The scenario import rolls back its inserts if any later group fails. Existing org automation and validation rules still apply. For another disposable scratch, deliberately update the expected hostname in the script. No staff or safeguard observations are inserted.
