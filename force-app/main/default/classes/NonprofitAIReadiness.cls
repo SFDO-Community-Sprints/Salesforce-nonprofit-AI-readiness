@@ -14,9 +14,12 @@ public with sharing class NonprofitAIReadiness {
         List<Response> results = new List<Response>();
         Map<String, String> cache = new Map<String, String>();
         if (requests == null) return results;
+        Boolean stopped = ReadinessControl.isDisabled();
         for (Request request : requests) {
             Response response = new Response();
-            if (request == null || !SCENARIOS.contains(request.scenario)) {
+            if (stopped) {
+                response.output = ReadinessControl.stopped();
+            } else if (request == null || !SCENARIOS.contains(request.scenario)) {
                 response.output = JSON.serialize(new Map<String,Object>{'error'=>'invalid_scenario'});
             } else {
                 if (!cache.containsKey(request.scenario)) {
@@ -48,6 +51,7 @@ public with sharing class NonprofitAIReadiness {
         if (!SCENARIOS.contains(scenario)) {
             return JSON.serialize(new Map<String,Object>{'error'=>'invalid_scenario'});
         }
+        if (ReadinessControl.isDisabled()) return ReadinessControl.stopped();
         try {
             return JSON.serialize(collect(scenario,true));
         } catch (Exception ignored) {
@@ -60,6 +64,7 @@ public with sharing class NonprofitAIReadiness {
         if (!FeatureManagement.checkPermission('Readiness_Create_Follow_Up')) {
             return JSON.serialize(new Map<String,Object>{'error'=>'task_creation_unavailable'});
         }
+        if (ReadinessControl.isDisabled()) return ReadinessControl.stopped();
         Savepoint writeBoundary;
         try {
             Map<String,Object> assessment = collect('organization');
@@ -232,6 +237,7 @@ public with sharing class NonprofitAIReadiness {
 
     @AuraEnabled
     public static String capabilityInventory() {
+        if (ReadinessControl.isDisabled()) return ReadinessControl.stopped();
         List<Map<String,Object>> licenses = new List<Map<String,Object>>();
         Map<String,String> sections = new Map<String,String>();
         try {

@@ -102,3 +102,16 @@ The Access and safeguards and Privacy and erasure page cards are still hardcoded
 Assessment users no longer need Python: existing Contact/feature/staff logic is joined by native policy-based activity freshness and safeguard/erasure evidence evaluators. Structured forms avoid JSON editing. Every assessment uses live inputs; preset-result paths were removed. A separate Evidence Reviewer role grants evaluator access only. The post-deployment Apex script idempotently assigns Readiness Assessor to its executing user; no seed data is required to open the app. See [native assessment map](references/native-assessment.md).
 
 Validation: 119 Python tests, four Node checks, eight Python-driven Apex parity fixtures, and full metadata deployment with 51 Apex tests passed in the existing disposable `nonprofit-readiness-demo` scratch org. This does not prove deployment to `data-connect-7516`; its separate local CLI login was not completed. Customer readiness, external safeguards/erasure, mobile and production acceptance remain open.
+
+## Executable acceptance continuation — 20 October 2026
+
+- [x] Execute current-principal native/MCP and unauthorized-action checks; display outcomes and unresolved identity/workflow bindings.
+- [x] Add package stop/resume enforcement and sanitized private operational events with separate specialist permissions.
+- [x] Add an explicitly confirmed scratch-only canary lifecycle probe, including active-read exclusion and recoverability checks.
+- [x] Integrate executable verification into Run assessment and the post-deploy scratch role setup.
+- [x] Validate full metadata deployment with **79 Apex tests** in `nonprofit-readiness-demo`; **123 Python tests and six Node checks** pass.
+- [ ] Deploy and execute the new verification in `data-connect-7516` through Initial PoC.
+- [ ] Bind the actual assistant identity/workflow and named external destinations, then execute their acceptance checks.
+- [ ] Obtain actual human demonstrations and approved retention decisions.
+
+The earlier hardcoded-card and simulated-result descriptions above are historical. Current collectors use real org/configuration/input records, and executable probe results retain their measured scope. See [executable acceptance](references/executable-acceptance.md) for the remaining acceptance matrix.

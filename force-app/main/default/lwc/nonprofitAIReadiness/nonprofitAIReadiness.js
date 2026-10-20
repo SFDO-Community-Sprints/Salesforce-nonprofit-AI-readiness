@@ -230,6 +230,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         }).catch(() => {
             this.orgConfigurationError = 'Organization configuration unavailable for your access. These checks are not assessed.';
         });
+        const verificationRequest = this.template?.querySelector?.('c-readiness-verification')?.runChecks();
         const inventoryRequest = capabilityInventory().then(value => {
             const inventory = JSON.parse(value);
             if (inventory.error) { throw new Error('Inventory unavailable'); }
@@ -246,7 +247,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         } catch (error) {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
-            await Promise.all([inventoryRequest, configurationRequest]);
+            await Promise.all([inventoryRequest, configurationRequest, verificationRequest]);
             this.loading = false;
             if (this.refreshAfterAssessment) {
                 this.refreshAfterAssessment = false;

@@ -54,6 +54,7 @@
                 </template>
                 <template lwc:else><template lwc:if={loading}></template><template lwc:else><p class="empty">Run an assessment to check the contact records you can access and get recommended next steps.</p></template></template>
             </div>
+            <c-readiness-verification></c-readiness-verification>
             <c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
             <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>

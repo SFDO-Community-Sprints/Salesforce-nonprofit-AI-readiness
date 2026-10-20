@@ -374,7 +374,7 @@ private class NonprofitAIReadinessTest {
         Test.startTest();
         List<NonprofitAIReadiness.Response> results = NonprofitAIReadiness.assess(
             new List<NonprofitAIReadiness.Request>{request,request});
-        System.assertEquals(6,Limits.getQueries());
+        System.assertEquals(7,Limits.getQueries());
         Test.stopTest();
         System.assertEquals(2,results.size());
         System.assertEquals(results[0].output,results[1].output);

@@ -2,6 +2,10 @@
 // No API-only/MCP, agent, follow-up Task, or delete permissions are assigned.
 Id currentUser = UserInfo.getUserId();
 Set<String> requiredRoles = new Set<String>{'Readiness_Assessor','Readiness_Staff_Reviewer','Readiness_Evidence_Reviewer'};
+// Active verification privileges are only part of this disposable scratch walkthrough.
+if (URL.getOrgDomainUrl().getHost().endsWith('.scratch.my.salesforce.com') && [SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
+    requiredRoles.addAll(new Set<String>{'Readiness_Erasure_Tester','Readiness_Control_Manager','Readiness_Operations_Reader'});
+}
 List<PermissionSet> roles = [SELECT Id,Name FROM PermissionSet WHERE Name IN :requiredRoles];
 if (roles.size()!=requiredRoles.size()) {
     throw new IllegalArgumentException('Deploy the latest readiness metadata before running setup: assessor, staff reviewer and evidence reviewer roles are required.');

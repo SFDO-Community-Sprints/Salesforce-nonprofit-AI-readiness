@@ -154,3 +154,11 @@ Inside the seed script, `practiceScenario` selects the raw answer inputs to inst
 `seed-failures.apex` optionally adds 60 actual fictional unlinked Contacts, 50 missing email and ten sharing one fictional email. That intentionally lowers the live organization data score. Both scripts are pinned to the selected scratch hostname and refuse other targets before writes. Repeat runs avoid duplicate Contacts; altered or incomplete original Contact seeds cause refusal rather than overwrites.
 
 Access and privacy configuration cards inspect deployed readiness permission sets, their CRUD/FLS, custom permissions and class grants. These are configuration measurements; they do not establish runtime approval/export/stop behavior, effective user access or full erasure. External evidence and actual staff observations remain separately reviewable.
+
+## Execute acceptance checks
+
+Run assessment also executes current-identity permission/API probes and writes sanitized operational events. Review **Executed verification** for each observed result and missing runtime binding. This does not substitute the signed-in administrator for an assistant identity.
+
+The separate **Run source erasure exercise** button requires explicit confirmation and the scratch-only Erasure Tester role. It creates and soft-deletes one new fictional Contact, observes active-read/count exclusion, and reports retained Recycle Bin data as a failed permanent-erasure check. It never purges data. The package stop/resume controls require Control Manager; Operations Reader exposes the sanitized event list. These three roles are assigned by post-deploy only in a scratch org.
+
+See [executable acceptance](references/executable-acceptance.md) for the exact implemented checks and required external/identity bindings. Runtime, source lifecycle, configuration and human evidence remain distinct; no overall pass is inferred from a partial probe.

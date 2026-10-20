@@ -1,0 +1,31 @@
+<template>
+    <section class="slds-box slds-m-top_large" aria-label="Executed verification">
+        <h2 class="slds-text-heading_medium">Executed verification</h2>
+        <p>These results come from calls made under your signed-in Salesforce identity. They do not certify another assistant identity.</p>
+        <p class="slds-m-top_small">{runtimeScope}</p>
+        <template lwc:if={runtime}>
+            <ul class="slds-list_dotted slds-m-top_small"><template for:each={checks} for:item="check"><li key={check.id}><strong>{check.label}: {check.outcome}</strong><p>{check.basis}</p></li></template></ul>
+            <p class="slds-m-top_small">{monitoring}</p><a href="/lightning/o/Readiness_Operation__c/list">View operational events</a>
+            <h3 class="slds-text-heading_small slds-m-top_medium">Bindings needed to finish acceptance</h3>
+            <ul class="slds-list_dotted"><template for:each={gaps} for:item="gap"><li key={gap.id}><strong>{gap.label}</strong><p>{gap.required_binding}</p></li></template></ul>
+        </template>
+        <h3 class="slds-text-heading_small slds-m-top_medium">Source erasure exercise</h3>
+        <p>This active scratch-only exercise creates and soft-deletes one fictional Contact. It leaves a recoverable Recycle Bin record, so permanent erasure must fail. It does not select existing records or purge data.</p>
+        <template lwc:if={canErase}>
+            <lightning-input type="checkbox" label="I authorize creating and soft-deleting one fictional Contact in this scratch org" checked={confirmed} onchange={changeConfirmation} disabled={busy}></lightning-input>
+            <lightning-button label="Run source erasure exercise" onclick={handleErasure} disabled={erasureDisabled}></lightning-button>
+        </template>
+        <template lwc:else><p>Requires the separate Readiness Erasure Tester role.</p></template>
+        <template lwc:if={erasure}>
+            <p>Executed against {expectedHost}. Cleanup: {erasure.cleanup}.</p>
+            <ul class="slds-list_dotted"><template for:each={erasureChecks} for:item="check"><li key={check.id}>{check.label}: {check.status}</li></template></ul>
+            <ul class="slds-list_dotted"><template for:each={external} for:item="item"><li key={item.category}><strong>{item.category}: not measured</strong><p>{item.required_binding}</p></li></template></ul>
+        </template>
+        <h3 class="slds-text-heading_small slds-m-top_medium">Package execution control: {controlState}</h3>
+        <p>This stops this package's assessment, inventory and follow-up entry points. Other agents and integrations need their own stop binding.</p>
+        <template lwc:if={canManage}><lightning-button label={controlLabel} onclick={toggleControl} disabled={busy}></lightning-button></template>
+        <template lwc:else><p>Changing execution state requires Readiness Control Manager.</p></template>
+        <template lwc:if={busy}><p role="status">Verifying…</p></template>
+        <template lwc:if={error}><p role="alert" class="slds-text-color_error">{error}</p></template>
+    </section>
+</template>

@@ -79,7 +79,9 @@ def deploy(state):
                 '--target-org', state['alias'], '--test-level', 'RunSpecifiedTests',
                 '--tests', 'NonprofitAIReadinessTest', '--tests', 'ReadinessStaffReviewTest',
                 '--tests', 'ReadinessMCPTest', '--tests', 'ReadinessDataFreshnessTest',
-                '--tests', 'ReadinessEvidenceTest', '--tests', 'ReadinessDemoSeedTest', '--tests', 'ReadinessOrgChecksTest', '--wait', '5')
+                '--tests', 'ReadinessEvidenceTest', '--tests', 'ReadinessDemoSeedTest', '--tests', 'ReadinessOrgChecksTest', '--tests', 'ReadinessRuntimeProbeTest',
+                '--tests', 'ReadinessErasureProbeTest', '--tests', 'ReadinessControlTest',
+                '--tests', 'ReadinessOperationalLogTest', '--wait', '5')
     if not result.get('success'):
         raise RuntimeError('Salesforce app deployment did not pass')
     username = sf('org', 'display', '--target-org', state['alias'])['username']
