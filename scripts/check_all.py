@@ -24,6 +24,7 @@ def main(live, agentforce=False):
     subprocess.run(['node',str(ROOT/'scripts/test_live_scopes_ui.cjs')],cwd=ROOT,check=True)
     subprocess.run(['node',str(ROOT/'scripts/test_verification_ui.cjs')],cwd=ROOT,check=True)
     subprocess.run(['node',str(ROOT/'scripts/test_org_health_ui.cjs')],cwd=ROOT,check=True)
+    subprocess.run(['node',str(ROOT/'scripts/test_result_tabs.cjs')],cwd=ROOT,check=True)
     if not live:
         print('Local checks passed. Use --live for Salesforce, connected assessments, inventory and deletion exercises.')
         return

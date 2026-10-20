@@ -13,26 +13,41 @@
                 <template lwc:if={lastChecked}><p class="checked">Last checked: {lastChecked}</p></template>
             </div>
             <p class="scope">{scopeLabel}</p>
-            <c-readiness-org-health></c-readiness-org-health>
-            <div class="results" aria-live="polite" aria-atomic="true">
-                <template lwc:if={loading}><div class="loading"><lightning-spinner alternative-text="Running readiness checks" size="small"></lightning-spinner><p>Checking org health, contact data and readiness controls…</p></div></template>
-                <template lwc:if={error}><div class="notice error" role="alert">{error}</div></template>
-                <template lwc:if={result}>
-                    <div class="notice">{banner}</div>
-                    <template lwc:if={hasMetrics}>
+            <template lwc:if={loading}><div class="loading" role="status"><lightning-spinner alternative-text="Running readiness checks" size="small"></lightning-spinner><p>Checking org health, contact data and readiness controls…</p></div></template>
+            <template lwc:if={error}><div class="notice error" role="alert">{error}</div></template>
+            <div class="slds-tabs_default">
+                <ul class="slds-tabs_default__nav" role="tablist" aria-label="Readiness result categories">
+                    <template for:each={resultTabs} for:item="tab">
+                        <li key={tab.value} class={tab.className} role="presentation">
+                            <button class="slds-tabs_default__link result-tab" role="tab" id={tab.id} aria-controls={tab.panelId} aria-selected={tab.selected} tabindex={tab.tabIndex} data-tab={tab.value} onclick={handleResultTab} onkeydown={handleResultTabKey}>{tab.label}</button>
+                        </li>
+                    </template>
+                </ul>
+                <div id="readiness-panel-overview" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-overview" hidden={hideOverview}>
+<c-readiness-org-health></c-readiness-org-health>
+<template lwc:if={result}>                    <section class="panel actions" aria-label="Recommended next steps"><h2 data-actions-heading tabindex="-1">Recommended next steps</h2><p class="scope">Recommendations follow the same assessment rules each time.</p><ol><template for:each={recommendations} for:item="action"><li key={action.key}><span class={action.priorityClass}>{action.priority}</span> <strong>{action.owner}:</strong> {action.text}<p class="impact">{action.impact}</p><a class="learning-link" href={action.learning.url} target="_blank" rel="noopener noreferrer">{action.learning.label}<span class="slds-assistive-text"> (opens in a new tab)</span></a><template lwc:if={action.extraUrl}><a class="learning-link" href={action.extraUrl} target="_blank" rel="noopener noreferrer">{action.extraLabel}<span class="slds-assistive-text"> (opens in a new tab)</span></a></template></li></template></ol><template lwc:if={isOrganizationScope}><template lwc:if={hasMetrics}><template lwc:if={canCreateFollowUp}><div class="follow-ups"><p class="scope">{followUpCount} follow-ups, assigned to you. Matching open tasks are reused and their assessment priorities refreshed.</p><lightning-button label="Create my follow-up tasks" variant="brand" onclick={handleCreateTasks} disabled={tasksDisabled}></lightning-button><template lwc:if={savingTasks}><p class="scope" role="status">Creating your follow-up tasks…</p></template><template lwc:if={taskMessage}><p class="task-result" role="status">{taskMessage}</p><a href="/lightning/o/Task/list">View my tasks</a></template><template lwc:if={taskError}><p class="task-error" role="alert">{taskError}</p></template></div></template><template lwc:else><p class="scope">Creating follow-up tasks requires Readiness Follow Up access.</p></template></template></template></section></template>
+                </div>
+                <div id="readiness-panel-contacts" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-contacts" hidden={hideContacts}>
+<template lwc:if={result}><div class="notice">{banner}</div>                    <template lwc:if={hasMetrics}>
                         <section class="panel" aria-label="Contact data summary"><h2>Contact data summary</h2><dl class="counts"><template for:each={metrics} for:item="metric"><div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div></template></dl><p class="scope">Repeated addresses can be shared intentionally. This is an indicator for review, not proof of duplicate people.</p></section>
                     </template>
                     <section class="panel" aria-label="Data check results"><h2>Data checks</h2><div class="table-wrap"><table class="slds-table slds-table_cell-buffer slds-table_bordered"><thead><tr><th scope="col">Check</th><th scope="col">Result</th></tr></thead><tbody><template for:each={checks} for:item="check"><tr key={check.key}><th scope="row">{check.label}</th><td><span class={check.badgeClass}>{check.status}</span></td></tr></template></tbody></table></div></section>
-                    <section class="panel" aria-label="Measured organization configuration">
+</template><template lwc:else><p class="empty">Run assessment to see Contact data results.</p></template>
+                </div>
+                <div id="readiness-panel-configuration" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-configuration" hidden={hideConfiguration}>
+<template lwc:if={result}>                    <section class="panel" aria-label="Measured organization configuration">
                         <h2>Measured organization configuration</h2>
-                        <p class="scope">Package role checks below describe this app’s configuration. Org-wide findings appear above; executed safeguards and deletion probes appear below.</p>
+                        <p class="scope">Package role checks below describe this app’s configuration. Org-wide findings are on Overview; executed safeguards and deletion probes are on Verification.</p>
                         <template lwc:if={orgConfigurationError}><p class="scope">{orgConfigurationError}</p></template>
                         <template lwc:if={orgConfiguration}>
                             <p class="scope">{configurationSource}</p>
                             <div class="table-wrap"><table class="slds-table slds-table_cell-buffer slds-table_bordered"><thead><tr><th scope="col">Area</th><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Measured basis</th></tr></thead><tbody><template for:each={configurationChecks} for:item="check"><tr key={check.key}><td>{check.area}</td><th scope="row">{check.label}</th><td>{check.statusLabel}</td><td>{check.basis}</td></tr></template></tbody></table></div>
                         </template>
                     </section>
-                    <section class="panel" aria-label="Organization licenses and features">
+</template><template lwc:else><p class="empty">Run assessment to see package configuration checks.</p></template>
+                </div>
+                <div id="readiness-panel-licenses" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-licenses" hidden={hideLicenses}>
+<template lwc:if={result}>                    <section class="panel" aria-label="Organization licenses and features">
                         <h2>Organization licenses and features</h2>
                         <p class="scope">Assigned seats are not proof of active use. Feature availability does not establish that a feature is configured or used.</p>
                         <template lwc:if={inventoryError}><p class="scope">{inventoryError}</p></template>
@@ -45,13 +60,18 @@
                             <p class="scope">Counts only include records you can access. Hidden or unavailable information is not evidence of non-use. Small-group counts are withheld.</p>
                         </template>
                     </section>
-                    <section class="panel actions" aria-label="Recommended next steps"><h2 data-actions-heading tabindex="-1">Recommended next steps</h2><p class="scope">Recommendations follow the same assessment rules each time.</p><ol><template for:each={recommendations} for:item="action"><li key={action.key}><span class={action.priorityClass}>{action.priority}</span> <strong>{action.owner}:</strong> {action.text}<p class="impact">{action.impact}</p><a class="learning-link" href={action.learning.url} target="_blank" rel="noopener noreferrer">{action.learning.label}<span class="slds-assistive-text"> (opens in a new tab)</span></a><template lwc:if={action.extraUrl}><a class="learning-link" href={action.extraUrl} target="_blank" rel="noopener noreferrer">{action.extraLabel}<span class="slds-assistive-text"> (opens in a new tab)</span></a></template></li></template></ol><template lwc:if={isOrganizationScope}><template lwc:if={hasMetrics}><template lwc:if={canCreateFollowUp}><div class="follow-ups"><p class="scope">{followUpCount} follow-ups, assigned to you. Matching open tasks are reused and their assessment priorities refreshed.</p><lightning-button label="Create my follow-up tasks" variant="brand" onclick={handleCreateTasks} disabled={tasksDisabled}></lightning-button><template lwc:if={savingTasks}><p class="scope" role="status">Creating your follow-up tasks…</p></template><template lwc:if={taskMessage}><p class="task-result" role="status">{taskMessage}</p><a href="/lightning/o/Task/list">View my tasks</a></template><template lwc:if={taskError}><p class="task-error" role="alert">{taskError}</p></template></div></template><template lwc:else><p class="scope">Creating follow-up tasks requires Readiness Follow Up access.</p></template></template></template></section>
-                </template>
-                <template lwc:else><template lwc:if={loading}></template><template lwc:else><p class="empty">Run an assessment to check the contact records you can access and get recommended next steps.</p></template></template>
+</template><template lwc:else><p class="empty">Run assessment to see licenses and features.</p></template>
+                </div>
+                <div id="readiness-panel-verification" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-verification" hidden={hideVerification}>
+<c-readiness-verification></c-readiness-verification>
+                </div>
+                <div id="readiness-panel-evidence" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-evidence" hidden={hideEvidence}>
+<c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
+                </div>
+                <div id="readiness-panel-staff" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-staff" hidden={hideStaff}>
+<c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
+                </div>
             </div>
-            <c-readiness-verification></c-readiness-verification>
-            <c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
-            <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>
         </div>
     </section>

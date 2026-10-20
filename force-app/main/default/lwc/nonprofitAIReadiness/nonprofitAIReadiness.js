@@ -48,7 +48,41 @@ function priorityDetails(key, metrics = {}) {
 }
 
 export default class NonprofitAIReadiness extends LightningElement {
+    activeResultTab = 'overview';
+    get resultTabs() {
+        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Verification'],['evidence','Evidence and freshness'],['staff','Staff exercises']].map(([value,label]) => ({
+            value, label, id: `readiness-tab-${value}`, panelId: `readiness-panel-${value}`,
+            selected: this.activeResultTab === value ? 'true' : 'false',
+            tabIndex: this.activeResultTab === value ? 0 : -1,
+            className: `slds-tabs_default__item${this.activeResultTab === value ? ' slds-is-active' : ''}`
+        }));
+    }
+    get hideOverview() { return this.activeResultTab !== 'overview'; }
+    get hideContacts() { return this.activeResultTab !== 'contacts'; }
+    get hideConfiguration() { return this.activeResultTab !== 'configuration'; }
+    get hideLicenses() { return this.activeResultTab !== 'licenses'; }
+    get hideVerification() { return this.activeResultTab !== 'verification'; }
+    get hideEvidence() { return this.activeResultTab !== 'evidence'; }
+    get hideStaff() { return this.activeResultTab !== 'staff'; }
+    handleResultTab(event) {
+        const value = event.currentTarget.dataset.tab;
+        if (this.resultTabs.some(tab => tab.value === value)) this.activeResultTab = value;
+    }
+    handleResultTabKey(event) {
+        const tabs = this.resultTabs;
+        const current = tabs.findIndex(tab => tab.value === event.currentTarget.dataset.tab);
+        let next;
+        if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (current + tabs.length - 1) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        this.activeResultTab = tabs[next].value;
+        this.template.querySelector(`[data-tab="${tabs[next].value}"]`)?.focus();
+    }
     result;
+
     scenario = 'organization';
     scenarioOptions = [
         { label: 'All accessible Contacts', value: 'organization' },
@@ -185,6 +219,11 @@ export default class NonprofitAIReadiness extends LightningElement {
         }).sort((a, b) => order[a.priority] - order[b.priority]);
     }
     handleViewActions() {
+        if (this.hideOverview) {
+            this.activeResultTab = 'overview';
+            Promise.resolve().then(() => this.handleViewActions());
+            return;
+        }
         const heading = this.template.querySelector('[data-actions-heading]');
         if (heading) {
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
