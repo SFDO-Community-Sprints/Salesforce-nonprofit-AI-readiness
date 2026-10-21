@@ -20,6 +20,10 @@ Answers are Yes, Partially, No or Not sure. Yes requires a responsible person/ro
 
 These are reported policies and responsibilities. They have separate finding identifiers and never replace an executed safeguard result. Keep using the seven Staff exercises for observed competency. A policy answer does not establish legal compliance or full-team readiness.
 
+The use-case editor groups setup/access and value/risk/handover into separate sections. Required fields are marked, and opening a registry row moves focus to its editor. Save before switching Salesforce app tabs or refreshing: unsaved edits are kept only on the current page. Company and Org checklists do not require an implementation selection; the selector appears for Implementation scope. Empty gap filters offer Show all questions in this stage without clearing drafts.
+
+History timestamps include time, comparison outcomes use plain-language labels, and Clear comparison resets only the displayed pair. History shows up to 30 recent accessible assessments. Seeded staff input is labelled as practice-answer completion, not evidence of staff competency.
+
 ## Findings and history
 
 Overview retains the health score, coverage and AI readiness findings. Filter by result, severity and category, expand a category or its advice, and use Answer in checklist to reach the exact manual question. Filter counts never change the full report's denominator. Actual and Expected columns retain equal widths. Changing governance marks the displayed scan as needing a rerun; saving an answer does not silently execute a new scan.

@@ -13,7 +13,8 @@
         <template lwc:if={latest}>
             <div class="summary slds-m-top_medium">
                 <template lwc:if={practiceAnswers}><p>Calculated from seeded practice answer records. These are test inputs, not verified staff observations.</p></template>
-                <p><strong>Latest recorded answers:</strong> {score} score · {coverage} evidence coverage</p>
+                <template lwc:if={practiceAnswers}><p><strong>Practice answers:</strong> {score} practice score · {coverage} answers completed. Staff competency is not established.</p></template>
+                <template lwc:else><p><strong>Latest reviewed exercises:</strong> {score} score · {coverage} reviewed coverage</p></template>
                 <template lwc:if={reviewedAt}><p>Saved <lightning-formatted-date-time value={reviewedAt} year="numeric" month="short" day="2-digit" hour="2-digit" minute="2-digit"></lightning-formatted-date-time></p></template>
                 <p>{freshnessSummary}</p>
                 <ul class="slds-list_dotted slds-m-top_small"><template for:each={savedChecks} for:item="check"><li key={check.id}>{check.label}: {check.outcome}</li></template></ul>

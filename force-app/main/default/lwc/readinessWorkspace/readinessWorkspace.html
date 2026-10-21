@@ -1,25 +1,40 @@
 <template>
     <lightning-card title={pageTitle}>
-    <section aria-label="AI implementation workspace" class="slds-p-around_medium">
+    <section aria-label="AI implementation workspace" class="slds-p-around_medium slds-is-relative">
         <p>{pageDescription}</p>
         <template lwc:if={busy}><lightning-spinner size="small" alternative-text="Loading workspace"></lightning-spinner></template>
+        <template lwc:if={hasUnsavedChanges}><p class="slds-text-color_weak" role="status">Unsaved changes on this page. Save before switching app tabs or refreshing.</p></template>
         <template lwc:if={error}><p role="alert" class="error">{error}</p></template>
         <template lwc:if={message}><p role="status">{message}</p></template>
-        <template lwc:if={showImplementationSelector}><lightning-combobox label="Implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox></template>
         <template lwc:if={showCases}>
         <div class="slds-m-bottom_medium"><lightning-button label="New AI connection" variant="brand" onclick={newCase} disabled={disabled}></lightning-button></div>
         <p>Business lifecycle is a recorded decision. Measured health comes from the latest saved scan in the recent history available to you; it does not certify organizational readiness.</p>
         <template lwc:if={noCases}><p>No AI use cases are registered. Add a new connection to define its purpose and scope.</p></template>
         <template lwc:else><lightning-datatable key-field="id" data={caseRows} columns={caseColumns} onrowaction={openCase} hide-checkbox-column></lightning-datatable></template>
         <details data-case-form>
-            <summary>Implementation purpose, scope and responsibility</summary>
+            <summary data-case-heading>{caseFormTitle}</summary>
             <p>Implementation name, business owner and purpose are required. Never enter passwords, tokens, donor records or sensitive personal information here. Grounding fields must use Object.Field identifiers. Enter the full Salesforce username of the AI integration account. The actual AI identity remains distinct from the person running this app.</p>
-            <div class="fields">
-                <template for:each={caseFields} for:item="field">
-                    <lightning-textarea key={field.key} label={field.label} value={field.value} data-field={field.key} onchange={changeCase} disabled={disabled} maxlength={field.maximum}></lightning-textarea>
+            <lightning-combobox label="Business lifecycle status" value={lifecycle} options={statuses} data-field="status" onchange={changeCase} disabled={disabled}></lightning-combobox>
+            <lightning-accordion allow-multiple-sections-open active-section-name={openCaseSections}>
+                <template for:each={caseSections} for:item="section">
+                    <lightning-accordion-section key={section.id} name={section.id} label={section.label}>
+                        <div class="fields">
+                            <template for:each={section.fields} for:item="field">
+                                <div key={field.key}>
+                                    <template lwc:if={field.multiline}>
+                                        <lightning-textarea label={field.label} value={field.value} data-field={field.key} onchange={changeCase} disabled={disabled} required={field.required} maxlength={field.maximum}></lightning-textarea>
+                                    </template>
+                                    <template lwc:else>
+                                        <lightning-input label={field.label} value={field.value} data-field={field.key} onchange={changeCase} disabled={disabled} required={field.required} maxlength={field.maximum}></lightning-input>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-accordion-section>
                 </template>
-                <lightning-combobox label="Business lifecycle status" value={lifecycle} options={statuses} data-field="status" onchange={changeCase} disabled={disabled}></lightning-combobox>
-            </div>
+            </lightning-accordion>
+            <h3 class="slds-m-top_medium">Data-quality policy (optional)</h3>
+            <lightning-input label="Approved data-quality policy reference" value={policyReference} data-field="policyReference" onchange={changeCase} disabled={disabled} maxlength="2000"></lightning-input>
             <div class="fields">
                 <lightning-input type="number" label="Maximum record age in days" min="1" max="3650" step="1" value={freshDays} data-field="freshDays" onchange={changeCase} disabled={disabled}></lightning-input>
                 <lightning-input type="number" label="Minimum completeness percentage" min="0" max="100" step="0.1" value={minimumCompleteness} data-field="minimumCompleteness" onchange={changeCase} disabled={disabled}></lightning-input>
@@ -38,12 +53,17 @@
         <template lwc:if={showChecklists}>
         <template lwc:if={combinedMode}><h2>Guided checklists</h2></template>
         <lightning-radio-group label="Checklist scope" options={scopes} value={scope} type="button" onchange={changeScope}></lightning-radio-group>
+        <template lwc:if={showImplementationSelector}><lightning-combobox label="Implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox></template>
         <p role="status">{checklistProgress}</p>
         <div class="fields">
             <lightning-combobox label="Stage" value={currentStage} options={stages} onchange={changeStage}></lightning-combobox>
             <lightning-combobox label="Find accountable gaps" value={accountability} options={accountabilityOptions} onchange={changeFilter}></lightning-combobox>
         </div>
         <template lwc:if={needsImplementation}><p>Select and save an implementation to answer its checklist.</p></template>
+        <template lwc:if={noChecklistMatches}>
+            <p role="status">No questions match this stage and gap filter.</p>
+            <lightning-button label="Show all questions in this stage" onclick={clearQuestionFilter}></lightning-button>
+        </template>
         <template for:each={questions} for:item="question">
             <article key={question.key}>
                 <h3 tabindex="-1" data-question={question.id}>{question.label}</h3>
@@ -68,6 +88,7 @@
         <template lwc:if={showHistory}>
         <template lwc:if={combinedMode}><h2>Saved assessment history</h2></template>
         <p>Each assessment retains its own time, actor, scope and rubric. Later scans do not rewrite earlier findings.</p>
+        <p>Showing up to 30 recent assessments available to you.</p>
         <p>View record opens the Salesforce assessment record. To compare scans, choose Compare on one scan to set a baseline, then Compare on a different scan. Saved scans cannot be edited.</p>
         <lightning-combobox label="Filter by implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox>
         <template lwc:if={noHistory}><p>No saved assessments match this filter. Run an assessment with the Assessment Recorder role to save a scan.</p></template>
@@ -76,6 +97,7 @@
                 <lightning-datatable key-field="id" data={historyRows} columns={historyColumns} onrowaction={reviewHistory} hide-checkbox-column></lightning-datatable>
             </div>
         </template>
+        <template lwc:if={hasComparisonSelection}><lightning-button label="Clear comparison" onclick={clearComparison} disabled={busy}></lightning-button></template>
         <p role="status">{comparisonWarning}</p>
         <div class="fields">
             <template for:each={snapshotRows} for:item="snapshot">
@@ -94,7 +116,7 @@
                     <lightning-accordion allow-multiple-sections-open>
                     <template for:each={snapshot.findings} for:item="finding">
                         <lightning-accordion-section key={finding.key} name={finding.key} label={finding.title}>
-                            <p>{finding.outcome}</p>
+                            <p>{finding.outcomeLabel}</p>
                             <p>Actual: {finding.actual}</p><p>Expected: {finding.expected}</p><p>{finding.action}</p>
                         </lightning-accordion-section>
                     </template>

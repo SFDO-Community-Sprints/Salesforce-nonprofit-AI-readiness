@@ -9,3 +9,5 @@ summary:focus-visible { outline: 2px solid #176d69; outline-offset: 4px; }
 .error { color: #a33124; }
 lightning-button { display: inline-block; margin-top: .75rem; }
 @media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
+
+[data-case-heading] { scroll-margin-top: 8rem; }
