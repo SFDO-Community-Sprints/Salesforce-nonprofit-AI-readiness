@@ -6,6 +6,23 @@ An open-source community project helping nonprofits understand what they need to
 
 Fergal initiated the project at the Amsterdam Community Sprint and helped bring the team together.
 
+## Project team
+
+Alongside Fergal Hayes, the project team includes:
+
+- Ana Campos
+- [Ankit Bhimjiyani](https://www.linkedin.com/in/ankit-bhimjiyani-19207315/)
+- [B. Monique Erinna](https://www.linkedin.com/in/blasoviaerinna/)
+- [Dirk-Jan Ansing](https://www.linkedin.com/in/dirkjana/)
+- [Donato Cinque](https://www.linkedin.com/in/donato5/)
+- [Fenik Arroyo](https://www.linkedin.com/in/fenikarroyo/)
+- [Kyrylo Mazur](https://www.linkedin.com/in/klmazur22/)
+- [Mantu Bhuyar](https://www.linkedin.com/in/mantubhuyar/)
+- [Natalie Larino](https://www.linkedin.com/in/natalie-larino/)
+- [Rimon Hanna](https://www.linkedin.com/in/rimonhanna/)
+- [Sophie van Poele](https://www.linkedin.com/in/sophievanpoele/)
+- [Willie Hooykaas-Baldwin](https://www.linkedin.com/in/whooykaas/)
+
 ## Why we are doing this
 
 Nonprofits exploring AI face questions that go beyond choosing a tool. Is their information reliable? Could an assistant expose donor or beneficiary information? Who approves its actions, handles mistakes, or switches it off? Will the benefits justify the cost and effort?
@@ -36,23 +53,6 @@ The intended outcome is an understandable overview of what has been checked, wha
 This repository contains a prototype and fictional demonstrations. It already includes Contact data checks, seven staff exercises, prioritized findings and follow-up actions. The broader assessment described above is still being developed. A demonstration result does not establish that a real organization is ready for AI or compliant with its legal obligations.
 
 Read the [project notes and assessment requirements](references/project-notes.md) for the sprint's user stories and proposed acceptance tests, the [project plan](PLAN.md) for the implementation approach, and the [remaining-work tracker](TODO.md) for recorded progress.
-
-## Project team
-
-Alongside Fergal Hayes, the project team includes:
-
-- Ana Campos
-- [Ankit Bhimjiyani](https://www.linkedin.com/in/ankit-bhimjiyani-19207315/)
-- [B. Monique Erinna](https://www.linkedin.com/in/blasoviaerinna/)
-- [Dirk-Jan Ansing](https://www.linkedin.com/in/dirkjana/)
-- [Donato Cinque](https://www.linkedin.com/in/donato5/)
-- [Fenik Arroyo](https://www.linkedin.com/in/fenikarroyo/)
-- [Kyrylo Mazur](https://www.linkedin.com/in/klmazur22/)
-- [Mantu Bhuyar](https://www.linkedin.com/in/mantubhuyar/)
-- [Natalie Larino](https://www.linkedin.com/in/natalie-larino/)
-- [Rimon Hanna](https://www.linkedin.com/in/rimonhanna/)
-- [Sophie van Poele](https://www.linkedin.com/in/sophievanpoele/)
-- [Willie Hooykaas-Baldwin](https://www.linkedin.com/in/whooykaas/)
 
 ## Try the fictional examples
 
