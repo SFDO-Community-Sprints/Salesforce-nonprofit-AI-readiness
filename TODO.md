@@ -130,3 +130,16 @@ Serpent DEPLOY-18 succeeded with 58/58 components. Post-deploy and executable ru
 - [x] Verify dashboard deployment and native browser scan on `data-connect-7516`: DEPLOY-26 succeeded, 24.2% score / 39.4% coverage matched native MCP readback; see health rubric live evidence.
 
 Remaining actual assistant, external erasure and human evidence requirements are unchanged. The [AI readiness rubric](references/ai-readiness-health.md) defines what the new score measures.
+
+## Reference-app improvements identified on 21 October 2026
+
+Read-only UI review, not implementation completion. See the [observations, build order and acceptance criteria](references/reference-app-review.md).
+
+- [ ] REF-1: Implementation/use-case scope and actual AI connection registry.
+- [ ] REF-2: Guided Company, Org and Implementation checklists, reusing existing staff exercises.
+- [ ] REF-3: Responsible person/role, due date, notes and evidence per gap.
+- [ ] REF-4: Versioned, sanitized saved scan history and scope-aware comparisons.
+- [ ] REF-5: Filtered/grouped findings with advice and links to exact checklist questions.
+- [ ] REF-6: Bounded use-case-specific grant, sharing, grounding-metadata and data collectors.
+
+Existing real-assistant, external-erasure, human-evidence and production acceptance dependencies remain open.
