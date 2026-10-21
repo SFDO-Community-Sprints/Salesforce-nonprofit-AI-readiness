@@ -143,3 +143,5 @@ Implemented in the native app; evidence and limits are recorded in the [workspac
 - [x] REF-6: Bounded use-case-specific grant, sharing, grounding-metadata and data collectors.
 
 Existing real-assistant, external-erasure, human-evidence and production acceptance dependencies remain open.
+
+- [ ] REF-UI final acceptance: confirm saved-history comparison and the scoped findings shortcut in a clean Lightning session. Live history/backend-to-UI contract passed; an older open tab retained cached action state. This is an outstanding verification gate, not missing feature code.
