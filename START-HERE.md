@@ -5,7 +5,7 @@ The supported application is self-contained Salesforce metadata in `force-app/ma
 ## Deploy and open the app
 
 1. In Serpent, deploy `force-app/main/default` from this repository to the selected org. Exclude the scaffold Admin profile.
-2. Execute `scripts/apex/post-deploy.apex` on that same org. It idempotently assigns the executing user the separate Assessor, Staff Reviewer and Evidence Reviewer roles. In a scratch org only, it also assigns Erasure Tester, Control Manager and Operations Reader. It never assigns MCP or follow-up Task permissions.
+2. Execute `scripts/apex/post-deploy.apex` on that same org. It idempotently assigns the executing user the separate Assessor, Governance Reviewer, Assessment Recorder, Staff Reviewer and Evidence Reviewer roles. In a scratch org only, it also assigns Erasure Tester, Control Manager and Operations Reader. It never assigns MCP or follow-up Task permissions.
 3. Refresh Salesforce and open App Launcher → **Nonprofit AI Readiness** → **AI Readiness** (`/lightning/n/AI_Readiness`).
 4. Choose **Run assessment**. Data and configuration come from the current org; runtime probes execute as the signed-in identity. Small Contact cohorts are withheld.
 5. Complete the seven staff exercises with actual observations. Seeded practice answers cannot establish human competency.
@@ -47,3 +47,9 @@ Assign the separate **Readiness Security Reader** role for the org-wide grant ch
 Results are grouped into tabs. **Overview** keeps the AI readiness health cards, findings and recommended actions. **Contact data** contains the selected cohort summary and data checks. Package configuration, licenses/features, executed verification, evidence/freshness and staff exercises each have their own tab. Switching tabs preserves scan results and unsaved form inputs. Use left/right arrows or Home/End to navigate tabs; View recommended actions returns to Overview.
 
 **Safeguard tests** explains each executed app check as a question, result and next step. Its results cover the signed-in account; the separate “Still to test with your AI assistant” list remains unmeasured until actual assistant evidence exists. Deletion and pause/resume are optional actions in collapsed sections. Raw diagnostic output and the audit-log link are under Technical details. A completed deletion test refreshes the Overview health report.
+
+## Use cases, governance and scan history
+
+Open **Use cases and checklists** to register the implementation, complete the Company/Org/Implementation stages and compare saved assessments. Overview retains the filterable health findings and direct checklist links. See the [workspace walkthrough and role boundaries](references/implementation-workspace.md).
+
+For the named disposable scratch demo, `scripts/apex/seed-workspace.apex` adds two fictional implementation planning records without assigning an AI account or seeding any readiness result.

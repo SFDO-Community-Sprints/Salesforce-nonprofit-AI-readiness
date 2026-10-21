@@ -68,6 +68,8 @@ The records used for demonstrations are fictional. The assessment reads current 
 
 Deletion testing and pause/resume are separate explicit actions. Running an assessment does not create follow-up Tasks or automatically perform a deletion test. Use a disposable practice org for active exercises.
 
+Register an AI implementation, complete its guided checklists and compare saved scans in **Use cases and checklists**. See the [workspace walkthrough](references/implementation-workspace.md).
+
 ## Deploy and set up
 
 Salesforce metadata lives in `force-app/main/default`; optional Agentforce metadata lives in `agentforce/`. The managed-package scaffold does not yet register a namespace or create a managed package.

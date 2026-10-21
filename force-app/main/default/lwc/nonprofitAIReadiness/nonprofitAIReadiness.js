@@ -50,7 +50,7 @@ function priorityDetails(key, metrics = {}) {
 export default class NonprofitAIReadiness extends LightningElement {
     activeResultTab = 'overview';
     get resultTabs() {
-        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Safeguard tests'],['evidence','Evidence and freshness'],['staff','Staff exercises']].map(([value,label]) => ({
+        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Safeguard tests'],['evidence','Evidence and freshness'],['staff','Staff exercises'],['workspace','Use cases and checklists']].map(([value,label]) => ({
             value, label, id: `readiness-tab-${value}`, panelId: `readiness-panel-${value}`,
             selected: this.activeResultTab === value ? 'true' : 'false',
             tabIndex: this.activeResultTab === value ? 0 : -1,
@@ -63,6 +63,19 @@ export default class NonprofitAIReadiness extends LightningElement {
     get hideLicenses() { return this.activeResultTab !== 'licenses'; }
     get hideVerification() { return this.activeResultTab !== 'verification'; }
     get hideEvidence() { return this.activeResultTab !== 'evidence'; }
+    get hideWorkspace() { return this.activeResultTab !== 'workspace'; }
+    handleOpenChecklist(event) {
+        this.activeResultTab = 'workspace';
+        Promise.resolve().then(() => this.template.querySelector('c-readiness-workspace')?.openChecklist(event.detail));
+    }
+    handleScopedResult(event) {
+        this.activeResultTab = 'overview';
+        this.template.querySelector('c-readiness-org-health')?.displayReport(event.detail.report);
+    }
+    async handleWorkspaceChange() {
+        this.template.querySelector('c-readiness-org-health')?.markStale();
+        await this.template.querySelector('c-readiness-workspace')?.load();
+    }
     get hideStaff() { return this.activeResultTab !== 'staff'; }
     handleResultTab(event) {
         const value = event.currentTarget.dataset.tab;
@@ -289,6 +302,7 @@ export default class NonprofitAIReadiness extends LightningElement {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
             await Promise.all([inventoryRequest, configurationRequest, verificationRequest, healthRequest]);
+            await this.template?.querySelector?.('c-readiness-workspace')?.load();
             this.loading = false;
             if (this.refreshAfterAssessment) {
                 this.refreshAfterAssessment = false;

@@ -20,7 +20,7 @@ private class ReadinessOrgHealthTest {
             Map<String,Object> result=(Map<String,Object>)JSON.deserializeUntyped(ReadinessOrgHealth.scan());
             System.assertEquals(0,Limits.getCallouts());
             Test.stopTest();
-            System.assertEquals('ai-readiness-health-v1',result.get('version'));
+            System.assertEquals('ai-readiness-health-v2',result.get('version'));
             System.assertEquals(false,result.get('readinessEstablished'));
             System.assertEquals(4,((List<Object>)result.get('inventory')).size());
             System.assertEquals(0,[SELECT COUNT() FROM Contact]);

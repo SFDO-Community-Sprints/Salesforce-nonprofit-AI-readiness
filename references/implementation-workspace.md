@@ -1,0 +1,48 @@
+# AI implementation workspace
+
+The app now extends its existing health Overview with a **Use cases and checklists** tab. All collection, validation, persistence and scoring run in Salesforce. No Python service or local runtime is required to use these features.
+
+## Start with a use case
+
+Open Use cases and checklists, choose New implementation, and expand Implementation purpose, scope and responsibility. Record a name, business owner and purpose. Add the actual integration username when known, allowed/excluded actions, selected `Object.Field` grounding fields, value, success measures, risks, mitigation, handover, stop owner, costs/gains and accountable approver. Save before running a scoped assessment.
+
+The integration username resolves to a real visible Salesforce user only with the separate Security Reader role. It does not impersonate that account. Data aggregates run with the scanning user's accessible records and fields. Intended-account configuration and actual assistant behavior remain distinct evidence.
+
+Use at most 12 grounding fields across three accessible queryable objects. Optional completeness and maximum-record-age thresholds require explicit policy approval and a recorded policy reference. No threshold is selected automatically. Scope/rubric identity is saved with each scan, so changes warn against direct score comparisons.
+
+Business lifecycle approval is a decision, not a readiness result. An Approved implementation can still have failed or unknown checks.
+
+## Guided governance
+
+Company, Org and Implementation checklists have short stages and contextual advice. Company and Org answers are shared across the implementation choices within the viewer's authorized record scope; implementation answers are attached to the selected use case. Private record sharing controls what each reviewer can read or change.
+
+Answers are Yes, Partially, No or Not sure. Yes requires a responsible person/role, evidence reference and review date. A partial policy is not a pass; Not sure remains unknown. Notes, due dates, evidence and reviewer/time are retained. Filters show overdue and unassigned gaps. Each save appends a new answer instead of rewriting earlier evidence.
+
+These are reported policies and responsibilities. They have separate finding identifiers and never replace an executed safeguard result. Keep using the seven Staff exercises for observed competency. A policy answer does not establish legal compliance or full-team readiness.
+
+## Findings and history
+
+Overview retains the health score, coverage and AI readiness findings. Filter by result, severity and category, expand a category or its advice, and use Answer in checklist to reach the exact manual question. Filter counts never change the full report's denominator. Actual and Expected columns retain equal widths. Changing governance marks the displayed scan as needing a rerun; saving an answer does not silently execute a new scan.
+
+With Assessment Recorder, organization and scoped scans save sanitized, versioned snapshots. History includes run identifier, actor, observation time, scope, rubric, totals, score and coverage. Select two saved assessments to compare their findings; scope or rubric changes produce a warning. Review and scan age are observations, not an invented expiry policy. Rerun for current evidence.
+
+Snapshots contain no raw donor records, emails, private policy notes or evidence references. Identity and policy bindings are hashed in the scope definition. Server-side guards allow creation only through the validated service and reject later edits/deletes. Answer history is also append-only; use cases are edited through validation and retired rather than deleted. This is application-level evidence protection, not protection from an administrator changing deployed code.
+
+## Focused roles
+
+- **Readiness Assessor:** existing read-only Contact assessment plus authorized workspace/history reads. No workspace or snapshot writes, Setup visibility, API transport or staff-evidence access.
+- **Readiness Governance Reviewer:** validated use-case create/edit and append-only checklist answers. No CRM data, Setup edit, MCP, Task or assessment-recording grants.
+- **Readiness Assessment Recorder:** append-only sanitized report creation/read. No report edit/delete, CRM data or security grants.
+- **Readiness Security Reader:** existing separate setup visibility for intended-account and configuration checks. Denied setup access stays unknown.
+
+The post-deploy script composes the first three with existing staff/evidence reviewer roles for its executing walkthrough user. Scratch-only active verification roles remain separate. Dedicated MCP identity assignments are unchanged.
+
+## Collector boundaries
+
+Scoped findings cover selected-field completeness and Other values, approved modification-age windows, supported email duplicate indicators and Account linkage, metadata descriptions/help/free text/classification inventory, and target identity grant configuration. Supported profile/direct/group aggregates are distinguished from pending recalculation or session activation. Missing metadata does not infer a pass. Counts for small cohorts and small category cells are withheld.
+
+Configuration inventory does not demonstrate assistant allow/deny behavior, consequential approval, stopping/recovery, alert delivery or external erasure. Actual assistant and external-system acceptance remains open until those systems supply evidence. NPSP-specific semantics and unsupported parent/matching policies remain explicit rather than guessed.
+
+## Fictional workspace inputs
+
+After current deployment and post-deploy setup, `scripts/apex/seed-workspace.apex` optionally creates two clearly named fictional planning records in the named disposable scratch org. It is idempotent and does not overwrite existing cases. Run `seed-demo.apex` separately for the existing fictional Contact inputs. No integration identity, policy approval, staff demonstration, checklist pass or score is seeded. Assessments still read live data/configuration.

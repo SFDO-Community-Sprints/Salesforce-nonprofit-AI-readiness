@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata"><deploymentStatus>Deployed</deploymentStatus><label>Readiness Checklist Answer</label><nameField><displayFormat>ANS-{00000}</displayFormat><label>Readiness Checklist Answer Name</label><type>AutoNumber</type></nameField><pluralLabel>Readiness Checklist Answers</pluralLabel><sharingModel>Private</sharingModel></CustomObject>

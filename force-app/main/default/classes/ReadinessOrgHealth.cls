@@ -13,6 +13,9 @@ public with sharing class ReadinessOrgHealth {
     }
     @AuraEnabled
     public static String scan() {
+        return ReadinessWorkspace.decorateOrganization(scanCore());
+    }
+    public static String scanCore() {
         List<Object> findings=new List<Object>();
         List<Object> inventory=new List<Object>();
         if(ReadinessControl.isDisabled()) return JSON.serialize(new Map<String,Object>{'error'=>'assessment_stopped'});
@@ -125,7 +128,7 @@ public with sharing class ReadinessOrgHealth {
         Decimal score=measured==0?null:(Decimal.valueOf(passed)*100/total).setScale(1,RoundingMode.HALF_UP);
         return new Map<String,Object>{'id'=>id,'label'=>label,'score'=>score,'coverage'=>total==0?0:(Decimal.valueOf(measured)*100/total).setScale(1,RoundingMode.HALF_UP),'passed'=>passed,'failed'=>failed,'unknown'=>unknown,'total'=>total,'rating'=>measured==0?'Not checked':failed>0?'Needs attention':unknown>0?'Incomplete':'Checks met'};
     }
-    @TestVisible private static String summarize(List<Object> findings,List<Object> inventory) {
+    public static String summarize(List<Object> findings,List<Object> inventory) {
         List<Object> categories=new List<Object>();
         List<String> labels=new List<String>{'Data quality','Access and safeguards','Staff readiness','Privacy and erasure'};
         for(String label:labels) categories.add(category(label,label,findings));

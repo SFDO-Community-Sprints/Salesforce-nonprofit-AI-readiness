@@ -41,6 +41,6 @@ class NativeSeedTests(unittest.TestCase):
 
     def test_post_deploy_grants_only_complete_demo_roles(self):
         source = (ROOT / 'scripts/apex/post-deploy.apex').read_text()
-        self.assertIn("{'Readiness_Assessor','Readiness_Staff_Reviewer','Readiness_Evidence_Reviewer'}", source)
+        self.assertIn("{'Readiness_Assessor','Readiness_Workspace_Reviewer','Readiness_Assessment_Recorder','Readiness_Staff_Reviewer','Readiness_Evidence_Reviewer'}", source)
         self.assertIn('assigned.contains(role.Id)', source)
         self.assertNotIn("'Readiness_MCP'", source)

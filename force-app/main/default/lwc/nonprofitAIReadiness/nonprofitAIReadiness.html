@@ -24,7 +24,7 @@
                     </template>
                 </ul>
                 <div id="readiness-panel-overview" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-overview" hidden={hideOverview}>
-<c-readiness-org-health></c-readiness-org-health>
+<c-readiness-org-health onopenchecklist={handleOpenChecklist}></c-readiness-org-health>
 <template lwc:if={result}>                    <section class="panel actions" aria-label="Recommended next steps"><h2 data-actions-heading tabindex="-1">Recommended next steps</h2><p class="scope">Recommendations follow the same assessment rules each time.</p><ol><template for:each={recommendations} for:item="action"><li key={action.key}><span class={action.priorityClass}>{action.priority}</span> <strong>{action.owner}:</strong> {action.text}<p class="impact">{action.impact}</p><a class="learning-link" href={action.learning.url} target="_blank" rel="noopener noreferrer">{action.learning.label}<span class="slds-assistive-text"> (opens in a new tab)</span></a><template lwc:if={action.extraUrl}><a class="learning-link" href={action.extraUrl} target="_blank" rel="noopener noreferrer">{action.extraLabel}<span class="slds-assistive-text"> (opens in a new tab)</span></a></template></li></template></ol><template lwc:if={isOrganizationScope}><template lwc:if={hasMetrics}><template lwc:if={canCreateFollowUp}><div class="follow-ups"><p class="scope">{followUpCount} follow-ups, assigned to you. Matching open tasks are reused and their assessment priorities refreshed.</p><lightning-button label="Create my follow-up tasks" variant="brand" onclick={handleCreateTasks} disabled={tasksDisabled}></lightning-button><template lwc:if={savingTasks}><p class="scope" role="status">Creating your follow-up tasks…</p></template><template lwc:if={taskMessage}><p class="task-result" role="status">{taskMessage}</p><a href="/lightning/o/Task/list">View my tasks</a></template><template lwc:if={taskError}><p class="task-error" role="alert">{taskError}</p></template></div></template><template lwc:else><p class="scope">Creating follow-up tasks requires Readiness Follow Up access.</p></template></template></template></section></template>
                 </div>
                 <div id="readiness-panel-contacts" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-contacts" hidden={hideContacts}>
@@ -70,6 +70,9 @@
                 </div>
                 <div id="readiness-panel-staff" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-staff" hidden={hideStaff}>
 <c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
+                </div>
+                <div id="readiness-panel-workspace" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-workspace" hidden={hideWorkspace}>
+                    <c-readiness-workspace onscopedresult={handleScopedResult} onworkspacechange={handleWorkspaceChange}></c-readiness-workspace>
                 </div>
             </div>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>

@@ -1,0 +1,13 @@
+:host { display: block; }
+.workspace { position: relative; padding: 1rem; color: #25354a; }
+h2 { font-size: 1.25rem; font-weight: 700; margin: 1.5rem 0 .75rem; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: .6rem 0; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1.2rem; }
+article, details { border: 1px solid #d8e1e8; border-radius: .4rem; padding: 1rem; margin: 1rem 0; }
+summary { cursor: pointer; font-weight: 600; }
+summary:focus-visible { outline: 2px solid #176d69; outline-offset: 4px; }
+.error { color: #a33124; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; max-height: 32rem; overflow: auto; }
+lightning-button { display: inline-block; margin-top: .75rem; }
+@media (max-width: 640px) { .fields { grid-template-columns: 1fr; } .workspace { padding: .5rem; } }

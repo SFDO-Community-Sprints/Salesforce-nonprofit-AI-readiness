@@ -1,11 +1,13 @@
 <template>
     <section class="health" aria-label="AI readiness health assessment" aria-live="polite">
         <h2>AI readiness health</h2>
-        <p class="intro">Live data, access, staff and privacy findings across your Salesforce org.</p>
+        <p class="intro">Data, access, staff and privacy findings for the selected assessment scope.</p>
         <template lwc:if={loading}><p role="status">Checking AI readiness…</p></template>
         <template lwc:if={error}><p class="error" role="alert">{error}</p></template>
         <template lwc:if={hasResult}>
-            <p class="notice">{banner}</p><p class="observed">Last scanned: {observedAt} · {scope}</p>
+            <template lwc:if={stale}><p role="status">Governance inputs changed after this scan. Run the organization or selected implementation assessment again for current findings.</p></template>
+            <template lwc:if={historyNotice}><p role="status">{historyNotice}</p></template>
+            <p class="notice">{banner}</p><p class="observed">{sourceLabel} · Scanned: {observedAt} · Scope: {scope}</p>
             <div class="cards">
                 <article class="card"><h3>AI readiness health</h3><div class="ring" style={ringStyle}><span>{score}</span></div><p class="rating">{rating}</p><p>Score: passed checks divided by all defined checks. Unmeasured checks earn no points. Coverage shows how much could be measured. Critical failures can block a pilot regardless of score.</p></article>
                 <article class="card"><h3>Checks completed</h3><p class="number">{coverage}</p><dl><div><dt>Passed</dt><dd>{passed}</dd></div><div><dt>Needs attention</dt><dd>{failed}</dd></div><div><dt>Not checked</dt><dd>{unknown}</dd></div></dl><p>Unavailable checks stay visible and do not count as passes.</p></article>
@@ -13,7 +15,21 @@
             </div>
             <div class="categories"><template for:each={categories} for:item="category"><article class="card" key={category.id}><h3>{category.label}</h3><p class="number">{category.scoreLabel}</p><p class="rating">{category.rating}</p><p>Checks completed: {category.coverageLabel}</p><p>{category.passed} passed · {category.failed} need attention · {category.unknown} not checked</p></article></template></div>
             <h3 class="findings-title">AI readiness findings</h3>
-            <div class="table-wrap"><table><thead><tr><th scope="col">Severity / result</th><th scope="col">Check</th><th scope="col">Group</th><th scope="col">Actual value</th><th scope="col">Expected value</th><th scope="col">Action</th></tr></thead><tbody><template for:each={findings} for:item="finding"><tr key={finding.id}><td><strong>{finding.severity}</strong><span class={finding.badgeClass}>{finding.statusLabel}</span></td><th scope="row">{finding.label}</th><td>{finding.group}</td><td>{finding.actual}</td><td>{finding.expected}</td><td><template lwc:if={finding.safeUrl}><a href={finding.safeUrl}>{finding.action}</a></template><template lwc:else>{finding.action}</template></td></tr></template></tbody></table></div>
+            <p>Readiness is measured from evidence. A use case's business lifecycle status, such as Approved, does not establish readiness.</p>
+            <div class="filters" role="group" aria-label="Filter AI readiness findings">
+                <label>Result<select data-filter="statusFilter" onchange={handleFilter}><template for:each={statusOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
+                <label>Severity<select data-filter="severityFilter" onchange={handleFilter}><template for:each={severityOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
+                <label>Category<select data-filter="categoryFilter" onchange={handleFilter}><template for:each={categoryOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
+                <button type="button" onclick={clearFilters}>Clear filters</button>
+            </div>
+            <p role="status">{filterSummary}</p>
+            <template lwc:if={noMatches}><p>No findings match these filters. Clear filters to see the full assessment.</p></template>
+            <template for:each={findingGroups} for:item="group">
+                <details key={group.label} class="finding-group" open>
+                    <summary>{group.summary}</summary>
+                    <div class="table-wrap"><table><caption class="slds-assistive-text">{group.label} findings</caption><thead><tr><th scope="col">Severity / result</th><th scope="col">Check</th><th scope="col">Group</th><th scope="col">Actual value</th><th scope="col">Expected value</th><th scope="col">Action</th></tr></thead><tbody><template for:each={group.rows} for:item="finding"><tr key={finding.id}><td><strong>{finding.severity}</strong><span class={finding.badgeClass}>{finding.statusLabel}</span></td><th scope="row">{finding.label}</th><td>{finding.group}</td><td>{finding.actual}</td><td>{finding.expected}</td><td><template lwc:if={finding.safeUrl}><a href={finding.safeUrl}>{finding.action}</a></template><template lwc:else>{finding.action}</template><template lwc:if={finding.hasChecklist}><button type="button" data-id={finding.id} onclick={openChecklist}>Answer in checklist</button></template><details class="advice"><summary>Why and how to address this</summary><p>{finding.why}</p><p>{finding.how}</p></details></td></tr></template></tbody></table></div>
+                </details>
+            </template>
         </template>
         <template lwc:else><template lwc:if={loading}></template><template lwc:else><template lwc:if={error}></template><template lwc:else><p>Run assessment to measure AI readiness health and see the settings that need attention.</p></template></template></template>
     </section>

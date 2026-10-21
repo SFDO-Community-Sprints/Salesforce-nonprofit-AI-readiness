@@ -26,16 +26,62 @@ class PermissionScopeTests(unittest.TestCase):
 
     def test_assessor_has_no_staff_api_or_write_privileges(self):
         root = role('Readiness_Assessor')
-        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness', 'ReadinessDataFreshness', 'ReadinessOrgChecks', 'ReadinessRuntimeProbe', 'ReadinessControl', 'ReadinessOrgHealth'})
-        self.assertEqual(names(root, 'objectPermissions', 'object'), {'Account', 'Contact'})
-        self.assertEqual(names(root, 'fieldPermissions', 'field'), {'Contact.Email', 'Contact.AccountId'})
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'NonprofitAIReadiness', 'ReadinessDataFreshness', 'ReadinessOrgChecks', 'ReadinessRuntimeProbe', 'ReadinessControl', 'ReadinessOrgHealth', 'ReadinessWorkspace', 'ReadinessScopedChecks'})
+        self.assertEqual(names(root, 'objectPermissions', 'object'), {'Account', 'Contact', 'Readiness_Use_Case__c', 'Readiness_Answer__c', 'Readiness_Assessment__c'})
+        self.assertEqual(names(root, 'fieldPermissions', 'field'), {'Contact.Email', 'Contact.AccountId', 'Readiness_Use_Case__c.Definition__c',
+            'Readiness_Answer__c.Scope__c', 'Readiness_Answer__c.Question__c', 'Readiness_Answer__c.Use_Case__c',
+            'Readiness_Answer__c.Response__c', 'Readiness_Assessment__c.Use_Case__c',
+            'Readiness_Assessment__c.Summary__c', 'Readiness_Assessment__c.Report__c'})
         for grant in root.findall('m:objectPermissions', NS):
+            self.assertEqual(grant.find('m:allowRead', NS).text, 'true')
             for key in ('allowCreate', 'allowEdit', 'allowDelete', 'viewAllRecords', 'modifyAllRecords'):
                 self.assertEqual(grant.find('m:' + key, NS).text, 'false', key)
         for grant in root.findall('m:fieldPermissions', NS):
             self.assertEqual(grant.find('m:editable', NS).text, 'false')
+            self.assertEqual(grant.find('m:readable', NS).text, 'true')
         for group in ('userPermissions', 'customPermissions', 'agentAccesses'):
             self.assertEqual(root.findall('m:' + group, NS), [])
+
+    def test_governance_reviewer_edits_use_cases_and_appends_answers_only(self):
+        root = role('Readiness_Workspace_Reviewer')
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'ReadinessWorkspace'})
+        self.assertEqual(names(root, 'customPermissions', 'name'), {'Readiness_Manage_Workspace'})
+        self.assertEqual(names(root, 'objectPermissions', 'object'), {'Readiness_Use_Case__c', 'Readiness_Answer__c'})
+        self.assertEqual(names(root, 'fieldPermissions', 'field'), {
+            'Readiness_Use_Case__c.Definition__c', 'Readiness_Answer__c.Scope__c',
+            'Readiness_Answer__c.Question__c', 'Readiness_Answer__c.Use_Case__c', 'Readiness_Answer__c.Response__c'})
+        for grant in root.findall('m:objectPermissions', NS):
+            obj = grant.find('m:object', NS).text
+            for key in ('allowCreate', 'allowRead'):
+                self.assertEqual(grant.find('m:' + key, NS).text, 'true', (obj, key))
+            self.assertEqual(grant.find('m:allowEdit', NS).text,
+                             'true' if obj == 'Readiness_Use_Case__c' else 'false', obj)
+            for key in ('allowDelete', 'viewAllRecords', 'modifyAllRecords'):
+                self.assertEqual(grant.find('m:' + key, NS).text, 'false', (obj, key))
+        for grant in root.findall('m:fieldPermissions', NS):
+            for key in ('editable', 'readable'):
+                self.assertEqual(grant.find('m:' + key, NS).text, 'true')
+        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities', 'tabSettings'):
+            self.assertEqual(root.findall('m:' + group, NS), [], group)
+
+    def test_assessment_recorder_only_creates_and_reads_snapshots(self):
+        root = role('Readiness_Assessment_Recorder')
+        self.assertEqual(names(root, 'classAccesses', 'apexClass'), {'ReadinessWorkspace'})
+        self.assertEqual(names(root, 'customPermissions', 'name'), {'Readiness_Record_Assessment'})
+        self.assertEqual(names(root, 'objectPermissions', 'object'), {'Readiness_Assessment__c'})
+        self.assertEqual(names(root, 'fieldPermissions', 'field'), {
+            'Readiness_Assessment__c.Use_Case__c', 'Readiness_Assessment__c.Summary__c',
+            'Readiness_Assessment__c.Report__c'})
+        grant = root.find('m:objectPermissions', NS)
+        for key in ('allowCreate', 'allowRead'):
+            self.assertEqual(grant.find('m:' + key, NS).text, 'true', key)
+        for key in ('allowEdit', 'allowDelete', 'viewAllRecords', 'modifyAllRecords'):
+            self.assertEqual(grant.find('m:' + key, NS).text, 'false', key)
+        for grant in root.findall('m:fieldPermissions', NS):
+            for key in ('editable', 'readable'):
+                self.assertEqual(grant.find('m:' + key, NS).text, 'true')
+        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities', 'tabSettings'):
+            self.assertEqual(root.findall('m:' + group, NS), [], group)
 
     def test_evidence_reviewer_has_only_evaluator_access(self):
         root = role('Readiness_Evidence_Reviewer')
