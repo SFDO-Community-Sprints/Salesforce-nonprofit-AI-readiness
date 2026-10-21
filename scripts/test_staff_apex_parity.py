@@ -7,7 +7,7 @@ import unittest
 from staff_readiness import KEY, evaluate, template
 
 ROOT = Path(__file__).resolve().parents[1]
-RESOURCE = ROOT / 'metadata/main/default/staticresources/StaffReadinessParity.resource'
+RESOURCE = ROOT / 'force-app/main/default/staticresources/StaffReadinessParity.resource'
 
 
 def parity_cases():
@@ -59,7 +59,7 @@ def parity_cases():
 
 class StaffApexParityTests(unittest.TestCase):
     def test_answer_key_and_fixed_cross_runtime_corpus(self):
-        self.assertEqual(json.loads((ROOT / 'metadata/main/default/staticresources/StaffReadinessAnswerKey.resource').read_text()), KEY)
+        self.assertEqual(json.loads((ROOT / 'force-app/main/default/staticresources/StaffReadinessAnswerKey.resource').read_text()), KEY)
         self.assertEqual(json.loads(RESOURCE.read_text()), parity_cases())
         boundary = next(case for case in parity_cases() if case['name'] == 'one_of_seven')
         self.assertEqual(boundary['expected']['staff']['score'], '14.3')

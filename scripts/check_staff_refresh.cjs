@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname, '../metadata/main/default/lwc/nonprofitAIReadiness/nonprofitAIReadiness.js'), 'utf8')
+const source = fs.readFileSync(path.join(__dirname, '../force-app/main/default/lwc/nonprofitAIReadiness/nonprofitAIReadiness.js'), 'utf8')
     .replace(/^import .*;$/gm, '').replace('export default class NonprofitAIReadiness', 'class NonprofitAIReadiness');
 async function check() {
     let finishOld;
@@ -13,7 +13,8 @@ async function check() {
         LightningElement: class {},
         hasFollowUpPermission: false,
         assess: () => ++calls === 1 ? new Promise(resolve => { finishOld = resolve; }) : Promise.resolve(JSON.stringify({staff_review: newReview})),
-        capabilityInventory: () => Promise.resolve('{}')
+        capabilityInventory: () => Promise.resolve('{}'),
+        assessOrgConfiguration: () => Promise.resolve('{}')
     });
     const screen = new Component();
     const pending = screen.handleRun();

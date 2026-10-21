@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses><apexClass>ReadinessEvidence</apexClass><enabled>true</enabled></classAccesses>
+    <customPermissions><enabled>true</enabled><name>Readiness_Review_Evidence</name></customPermissions>
+    <description>Evaluate reported safeguard and erasure evidence references only. Assign alongside Readiness Assessor for the readiness app. Does not grant data reads, deletion, staff reviews, task creation or API access.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Readiness Evidence Reviewer</label>
+</PermissionSet>

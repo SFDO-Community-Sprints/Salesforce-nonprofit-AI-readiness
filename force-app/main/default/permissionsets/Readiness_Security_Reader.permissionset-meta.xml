@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+<classAccesses><apexClass>ReadinessOrgHealth</apexClass><enabled>true</enabled></classAccesses>
+<customPermissions><enabled>true</enabled><name>Readiness_Read_Org_Security</name></customPermissions>
+<description>Read-only org security metadata and fixed aggregate findings. No CRM object grants, security modifications, API login or MCP transport.</description>
+<label>Readiness Security Reader</label>
+<userPermissions><enabled>true</enabled><name>ViewSetup</name></userPermissions>
+<userPermissions><enabled>true</enabled><name>ViewRoles</name></userPermissions>
+<userPermissions><enabled>true</enabled><name>ViewAllUsers</name></userPermissions>
+</PermissionSet>

@@ -13,7 +13,7 @@ SPEC = json.loads((ROOT / 'references/check-specifications.json').read_text())
 class CheckSpecificationTests(unittest.TestCase):
     def test_native_resource_and_shared_snapshot_version_match_catalog(self):
         source = ROOT / 'references/check-specifications.json'
-        resource = ROOT / 'metadata/main/default/staticresources/CheckSpecifications.resource'
+        resource = ROOT / 'force-app/main/default/staticresources/CheckSpecifications.resource'
         self.assertEqual(resource.read_bytes(), source.read_bytes())
         self.assertEqual(SPECIFICATION_VERSION, SPEC['version'])
         result = build_data_result(dict(contacts=10, email_present=10, linked_contacts=10, repeated_email_rows=0))

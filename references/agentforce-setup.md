@@ -4,7 +4,7 @@ The check runs inside Salesforce through Apex class `NonprofitAIReadiness`, invo
 
 ## Before you start
 
-Use the disposable demo scratch org first. Deploy the Apex classes, tests, and `Readiness_Assessor` permission set from `metadata/`, then run the Apex tests. The existing scratch demo scripts create the Account/Contact demo groups. Passing Apex tests or invoking the action directly proves the action component; it does not prove an activated conversational agent.
+Use the disposable demo scratch org first. Deploy the Apex classes, tests, and `Readiness_Assessor` permission set from `force-app/`, then run the Apex tests. The existing scratch demo scripts create the Account/Contact demo groups. Passing Apex tests or invoking the action directly proves the action component; it does not prove an activated conversational agent.
 
 An admin must confirm Einstein Generative AI and Agentforce availability, the supported Employee agent entitlement, permissions, and consumption allowance in the target org. Salesforce documents [agent type requirements](https://help.salesforce.com/s/articleView?id=sf.agent_setup_explore_types.htm&language=en_US&type=5) and [enablement prerequisites](https://help.salesforce.com/s/articleView?id=ai.agent_setup_enable.htm&language=en_US&type=5). Nonprofit scratch-org provisioning does not establish Agentforce licensing. If the required agent type is unavailable, retain the tested Apex action and mark conversational validation **not exercised**; do not enable or purchase another feature as a workaround.
 

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomPermission xmlns="http://soap.sforce.com/2006/04/metadata"><label>Readiness Read Org Security</label><description>Read fixed organization security aggregates for AI readiness. No CRM reads, writes or settings changes.</description></CustomPermission>

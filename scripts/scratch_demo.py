@@ -75,10 +75,13 @@ def seed(state):
 
 def deploy(state):
     verify(state)
-    result = sf('project', 'deploy', 'start', '--source-dir', str(ROOT/'metadata'),
+    result = sf('project', 'deploy', 'start', '--source-dir', str(ROOT/'force-app'),
                 '--target-org', state['alias'], '--test-level', 'RunSpecifiedTests',
                 '--tests', 'NonprofitAIReadinessTest', '--tests', 'ReadinessStaffReviewTest',
-                '--tests', 'ReadinessMCPTest', '--wait', '5')
+                '--tests', 'ReadinessMCPTest', '--tests', 'ReadinessDataFreshnessTest',
+                '--tests', 'ReadinessEvidenceTest', '--tests', 'ReadinessDemoSeedTest', '--tests', 'ReadinessOrgChecksTest', '--tests', 'ReadinessOrgHealthTest', '--tests', 'ReadinessRuntimeProbeTest',
+                '--tests', 'ReadinessErasureProbeTest', '--tests', 'ReadinessControlTest',
+                '--tests', 'ReadinessOperationalLogTest', '--wait', '5')
     if not result.get('success'):
         raise RuntimeError('Salesforce app deployment did not pass')
     username = sf('org', 'display', '--target-org', state['alias'])['username']

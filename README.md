@@ -68,15 +68,24 @@ The records used for demonstrations are fictional. The assessment reads current 
 
 Deletion testing and pause/resume are separate explicit actions. Running an assessment does not create follow-up Tasks or automatically perform a deletion test. Use a disposable practice org for active exercises.
 
-### Community source availability
+## Deploy and set up
 
-This community checkout still contains the earlier prototype and contributor tooling. The newer native setup/seed scripts and assessment additions used by the deployed demo have not yet been synchronized into this repository. The deployed demo workflow above should not be read as a claim that this checkout already contains all of those files. Source synchronization and updated setup documentation remain outstanding.
+Salesforce metadata lives in `force-app/main/default`; optional Agentforce metadata lives in `agentforce/`. The managed-package scaffold does not yet register a namespace or create a managed package.
 
-The Python and Node.js scripts retained here are development/reference tools for the earlier prototype, not requirements for using the deployed Salesforce app. The [demonstration guide](demo/GUIDE.md) documents that earlier tooling.
+1. Deploy `force-app/main/default` to the selected org, excluding the scaffold Admin profile.
+2. Execute `scripts/apex/post-deploy.apex` in that same org.
+3. In the named disposable demo org only, execute `scripts/apex/seed-demo.apex` to create fictional input records.
+4. Refresh Salesforce and open **Nonprofit AI Readiness**.
+
+See the [administrator walkthrough](START-HERE.md), [native assessment](references/native-assessment.md), [AI readiness rubric](references/ai-readiness-health.md) and [executable acceptance matrix](references/executable-acceptance.md).
+
+Python and Node.js files retained here are developer regression/reference tools, not application prerequisites, deployment steps or scan runtimes. The supported user workflow is Salesforce plus MCP.
 
 ## Agentforce and MCP
 
-The assessment can be exposed through a permission-controlled Salesforce action or MCP connection. Agent activation, tool authorization and testing the actual assistant remain separate setup and acceptance tasks. See the [Agentforce guide](references/agentforce-next-steps.md) and [permission scopes](references/permission-scopes.md) for the earlier prototype's technical references; those guides also need reconciliation with the newer native implementation.
+MCP uses a separate narrowly scoped integration identity and the fixed `ReadinessMCP` Apex facade. It returns aggregates, withholds small cohorts and grants no raw CRM or staff-evidence access. Serpent MCP handles deployment and anonymous Apex execution. See [permission scopes](references/permission-scopes.md).
+
+Agent activation, tool authorization and testing the actual assistant remain separate setup and acceptance tasks. See the [Agentforce guide](references/agentforce-next-steps.md).
 
 ## Current limits
 

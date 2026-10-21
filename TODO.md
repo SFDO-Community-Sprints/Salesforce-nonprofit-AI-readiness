@@ -4,7 +4,7 @@ Status on 20 October 2026 (Europe/Amsterdam). This tracks the remaining PLAN.md 
 
 ## Current implementation batch
 
-- [ ] **DATA-1 — Data freshness measurement.** Add deterministic aggregate-only measurement against an explicit use-case policy and snapshot timestamp; test missing evidence, empty data and boundaries. Then integrate approved policy into Salesforce/MCP without changing the fixed demo scores silently. Owner: implementation.
+- [x] **DATA-1 — Native data freshness measurement.** Explicit-policy aggregate LastActivityDate measurement now runs in Apex and the Salesforce form, with UTC boundaries, suppression and non-admin access/denial tests. Dedicated MCP remains the existing fixed contract; customer policy approval is separate.
 - [x] **STAFF-1 — Evidence freshness implementation.** Explicit opt-in policy, observation dates, preserved critical failures, current-date reassessment and native/MCP parity implemented and scratch-tested; desktop readback verified. Customer policy approval remains PROFILE-1; mobile acceptance remains UI-1. Owner: implementation + assessment owner.
 - [x] **PRIVACY-1 — Erasure evidence validation implementation.** Inventory validation and procedures require accountable destination/retention references and keep reported/fictional evidence distinct from independent verification. Actual system verification remains PRIVACY-2 through PRIVACY-6. Owner: implementation + privacy lead.
 - [x] **ACCESS-1 — Repeatable access test coverage.** Added non-admin positive/negative permission coverage and executed it in the disposable scratch. Actual intended Employee assistant access remains ACCESS-2. Owner: implementation + Salesforce admin.
@@ -54,7 +54,7 @@ Status on 20 October 2026 (Europe/Amsterdam). This tracks the remaining PLAN.md 
 ## Delivery and verification
 
 - [ ] **UI-1 — Complete mobile/browser acceptance.** Desktop and a narrow desktop-UA initial assessment passed. Actual phone emulation redirected away from the readiness route. Exercise the real phone entry path, complete small-screen staff form, keyboard/screen-reader behavior, date errors and remaining console warnings; [observations](references/ui-validation.md).
-- [ ] **UI-2 — Evidence-backed safeguards/privacy cards.** Both values are currently hardcoded “Not assessed”. Replace them with scoped evidence-backed summaries when the underlying collection/review path is implemented. Permission-suite passes must not silently become complete live safeguard/erasure passes; the five technical checks and whole-system erasure still require evidence.
+- [x] **UI-2 — Evidence-backed safeguards/privacy cards.** Native structured forms evaluate reported safeguard and erasure evidence; live role-configuration measurements populate scoped configuration cards. No evidence still means Not assessed; references do not establish independent verification. The five live technical checks and whole-system erasure remain external evidence work.
 - [ ] **DEPLOY-1 — Customer deployment acceptance.** [Deployment design](references/customer-deployment-design.md) now identifies concrete target/identity/policy/retention/stop/rollback requirements. Customer authorization, collector implementation and environment-specific acceptance remain open; scratch results do not complete these.
 - [ ] **LINK-1 — Serpent connection.** Repair/replace the unavailable project and authenticate through a supported org flow; verify repository and org links. No working connection is currently established by this repository.
 - [x] **VERIFY-1 — Integrate this implementation batch.** Local tests, both scratch deployments, native/MCP parity, desktop rendering and bounded repeated conversations recorded separately below. Mobile acceptance and real-world controls remain their own open tasks.
@@ -96,3 +96,37 @@ Current dedicated identity uses Minimum Access - API Only Integrations with only
 Live `org_identity` and sharing-scoped organization assessment succeeded. The dedicated identity's current visible cohort is below five, so metrics and score are withheld and readiness remains not established. Same-identity native/MCP parity passed; the administrator's larger dataset is not treated as the integration user's scope. Raw Contact email retrieval was denied, and object describes were denied. No live write attempts were made. The UI now hides staff editors and Task controls unless the corresponding specialist permission is present; role-loading and handler denial are covered by Node/native tests.
 
 The Access and safeguards and Privacy and erasure page cards are still hardcoded unknown states (UI-2). These app permission tests do not supply all runtime/approval/export/monitoring/stop evidence or integration/log/backup/restore/retention erasure evidence.
+
+## Native Apex assessment migration — 20 October 2026
+
+Assessment users no longer need Python: existing Contact/feature/staff logic is joined by native policy-based activity freshness and safeguard/erasure evidence evaluators. Structured forms avoid JSON editing. Every assessment uses live inputs; preset-result paths were removed. A separate Evidence Reviewer role grants evaluator access only. The post-deployment Apex script idempotently assigns Readiness Assessor to its executing user; no seed data is required to open the app. See [native assessment map](references/native-assessment.md).
+
+Validation: 119 Python tests, four Node checks, eight Python-driven Apex parity fixtures, and full metadata deployment with 51 Apex tests passed in the existing disposable `nonprofit-readiness-demo` scratch org. This does not prove deployment to `data-connect-7516`; its separate local CLI login was not completed. Customer readiness, external safeguards/erasure, mobile and production acceptance remain open.
+
+## Executable acceptance continuation — 20 October 2026
+
+- [x] Execute current-principal native/MCP and unauthorized-action checks; display outcomes and unresolved identity/workflow bindings.
+- [x] Add package stop/resume enforcement and sanitized private operational events with separate specialist permissions.
+- [x] Add an explicitly confirmed scratch-only canary lifecycle probe, including active-read exclusion and recoverability checks.
+- [x] Integrate executable verification into Run assessment and the post-deploy scratch role setup.
+- [x] Validate full metadata deployment with **79 Apex tests** in `nonprofit-readiness-demo`; **123 Python tests and six Node checks** pass.
+- [x] Deploy and execute the new verification in `data-connect-7516` through Initial PoC; see live evidence below.
+- [ ] Bind the actual assistant identity/workflow and named external destinations, then execute their acceptance checks.
+- [ ] Obtain actual human demonstrations and approved retention decisions.
+
+The earlier hardcoded-card and simulated-result descriptions above are historical. Current collectors use real org/configuration/input records, and executable probe results retain their measured scope. See [executable acceptance](references/executable-acceptance.md) for the remaining acceptance matrix.
+
+### Live native verification
+
+Serpent DEPLOY-18 succeeded with 58/58 components. Post-deploy and executable runtime/erasure probes compiled and succeeded. Separate transactions verified committed package stop, denied calls, resume and assessment recovery; package left enabled. Lightning Run assessment displayed executed results and missing bindings. Active canary exclusion passed; permanent erasure failed because the canary remained recoverable. Actual assistant, external destinations and human acceptance remain open. Details: [live executable evidence](references/executable-acceptance.md#live-execution--20-october-2026).
+
+## AI readiness health dashboard — 20 October 2026
+
+- [x] Replace mixed configuration/practice headline percentages with our own AI-readiness score, coverage, four categories, inventory and actual-versus-expected findings.
+- [x] Implement native `ReadinessOrgHealth` collector and invocable tool action; no Salesforce Health Check dependency or external runtime.
+- [x] Add separately scoped Security Reader and retain unknown org findings without that role.
+- [x] Exclude seeded staff input from human readiness, persist scoped canary observations, and enforce critical failure gating.
+- [x] Full metadata validation passed 84 Apex tests in the validation scratch org; all seven UI checks passed.
+- [x] Verify dashboard deployment and native browser scan on `data-connect-7516`: DEPLOY-26 succeeded, 24.2% score / 39.4% coverage matched native MCP readback; see health rubric live evidence.
+
+Remaining actual assistant, external erasure and human evidence requirements are unchanged. The [AI readiness rubric](references/ai-readiness-health.md) defines what the new score measures.
