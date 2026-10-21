@@ -1,5 +1,9 @@
 # Salesforce Nonprofit AI Readiness
 
+**Project Initiator & Lead – Fergal Hayes**
+
+Fergal initiated the project at the Amsterdam Community Sprint and helped bring the team together.
+
 Assess nonprofit AI readiness with repeatable Salesforce data checks, seven staff exercises, clear priorities, and practical follow-up actions.
 
 This project includes a Salesforce results page, a restricted read-only agent connection, an Agentforce assessment agent, fictional demonstration data, and automated tests. The current demonstration uses Nonprofit Cloud Fundraising in disposable scratch orgs. NPSP requires separate validation.
