@@ -20,3 +20,10 @@ assert.equal((html.match(/role="tabpanel"/g)||[]).length,8);
 for(const tag of ['c-readiness-org-health','c-readiness-verification','c-readiness-staff-review']) assert.match(html,new RegExp(`<${tag}[ >]`));
 assert.match(html,/hidden=\{hideOverview\}>\s*<c-readiness-org-health[^>]*>/);
 console.log('Result tabs preserve scan state and support keyboard navigation');
+
+let displayed, findingsFocused=false;
+screen.template={querySelector:selector=>selector==='c-readiness-org-health'?{displayReport(report){displayed=report;},focusFindings(){findingsFocused=true;}}:null};
+screen.handleScopedResult({detail:{report:{scope:'Selected implementation'}}});
+assert.equal(screen.activeResultTab,'overview');assert.equal(screen.showOrganizationRecommendations,false);
+assert.equal(displayed.scope,'Selected implementation');assert.equal(screen.actionsDisabled,false);
+screen.handleViewActions();assert.equal(findingsFocused,true);

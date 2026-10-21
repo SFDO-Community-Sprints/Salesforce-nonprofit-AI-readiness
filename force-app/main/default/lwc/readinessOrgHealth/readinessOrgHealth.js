@@ -14,6 +14,14 @@ const safeLink = value => SETUP_LINKS.has(value) ? value : undefined;
 export default class ReadinessOrgHealth extends LightningElement {
     result;
     stale = false;
+    @api focusFindings() {
+        const heading = this.template.querySelector('[data-findings-heading]');
+        if (heading) {
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            heading.scrollIntoView({behavior: reducedMotion ? 'auto' : 'smooth', block: 'start'});
+            heading.focus({preventScroll:true});
+        }
+    }
     @api markStale() { this.stale = true; }
     get historyNotice() { return this.result?.historyMessage; }
     loading = false;

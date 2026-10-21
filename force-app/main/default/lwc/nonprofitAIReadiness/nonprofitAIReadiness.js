@@ -49,6 +49,8 @@ function priorityDetails(key, metrics = {}) {
 
 export default class NonprofitAIReadiness extends LightningElement {
     activeResultTab = 'overview';
+    scopedOverview = false;
+    get showOrganizationRecommendations() { return Boolean(this.result) && !this.scopedOverview; }
     get resultTabs() {
         return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Safeguard tests'],['evidence','Evidence and freshness'],['staff','Staff exercises'],['workspace','Use cases and checklists']].map(([value,label]) => ({
             value, label, id: `readiness-tab-${value}`, panelId: `readiness-panel-${value}`,
@@ -69,6 +71,7 @@ export default class NonprofitAIReadiness extends LightningElement {
         Promise.resolve().then(() => this.template.querySelector('c-readiness-workspace')?.openChecklist(event.detail));
     }
     handleScopedResult(event) {
+        this.scopedOverview = true;
         this.activeResultTab = 'overview';
         this.template.querySelector('c-readiness-org-health')?.displayReport(event.detail.report);
     }
@@ -166,7 +169,7 @@ export default class NonprofitAIReadiness extends LightningElement {
             countLabel: item.visibleRecords == null ? 'Not shown' : item.visibleRecords
         }));
     }
-    get actionsDisabled() { return this.loading || !this.result; }
+    get actionsDisabled() { return this.loading || (!this.result && !this.scopedOverview); }
     get assessmentDisabled() { return this.loading || this.savingTasks; }
     get tasksDisabled() { return !this.isOrganizationScope || !this.canCreateFollowUp || this.loading || this.savingTasks || !this.result || this.suppressed; }
     get followUpCount() { return this.recommendations.length; }
@@ -238,6 +241,7 @@ export default class NonprofitAIReadiness extends LightningElement {
             Promise.resolve().then(() => this.handleViewActions());
             return;
         }
+        if (this.scopedOverview) { this.template.querySelector('c-readiness-org-health')?.focusFindings(); return; }
         const heading = this.template.querySelector('[data-actions-heading]');
         if (heading) {
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -266,6 +270,7 @@ export default class NonprofitAIReadiness extends LightningElement {
     }
     async handleRun() {
         if (this.assessmentDisabled) return;
+        this.scopedOverview = false;
         this.loading = true;
         this.error = undefined;
         this.result = undefined;

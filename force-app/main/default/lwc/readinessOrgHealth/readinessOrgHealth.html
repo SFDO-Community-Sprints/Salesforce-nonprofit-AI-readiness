@@ -14,7 +14,7 @@
                 <article class="card"><h3>Access inventory</h3><dl><template for:each={inventory} for:item="item"><div key={item.id}><dt>{item.label}<small>{item.note}</small></dt><dd>{item.countLabel}</dd></div></template></dl><p>Inventory is for review. An unused role or narrowly assigned permission set does not by itself establish a security risk.</p></article>
             </div>
             <div class="categories"><template for:each={categories} for:item="category"><article class="card" key={category.id}><h3>{category.label}</h3><p class="number">{category.scoreLabel}</p><p class="rating">{category.rating}</p><p>Checks completed: {category.coverageLabel}</p><p>{category.passed} passed · {category.failed} need attention · {category.unknown} not checked</p></article></template></div>
-            <h3 class="findings-title">AI readiness findings</h3>
+            <h3 class="findings-title" data-findings-heading tabindex="-1">AI readiness findings</h3>
             <p>Readiness is measured from evidence. A use case's business lifecycle status, such as Approved, does not establish readiness.</p>
             <div class="filters" role="group" aria-label="Filter AI readiness findings">
                 <label>Result<select data-filter="statusFilter" onchange={handleFilter}><template for:each={statusOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
