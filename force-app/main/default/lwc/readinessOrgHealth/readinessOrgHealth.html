@@ -18,9 +18,9 @@
             <h3 class="findings-title" data-findings-heading tabindex="-1">AI readiness findings</h3>
             <p>Readiness is measured from evidence. A use case's business lifecycle status, such as Approved, does not establish readiness.</p>
             <div class="filters" role="group" aria-label="Filter AI readiness findings">
-                <label>Result<select data-filter="statusFilter" onchange={handleFilter}><template for:each={statusOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
-                <label>Severity<select data-filter="severityFilter" onchange={handleFilter}><template for:each={severityOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
-                <button type="button" onclick={clearFilters}>Clear filters</button>
+                <lightning-combobox label="Result" value={statusFilter} options={statusOptions} data-filter="statusFilter" onchange={handleFilter}></lightning-combobox>
+                <lightning-combobox label="Severity" value={severityFilter} options={severityOptions} data-filter="severityFilter" onchange={handleFilter}></lightning-combobox>
+                <lightning-button label="Clear filters" onclick={clearFilters}></lightning-button>
             </div>
             <p role="status">{filterSummary}</p>
             <template lwc:if={noMatches}><p>No findings match these filters. Clear filters to see the full assessment.</p></template>

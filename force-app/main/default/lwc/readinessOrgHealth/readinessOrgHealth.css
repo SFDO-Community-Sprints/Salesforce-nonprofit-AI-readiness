@@ -4,8 +4,6 @@
 
 table{table-layout:fixed;min-width:64rem}th:nth-child(4),th:nth-child(5){width:20%}th,td{overflow-wrap:anywhere}
 
-.filters{display:flex;flex-wrap:wrap;align-items:end;gap:1rem;margin:1rem 0}.filters label{display:grid;gap:.35rem;font-weight:700}.filters select,button{font:inherit;border:1px solid #a4b0bd;border-radius:.3rem;background:#fff;padding:.5rem;color:#253549}button{cursor:pointer}button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #1557b0;outline-offset:3px}.advice{margin-top:.75rem}.advice summary{cursor:pointer;color:#1557b0}.advice p{margin:.6rem 0}.table-wrap button{margin-top:.75rem}
+.filters{display:flex;flex-wrap:wrap;align-items:end;gap:1rem;margin:1rem 0}button{font:inherit;border:1px solid #a4b0bd;border-radius:.3rem;background:#fff;padding:.5rem;color:#253549}button{cursor:pointer}button:focus-visible,summary:focus-visible{outline:3px solid #1557b0;outline-offset:3px}.advice{margin-top:.75rem}.advice summary{cursor:pointer;color:#1557b0}.advice p{margin:.6rem 0}.table-wrap button{margin-top:.75rem}
 
-.filters label { flex: 0 1 12rem; min-width: 10rem; margin: 0; line-height: 1.25; }
-.filters select { width: 100%; }
-.filters select, .filters > button { box-sizing: border-box; height: 2.25rem; margin: 0; padding: 0 .75rem; font-size: .8125rem; font-weight: 400; line-height: 1.25; }
+.filters lightning-combobox { flex: 0 1 12rem; min-width: 10rem; }

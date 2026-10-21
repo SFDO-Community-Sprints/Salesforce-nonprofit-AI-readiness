@@ -38,12 +38,13 @@ const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningEleme
  screen.handleCategoryTab({target:{value:'Company'}});assert.equal(screen.filteredFindings.length,2);
  assert.equal(screen.findingTabs.length,3);assert.equal(screen.findingTabs[1].summary,'Company (2)');
  assert.equal(screen.findingTabs[2].summary,'Safeguards (1)');
- screen.handleFilter({target:{dataset:{filter:'statusFilter'},value:'pass'}});
+ screen.handleFilter({target:{dataset:{filter:'statusFilter'}},detail:{value:'pass'}});
  assert.equal(screen.findingTabs[1].summary,'Company (1)');assert.equal(screen.findingTabs[2].summary,'Safeguards (0)');
  assert.equal(screen.score,'0%');assert.equal(screen.coverage,'0%');
  screen.clearFilters();assert.equal(screen.categoryFilter,'all');
  const html=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.html','utf8');
  const css=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.css','utf8');
+ assert.match(html,/<lightning-combobox label="Result"/);assert.match(html,/<lightning-combobox label="Severity"/);assert.match(html,/<lightning-button label="Clear filters"/);
  assert.match(html,/<lightning-tabset active-tab-value=\{categoryFilter\}/);assert.match(html,/label=\{group.summary\} onactive=\{handleCategoryTab\}/);
  assert.match(html,/aria-label="Filter AI readiness findings"/);assert.match(html,/<details[^>]*class="advice"/);assert.match(html,/Answer in checklist/);
  assert.match(css,/th:nth-child\(4\),th:nth-child\(5\)\{width:20%\}/);

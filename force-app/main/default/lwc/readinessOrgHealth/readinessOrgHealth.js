@@ -43,7 +43,7 @@ export default class ReadinessOrgHealth extends LightningElement {
     }
     handleFilter(event) {
         const key = event.target.dataset.filter;
-        if (['statusFilter', 'severityFilter', 'categoryFilter'].includes(key)) this[key] = event.target.value;
+        if (['statusFilter', 'severityFilter', 'categoryFilter'].includes(key)) this[key] = event.detail?.value ?? event.target.value;
     }
     clearFilters() { this.statusFilter = 'all'; this.severityFilter = 'all'; this.categoryFilter = 'all'; }
     openChecklist(event) {
