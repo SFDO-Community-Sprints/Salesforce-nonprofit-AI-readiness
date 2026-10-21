@@ -80,7 +80,7 @@ Salesforce metadata lives in `force-app/main/default`; optional Agentforce metad
 
 1. Deploy `force-app/main/default` to the selected org, excluding the scaffold Admin profile.
 2. Execute `scripts/apex/post-deploy.apex` in that same org.
-3. In the named disposable demo org only, execute `scripts/apex/seed-demo.apex` to create fictional input records.
+3. In the explicitly selected disposable scratch org, execute `scripts/apex/seed-demo.apex` to create fictional input records. Seed scripts accept scratch orgs only; no hostname edits are needed.
 4. Refresh Salesforce and open **Nonprofit AI Readiness**.
 
 See the [administrator walkthrough](START-HERE.md), [native assessment](references/native-assessment.md), [AI readiness rubric](references/ai-readiness-health.md) and [executable acceptance matrix](references/executable-acceptance.md).

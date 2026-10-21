@@ -1,9 +1,8 @@
-// Self-contained anonymous Apex. Fictional data only; deliberately pinned to this scratch org.
-String expectedHost = 'data-connect-7516-dev-ed.scratch.my.salesforce.com';
+// Self-contained anonymous Apex. Fictional data only; restricted to scratch orgs.
 String host = URL.getOrgDomainUrl().getHost();
-if (host != expectedHost || !host.endsWith('.scratch.my.salesforce.com') ||
+if (!host.endsWith('.scratch.my.salesforce.com') ||
     ![SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
-    throw new IllegalArgumentException('Seed refused: expected the explicitly selected scratch org.');
+    throw new IllegalArgumentException('Demo seeding requires a scratch org.');
 }
 // Optional: deliberately worsens organization-wide data quality scores.
 List<Contact> expected = new List<Contact>();

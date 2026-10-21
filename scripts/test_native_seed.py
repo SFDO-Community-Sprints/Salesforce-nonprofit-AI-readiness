@@ -23,8 +23,19 @@ class NativeSeedTests(unittest.TestCase):
             text = (ROOT / 'scripts/apex' / name).read_text()
             self.assertNotIn('ReadinessDemoSeed.', text)
             self.assertNotIn('FROM StaticResource', text)
-            self.assertIn("String expectedHost = 'data-connect-7516-dev-ed.scratch.my.salesforce.com'", text)
-            self.assertIn('IsSandbox', text)
+
+    def test_all_seed_scripts_require_scratch_org_before_writes(self):
+        for name in ('seed-demo.apex', 'seed-failures.apex', 'seed-workspace.apex'):
+            with self.subTest(script=name):
+                source = (ROOT / 'scripts/apex' / name).read_text()
+                guard = source.split('}\n', 1)[0]
+                self.assertIn("if (!host.endsWith('.scratch.my.salesforce.com') ||", guard)
+                self.assertIn('![SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox)', guard)
+                self.assertIn("throw new IllegalArgumentException('Demo seeding requires a scratch org.')", guard)
+                self.assertNotIn('expectedHost', source)
+                self.assertNotIn('insert ', guard)
+                self.assertNotIn('update ', guard)
+                self.assertNotIn('delete ', guard)
 
     def test_seed_contains_raw_inputs_never_assessment_results(self):
         source = (ROOT / 'scripts/apex/seed-demo.apex').read_text()

@@ -1,6 +1,9 @@
 // Deploy current metadata and run post-deploy.apex first. This seeds planning inputs, never results.
-String expectedHost='data-connect-7516-dev-ed.scratch.my.salesforce.com';
-if(URL.getOrgDomainUrl().getHost()!=expectedHost) throw new IllegalArgumentException('Workspace demo seeding is restricted to the named disposable scratch org.');
+String host = URL.getOrgDomainUrl().getHost();
+if (!host.endsWith('.scratch.my.salesforce.com') ||
+    ![SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
+    throw new IllegalArgumentException('Demo seeding requires a scratch org.');
+}
 if(!FeatureManagement.checkPermission('Readiness_Manage_Workspace')) throw new IllegalArgumentException('Run the latest post-deploy setup before seeding the workspace.');
 Map<String,List<Object>> scopes=new Map<String,List<Object>>{
     'Fictional donor summary'=>new List<Object>{'Contact.Email','Contact.AccountId'},
