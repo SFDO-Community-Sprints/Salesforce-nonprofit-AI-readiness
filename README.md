@@ -1,6 +1,6 @@
 # Salesforce Nonprofit AI Readiness
 
-**Project Initiator & Lead: Fergal Hayes**
+**Project Initiator & Lead: [Fergal Hayes](https://www.linkedin.com/in/fergalhayes/)**
 
 Fergal initiated the project at the Amsterdam Community Sprint and helped bring the team together.
 
@@ -10,22 +10,24 @@ This project includes a Salesforce results page, a restricted read-only agent co
 
 Start with the [Salesforce administrator walkthrough](START-HERE.md), [project plan](PLAN.md), [remaining-work tracker](TODO.md), or [demonstration guide](demo/GUIDE.md).
 
+Read the [project notes and assessment requirements](references/project-notes.md) for the sprint's user stories, proposed checks, governance questions, and acceptance scenarios.
+
 ## Project team
 
 Alongside Fergal Hayes, the project team includes:
 
 - Ana Campos
-- Ankit Bhimjiyani
-- B. Monique Erinna
-- Dirk-Jan Ansing
-- Donato Cinque
-- Fenik Arroyo
-- Kyrylo Mazur
-- Mantu
-- Natalie Larino
-- Rimon Hanna
-- Sophie van Poele
-- Willie Hooykaas-Baldwin
+- [Ankit Bhimjiyani](https://www.linkedin.com/in/ankit-bhimjiyani-19207315/)
+- [B. Monique Erinna](https://www.linkedin.com/in/blasoviaerinna/)
+- [Dirk-Jan Ansing](https://www.linkedin.com/in/dirkjana/)
+- [Donato Cinque](https://www.linkedin.com/in/donato5/)
+- [Fenik Arroyo](https://www.linkedin.com/in/fenikarroyo/)
+- [Kyrylo Mazur](https://www.linkedin.com/in/klmazur22/)
+- [Mantu Bhuyar](https://www.linkedin.com/in/mantubhuyar/)
+- [Natalie Larino](https://www.linkedin.com/in/natalie-larino/)
+- [Rimon Hanna](https://www.linkedin.com/in/rimonhanna/)
+- [Sophie van Poele](https://www.linkedin.com/in/sophievanpoele/)
+- [Willie Hooykaas-Baldwin](https://www.linkedin.com/in/whooykaas/)
 
 ## Try the fictional examples
 
