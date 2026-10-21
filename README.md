@@ -2,6 +2,10 @@
 
 An open-source community project helping nonprofits understand what they need to put in place before introducing AI into their Salesforce work.
 
+> **Early-stage development:** This project is actively evolving. Expect substantial changes to features, user experience, assessment checks and package structure over the coming weeks and months as we work toward a future AppExchange submission. It is not yet a production-ready release or an AppExchange-listed package.
+>
+> **Beta testing is coming:** Once the project is ready, we expect to invite beta testers to try it and help shape the next stage. We will share participation details here when testing opens.
+
 **Project Initiator & Lead: [Fergal Hayes](https://www.linkedin.com/in/fergalhayes/)**
 
 Fergal initiated the project at the Amsterdam Community Sprint and helped bring the team together.
