@@ -54,35 +54,29 @@ This repository contains a prototype and fictional demonstrations. It already in
 
 Read the [project notes and assessment requirements](references/project-notes.md) for the sprint's user stories and proposed acceptance tests, the [project plan](PLAN.md) for the implementation approach, and the [remaining-work tracker](TODO.md) for recorded progress.
 
-## Try the fictional examples
+## Try the Salesforce demo
 
-For administrators and contributors: the prototype includes a Salesforce results page, a restricted read-only agent connection, an Agentforce assessment agent, fictional demonstration data, and automated tests. The current demonstration uses Nonprofit Cloud Fundraising in disposable scratch orgs. NPSP requires separate validation. Start with the [administrator walkthrough](START-HERE.md) or [demonstration guide](demo/GUIDE.md).
+The current deployed demo runs inside Salesforce using Apex and Lightning Web Components. Python and Node.js are not required to use it. Setup and fictional data seeding use Apex; Serpent/MCP can execute those scripts against the selected demo org.
 
-Requires Python 3 and Node.js. No Salesforce login is needed for these examples.
+1. Sign in to the prepared practice org supplied by the project maintainers.
+2. Open **Nonprofit AI Readiness** from the Salesforce App Launcher.
+3. Select **Run assessment**.
+4. Review **Overview** for AI readiness findings, then use the category tabs for Contact data, configuration, licenses, safeguard tests, evidence and staff exercises.
+5. Review the actual value, expected outcome and recommended action for each finding.
 
-```sh
-python3 scripts/demo_failures.py
-python3 scripts/check_all.py
-```
+The records used for demonstrations are fictional. The assessment reads current org configuration, accessible data and recorded inputs; it does not load a preset readiness score. Changing the demo data and rerunning the assessment can change the result. Seeded staff answers remain practice inputs and do not establish human competency.
 
-The examples demonstrate different scores, failed safeguards, staff training gaps, and erasure problems with prioritized next steps. All staff and safeguard examples are clearly labelled simulations.
+Deletion testing and pause/resume are separate explicit actions. Running an assessment does not create follow-up Tasks or automatically perform a deletion test. Use a disposable practice org for active exercises.
 
-## Use a practice Salesforce org
+### Community source availability
 
-Use an authenticated Salesforce CLI and a Dev Hub that supports the requested scratch features. Follow the [setup guide](demo/GUIDE.md) to create, seed, and deploy the disposable practice org. Never run the seed or active test exercises against customer or production data.
+This community checkout still contains the earlier prototype and contributor tooling. The newer native setup/seed scripts and assessment additions used by the deployed demo have not yet been synchronized into this repository. The deployed demo workflow above should not be read as a claim that this checkout already contains all of those files. Source synchronization and updated setup documentation remain outstanding.
 
-```sh
-python3 scripts/scratch_demo.py create --hub YOUR_DEV_HUB --alias nonprofit-readiness-demo
-python3 scripts/scratch_demo.py seed
-python3 scripts/scratch_demo.py deploy
-python3 scripts/check_all.py --live
-```
+The Python and Node.js scripts retained here are development/reference tools for the earlier prototype, not requirements for using the deployed Salesforce app. The [demonstration guide](demo/GUIDE.md) documents that earlier tooling.
 
-Open **Nonprofit AI Readiness** from the App Launcher. **Run assessment** reads accessible Contact summaries; creating follow-up Tasks is a separate explicit action. The live test command adds fictional failure records, temporarily corrects and restores them, and creates and soft-deletes one fictional record.
+## Agentforce and MCP
 
-## Agentforce
-
-The [Agentforce setup guide](references/agentforce-next-steps.md) describes the separate Agentforce-enabled scratch environment and the single read-only assessment action. Live authoring-preview checks and activated-agent conversation checks are included. Prepare the second practice org with `python3 scripts/setup_agentforce_demo.py --hub YOUR_DEV_HUB`, then run `python3 scripts/check_agentforce_action.py`. Preview success, publication, activation, and verified conversations remain separate evidence.
+The assessment can be exposed through a permission-controlled Salesforce action or MCP connection. Agent activation, tool authorization and testing the actual assistant remain separate setup and acceptance tasks. See the [Agentforce guide](references/agentforce-next-steps.md) and [permission scopes](references/permission-scopes.md) for the earlier prototype's technical references; those guides also need reconciliation with the newer native implementation.
 
 ## Current limits
 
