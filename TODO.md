@@ -144,14 +144,15 @@ Implemented in the native app; evidence and limits are recorded in the [workspac
 
 Existing real-assistant, external-erasure, human-evidence and production acceptance dependencies remain open.
 
-- [ ] REF-UI final acceptance: deploy the native saved-assessment record layout and read-only Findings component, then verify View record opens the Salesforce record page, real snapshot fields match stored JSON, guarded hydration handles older snapshots without rewriting their reports, and Compare remains a separate two-snapshot action. Standard app navigation and the white history table were deployed in DEPLOY-55/58; those earlier checks do not establish this new record-page correction. Verify saved findings/next actions, exact checklist-question links from Overview, read-only role access, and comparison in a clean Lightning session. Mobile and assistive-technology operation remain separate checks.
+- [x] REF-UI desktop acceptance: DEPLOY-61 delivered native Assessment records, white standard components and saved findings. Browser checks confirmed real record navigation/values, history comparisons and scope warnings, self-comparison rejection, connection registration, portfolio rows, checklist progress and live actor/age. Live Serpent assertions preserved all eight upgraded reports and blocked forged metrics. Permission behavior passed in the validation org; the target browser session used its existing administrator. See [delivery evidence](references/implementation-workspace.md#combined-delivery-21-october-2026).
+- [ ] Separate UX checks: mobile viewport, assistive technology and a complete target-org walkthrough using each focused non-administrator role.
 
 ## Combined reference/current gap audit — 21 October 2026
 
 The existing REF-1–REF-6 implementations remain complete; this is the narrower visible-gap backlog after inspecting every reference navigation tab and current source. See [comparison and inspection limits](references/reference-app-gap-audit.md).
 
-- [ ] REF-7 — Add portfolio triage to existing Use Cases: standard table with business owner, lifecycle, latest accessible scoped score/coverage/readiness/critical count; Not checked when no scoped snapshot exists; Approved never overrides measured Blocked. Reuse existing editor and scan action.
-- [ ] REF-8 — Display live scan actor and elapsed age alongside source/time/scope; distinguish saved observations and refresh; age-based expiry needs an approved policy, not the reference's unapproved 24-hour default.
-- [ ] REF-9 — Expose stage progress for existing guided checklists using saved answered/unanswered/accountable counts per selected scope. Stage navigation must not save answers implicitly or equate completed policy answers with executed safeguards or human competency.
+- [x] REF-7 — Add portfolio triage to existing Use Cases: standard table with business owner, lifecycle, latest accessible scoped score/coverage/readiness/critical count; Not checked when no scoped snapshot exists; Approved never overrides measured Blocked. Reuse existing editor and scan action.
+- [x] REF-8 — Display live scan actor and elapsed age alongside source/time/scope; distinguish saved observations and refresh; age-based expiry needs an approved policy, not the reference's unapproved 24-hour default.
+- [x] REF-9 — Expose stage progress for existing guided checklists using saved answered/unanswered/accountable counts per selected scope. Stage navigation must not save answers implicitly or equate completed policy answers with executed safeguards or human competency.
 
-Native record Findings/white-card and warning/registration corrections are active implementation with rendered acceptance pending under REF-UI; this audit does not reopen their existing components. Actual assistant, external erasure and human acceptance remain separate requirements.
+Native record Findings, white cards, warning/registration and the three visible-gap improvements were deployed and desktop-verified in DEPLOY-61; this audit does not reopen their existing components. Actual assistant, external erasure and human acceptance remain separate requirements.

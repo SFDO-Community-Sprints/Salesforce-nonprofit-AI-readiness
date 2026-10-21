@@ -79,3 +79,22 @@ Local controller checks cover route state, delayed child rendering, ignored stal
 The record layout, real snapshot fields, guarded hydration, View record navigation and the separate comparison workflow require deployment and focused record-page checks. Verify a new report and an older hydrated report, confirm their stored JSON remains unchanged, check read-only role access, review the saved findings and their next actions, and distinguish View record from Compare. Do not treat prior history cards or the earlier custom accordion as proof of the native record layout.
 
 For existing scans, run `scripts/apex/upgrade-assessment-records.apex` after deployment, separately from the role-assignment script. Each run fills at most 100 owned, accessible records from their original stored reports; repeat until zero are updated. The immutable saved report is preserved, and no edit permission is added to the Recorder role. New scans populate their native fields automatically.
+
+## Combined delivery, 21 October 2026
+
+Community source `70adfbe` and its private shared-tree mirror were deployed to `data-connect-7516-dev-ed.scratch.my.salesforce.com` through Serpent **DEPLOY-61** (`6ad8c176e5bc38620ad5f1e0`), Salesforce job `0AfPw00000as8jqKAA`: 24/24 components, zero failures. No Admin profile was selected.
+
+Validation: 107 components compiled without errors; 97 Apex tests passed in the validation org, including role boundaries, original evidence protection and idempotent projection hydration. The contributor suite passed 126 tests and ten UI checks. These tools are development checks, not application prerequisites.
+
+Desktop Salesforce evidence:
+
+- Overview has a compact white Salesforce header and the dedicated integration-user warning. Register an AI connection opens the expanded blank registration form in the Use Cases app tab.
+- The portfolio shows both fictional implementations with separate business lifecycle and measured results. The donor case had its actual saved 9.8%/16.4% report; the other case explicitly had no recent saved scan. No readiness values were seeded.
+- History uses a standard datatable with saved-by actor and spacing below its implementation filter. View record opened the actual `/lightning/r/Readiness_Assessment__c/.../view` page. Native fields showed the real scope, rubric, timestamp, score, coverage and 6/4/51 totals; saved findings appeared below in a standard datatable.
+- Compare selected an implementation baseline and an organization scan; the UI warned that scopes differ. Choosing the same scan twice was rejected.
+- Company checklist progress showed 0/7 answered, 7 unknown/unanswered and a 0/3 stage count from actual saved data. Navigation did not save answers.
+- A new real organization scan showed the actual recorded actor and Observed just now, alongside time/source/scope and approved-review-policy guidance. The earlier exact security-owner finding link had opened and focused its Company checklist question.
+
+Serpent upgrade action `6ad8c1d032dc4b9678c42f2d` successfully populated eight owned existing records. Repeating hydration changed zero records; hashes verified every original Report/Summary remained unchanged. Acceptance action `6ad8c2f1589ff9983b3a5969` verified new native metrics match the saved report, UI actor is excluded from stored reports, actual actor lookup is correct and a forged score update is rejected. Both anonymous Apex actions compiled and completed successfully.
+
+The administrator browser session showed standard inline edit affordances; server guards reject saved evidence/metric changes. Focused Recorder object edit remains disabled. A complete target-org browser walkthrough for each focused role, mobile and assistive-technology checks remain separate. Prior browser-console inspection showed Salesforce O11Y/beacon telemetry errors; no component error overlay was observed in the delivered workflows. This is desktop component evidence, not organizational readiness or real-assistant/external-erasure acceptance.
