@@ -1,11 +1,18 @@
 {
-  "packageDirectories": [
-    {
-      "path": "force-app",
-      "default": true
+    "packageDirectories": [
+        {
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
+            "path": "force-app",
+            "default": true,
+            "package": "ai-readiness-unlocked",
+            "versionDescription": ""
+        }
+    ],
+    "namespace": "",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "67.0",
+    "packageAliases": {
+        "ai-readiness-unlocked": "0Hod10000000DTVCA2"
     }
-  ],
-  "namespace": "",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "67.0"
 }
