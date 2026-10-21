@@ -46,8 +46,10 @@ const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningEleme
  const css=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.css','utf8');
  assert.match(html,/<lightning-combobox label="Result"/);assert.match(html,/<lightning-combobox label="Severity"/);assert.match(html,/<lightning-button label="Clear filters"/);
  assert.match(html,/<lightning-tabset active-tab-value=\{categoryFilter\}/);assert.match(html,/label=\{group.summary\} onactive=\{handleCategoryTab\}/);
- assert.match(html,/aria-label="Filter AI readiness findings"/);assert.match(html,/<details[^>]*class="advice"/);assert.match(html,/Answer in checklist/);
- assert.match(css,/th:nth-child\(4\),th:nth-child\(5\)\{width:20%\}/);
+ assert.match(html,/aria-label="Filter AI readiness findings"/);assert.match(html,/<lightning-datatable/);assert.match(html,/Answer in checklist/);
+ assert.equal(screen.columns.find(column=>column.fieldName==='actual').initialWidth,screen.columns.find(column=>column.fieldName==='expected').initialWidth);
+ screen.handleFindingAction({detail:{row:{id:'manual'}}});assert.equal(screen.selectedFinding.id,'manual');assert.equal(screen.selectedFinding.hasChecklist,true);
+ screen.closeFindingDetails();assert.equal(screen.selectedFinding,undefined);
  screen.displayReport({findings:[],coverage:0,recordedBy:'Original reviewer',observedAt:new Date(Date.now()-2*86400000).toISOString()});assert.match(screen.scanActor,/Original reviewer/);assert.equal(screen.scanAge,'Observed 2 days ago');screen.result.observedAt='invalid';assert.equal(screen.scanAge,'Observation age unavailable');screen.result.observedAt=new Date(Date.now()+86400000).toISOString();assert.equal(screen.scanAge,'Observation age unavailable');
  response={error:'denied'};await screen.runScan();assert.equal(screen.result,undefined);assert.equal(screen.score,'Not checked');assert.match(screen.error,/No checks are marked as passed/);assert.equal(screen.loading,false);
  console.log('Org health UI coverage, safe links, scoped reports, filters, groups and checklist navigation passed');

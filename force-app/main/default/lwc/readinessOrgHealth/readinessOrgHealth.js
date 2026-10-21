@@ -14,6 +14,33 @@ const SETUP_LINKS = new Set([
 const safeLink = value => SETUP_LINKS.has(value) ? value : undefined;
 export default class ReadinessOrgHealth extends LightningElement {
     result;
+    selectedFinding;
+    columns = [
+        { label: 'Severity', fieldName: 'severity', initialWidth: 100 },
+        { label: 'Result', fieldName: 'statusLabel', wrapText: true, initialWidth: 140 },
+        { label: 'Check', fieldName: 'label', wrapText: true },
+        { label: 'Group', fieldName: 'group', wrapText: true },
+        { label: 'Actual value', fieldName: 'actual', wrapText: true, initialWidth: 240 },
+        { label: 'Expected value', fieldName: 'expected', wrapText: true, initialWidth: 240 },
+        { label: 'Action', fieldName: 'action', wrapText: true },
+        { type: 'action', typeAttributes: { rowActions: [{ label: 'View details and next steps', name: 'details' }] } }
+    ];
+    focusFindingDetails = false;
+    renderedCallback() {
+        if (!this.focusFindingDetails) return;
+        const details = this.template.querySelector('[data-finding-details]');
+        if (details) {
+            this.focusFindingDetails = false;
+            details.scrollIntoView({ block: 'nearest' });
+            details.focus();
+        }
+    }
+    handleFindingAction(event) {
+        this.selectedFinding = this.findings.find(row => row.id === event.detail.row.id);
+        this.focusFindingDetails = Boolean(this.selectedFinding);
+    }
+    closeFindingDetails() { this.selectedFinding = undefined; }
+
     stale = false;
     recordedBy;
     @api focusFindings() {
@@ -36,6 +63,7 @@ export default class ReadinessOrgHealth extends LightningElement {
         this.stale = false;
         const result = typeof report === 'string' ? JSON.parse(report) : report;
         if (!result || result.error || !Array.isArray(result.findings) || !Number.isFinite(result.coverage)) throw new Error('Unavailable');
+        this.selectedFinding = undefined;
         this.result = result;
         if (!this.findings.some(row => row.group === this.categoryFilter)) this.categoryFilter = 'all';
         this.recordedBy = result.recordedBy;
@@ -43,9 +71,10 @@ export default class ReadinessOrgHealth extends LightningElement {
     }
     handleFilter(event) {
         const key = event.target.dataset.filter;
+        this.selectedFinding = undefined;
         if (['statusFilter', 'severityFilter', 'categoryFilter'].includes(key)) this[key] = event.detail?.value ?? event.target.value;
     }
-    clearFilters() { this.statusFilter = 'all'; this.severityFilter = 'all'; this.categoryFilter = 'all'; }
+    clearFilters() { this.selectedFinding = undefined; this.statusFilter = 'all'; this.severityFilter = 'all'; this.categoryFilter = 'all'; }
     openChecklist(event) {
         const finding = this.findings.find(row => row.id === event.currentTarget.dataset.id);
         if (finding?.hasChecklist) this.dispatchEvent(new CustomEvent('openchecklist', { detail: {
@@ -106,7 +135,7 @@ export default class ReadinessOrgHealth extends LightningElement {
         (this.statusFilter === 'all' || row.status === this.statusFilter) &&
         (this.severityFilter === 'all' || row.severity === this.severityFilter) &&
         (this.categoryFilter === 'all' || row.group === this.categoryFilter)); }
-    handleCategoryTab(event) { this.categoryFilter = event.target.value; }
+    handleCategoryTab(event) { this.categoryFilter = event.target.value; this.selectedFinding = undefined; }
     get findingGroups() {
         const groups = new Map(this.findings.map(row => [row.group, []]));
         this.findings.filter(row =>

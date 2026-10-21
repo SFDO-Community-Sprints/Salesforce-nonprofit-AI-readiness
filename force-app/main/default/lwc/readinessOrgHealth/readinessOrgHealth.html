@@ -27,10 +27,21 @@
             <lightning-tabset active-tab-value={categoryFilter}>
             <template for:each={findingTabs} for:item="group">
                 <lightning-tab key={group.value} value={group.value} label={group.summary} onactive={handleCategoryTab}>
-                    <div class="table-wrap"><table><caption class="slds-assistive-text">{group.label} findings</caption><thead><tr><th scope="col">Severity / result</th><th scope="col">Check</th><th scope="col">Group</th><th scope="col">Actual value</th><th scope="col">Expected value</th><th scope="col">Action</th></tr></thead><tbody><template for:each={group.rows} for:item="finding"><tr key={finding.id}><td><strong>{finding.severity}</strong><span class={finding.badgeClass}>{finding.statusLabel}</span></td><th scope="row">{finding.label}</th><td>{finding.group}</td><td>{finding.actual}</td><td>{finding.expected}</td><td><template lwc:if={finding.safeUrl}><a href={finding.safeUrl}>{finding.action}</a></template><template lwc:else>{finding.action}</template><template lwc:if={finding.hasChecklist}><button type="button" data-id={finding.id} onclick={openChecklist}>Answer in checklist</button></template><details class="advice"><summary>Why and how to address this</summary><p>{finding.why}</p><p>{finding.how}</p></details></td></tr></template></tbody></table></div>
+                    <lightning-datatable key-field="id" data={group.rows} columns={columns} hide-checkbox-column onrowaction={handleFindingAction} aria-label={group.label}></lightning-datatable>
                 </lightning-tab>
             </template>
             </lightning-tabset>
+            <template lwc:if={selectedFinding}>
+                <lightning-card title={selectedFinding.label} class="finding-details">
+                    <lightning-button slot="actions" label="Close details" onclick={closeFindingDetails}></lightning-button>
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium" data-finding-details tabindex="-1">
+                        <p class="slds-m-bottom_small">{selectedFinding.why}</p>
+                        <p class="slds-m-bottom_small">{selectedFinding.how}</p>
+                        <template lwc:if={selectedFinding.safeUrl}><a href={selectedFinding.safeUrl}>{selectedFinding.action}</a></template>
+                        <template lwc:if={selectedFinding.hasChecklist}><lightning-button class="slds-m-left_small" label="Answer in checklist" data-id={selectedFinding.id} onclick={openChecklist}></lightning-button></template>
+                    </div>
+                </lightning-card>
+            </template>
         </template>
         <template lwc:else><template lwc:if={loading}></template><template lwc:else><template lwc:if={error}></template><template lwc:else><p>Run assessment to measure AI readiness health and see the settings that need attention.</p></template></template></template>
     </section>
