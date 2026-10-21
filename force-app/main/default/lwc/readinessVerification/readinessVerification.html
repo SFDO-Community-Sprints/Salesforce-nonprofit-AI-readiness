@@ -1,7 +1,9 @@
 <template>
+    <lightning-card title="Safeguard tests">
+    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
     <section class="safeguards" aria-label="Safeguard tests">
         <header class="page-header">
-            <div><h2>Safeguard tests</h2><p>Check whether this app respects access permissions and blocks actions you are not allowed to take.</p><p class="scope">Tests use your signed-in Salesforce account. Your AI assistant may have different access.</p></div>
+            <div><p>Check whether this app respects access permissions and blocks actions you are not allowed to take.</p><p class="scope">Tests use your signed-in Salesforce account. Your AI assistant may have different access.</p></div>
             <lightning-button label="Run safeguard tests" variant="brand" onclick={runChecks} disabled={busy}></lightning-button>
         </header>
         <template lwc:if={busy}><p class="status" role="status">Working… Please wait.</p></template>
@@ -12,7 +14,7 @@
             <h3>What we tested</h3>
             <div class="test-list"><template for:each={checks} for:item="check"><article class="test" key={check.id}><div class="test-heading"><h4>{check.question}</h4><span class={check.badgeClass}>{check.outcome}</span></div><p>{check.explanation}</p><p class="next"><strong>Next step:</strong> {check.nextStep}</p></article></template></div>
         </template>
-        <template lwc:else><p class="empty">Choose Run safeguard tests, or Run assessment at the top of the page. No tests have run in this view yet.</p></template>
+        <template lwc:else><p class="empty">Choose Run safeguard tests. No tests have run in this view yet.</p></template>
         <section class="remaining"><h3>Still to test with your AI assistant</h3><p>These app checks do not prove how your assistant behaves. Ask your Salesforce administrator and AI owner to complete the checks below.</p><ul><template for:each={gaps} for:item="gap"><li key={gap.id}><strong>{gap.title}</strong><span>{gap.instruction}</span><span class="badge unknown">Not checked</span></li></template></ul></section>
         <h3 class="actions-heading">Optional actions</h3><p class="scope">These actions change this scratch org or pause the app. They do not run automatically.</p>
         <div class="optional-actions">
@@ -25,4 +27,6 @@
         </div>
         <details class="technical"><summary>Technical details and audit log</summary><p class="scope">{runtimeScope}</p><template lwc:if={runtime}><p>{monitoring}</p><a href="/lightning/o/Readiness_Operation__c/list">Open test event log</a><ul><template for:each={technicalChecks} for:item="check"><li key={check.id}><strong>{check.label}: {check.outcome}</strong><p>{check.basis}</p></li></template></ul></template><template lwc:if={erasure}><p class="scope">Deletion test org: {expectedHost}. Cleanup: {erasure.cleanup}.</p></template></details>
     </section>
+    </div>
+    </lightning-card>
 </template>

@@ -1,6 +1,7 @@
 <template>
-    <section class="review" aria-labelledby="staff-title">
-        <h2 id="staff-title" class="slds-text-heading_medium">Staff readiness exercises</h2>
+    <lightning-card title="Staff readiness exercises">
+    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+    <section class="review" aria-label="Staff readiness exercises">
         <p class="slds-m-top_small">Saved outcomes cover your reviewed fictional exercises, not every staff member. Missing observations remain unknown.</p>
         <template lwc:if={canReview}>
         <p class="slds-m-top_x-small">Use an evidence reference such as TRAINING-001. Keep names, personal details and sensitive notes outside this form.</p>
@@ -73,4 +74,6 @@
         <template lwc:elseif={canRead}><p class="slds-m-top_medium">You can read your calculated staff outcomes. Recording observations requires separate Readiness Staff Reviewer access.</p></template>
         <template lwc:else><p class="slds-m-top_medium">Viewing saved staff outcomes requires Readiness Staff Reader or Readiness Staff Reviewer access. Staff readiness remains unknown.</p></template>
     </section>
+    </div>
+    </lightning-card>
 </template>

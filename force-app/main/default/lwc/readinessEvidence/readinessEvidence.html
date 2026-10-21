@@ -1,6 +1,7 @@
 <template>
-    <section aria-label="Additional readiness checks" class="slds-m-top_large">
-        <h2 class="slds-text-heading_medium">Additional readiness checks</h2>
+    <lightning-card title="Evidence reviews">
+    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+    <section aria-label="Additional readiness checks" class="slds-is-relative">
         <p>These read-only checks do not change org data. Results are shown for this session; no evidence is saved.</p>
         <h3 class="slds-text-heading_small slds-m-top_medium">Data freshness</h3>
         <p>Use an agreed policy for Contact LastActivityDate over inclusive UTC calendar days. Recent activity does not establish that a record is accurate or complete. No policy is assumed.</p>
@@ -64,4 +65,6 @@
         <template lwc:if={busy}><p role="status">Assessing…</p></template>
         <template lwc:if={error}><p role="alert" class="slds-text-color_error">{error}</p></template>
     </section>
+    </div>
+    </lightning-card>
 </template>

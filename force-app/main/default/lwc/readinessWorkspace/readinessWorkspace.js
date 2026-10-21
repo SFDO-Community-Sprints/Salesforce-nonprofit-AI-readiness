@@ -127,8 +127,26 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
                 reviewAge:ageLabel(answer.reviewDate), audit:answer.updatedAt ? `Last saved ${answer.updatedAt} by ${answer.updatedBy || 'recorded reviewer'}` : 'Not yet saved', overdue:Boolean(answer.dueDate && answer.dueDate < today && answer.answer !== 'yes'), unassigned:!answer.responsible && answer.answer !== 'yes'};
         }).filter(row => this.accountability === 'all' || row[this.accountability]);
     }
-    get historyOptions() { return [{label:'Select a saved assessment',value:''}, ...this.data.history.filter(row => !this.selectedId || row.useCaseId === this.selectedId).map(row => ({label:`${row.name || row.observedAt} | ${row.actor || 'Recorded actor'} | ${row.score ?? 'Unknown'}% | coverage ${row.coverage ?? 0}%`,value:row.id}))]; }
-    get snapshotRows() { return [{key:'first',label:'Saved assessment',report:this.historyReport}, {key:'second',label:'Comparison',report:this.comparisonReport}].filter(row => row.report).map(row => ({...row, assessmentId:row.report.assessmentId || (row.key === 'first' ? this.historyId : this.comparisonId), useCaseId:row.report.useCaseId || 'Organization', age:ageLabel(row.report.observedAt), scopeDetails:scopeDetails(row.report.scopeDefinition), scope:typeof row.report.scope === 'string' ? row.report.scope : JSON.stringify(row.report.scope), version:row.report.version, observedAt:row.report.observedAt, score:row.report.score == null ? 'Unknown' : `${row.report.score}%`, coverage:`${row.report.coverage ?? 0}%`, passed:row.report.passed ?? 0, failed:row.report.failed ?? 0, unknown:row.report.unknown ?? 0, findings:(row.report.findings || []).map((finding,index) => ({...finding,key:`${row.key}-${index}`,title:finding.label || finding.title || finding.id,outcome:finding.status || finding.outcome,action:finding.action || finding.recommendation}))})); }
+    historyColumns = [
+        {label:'Assessment',fieldName:'name'}, {label:'Observed',fieldName:'observedAt',type:'date'},
+        {label:'Implementation',fieldName:'implementation'}, {label:'Score',fieldName:'scoreLabel'}, {label:'Checks completed',fieldName:'coverageLabel'},
+        {type:'button',typeAttributes:{label:'Review',name:'review'}}, {type:'button',typeAttributes:{label:'Compare',name:'compare'}}
+    ];
+    get showImplementationSelector() { return this.mode !== 'history'; }
+    get historyRows() { return this.data.history.filter(row => !this.selectedId || row.useCaseId === this.selectedId).map(row => ({
+        ...row, name:row.name || 'Saved assessment', observedAt:row.observedAt || 'Not recorded',
+        implementation:row.useCaseId ? this.data.useCases.find(useCase => useCase.id === row.useCaseId)?.name || 'Implementation not visible' : 'Organization',
+        scoreLabel:row.score == null ? 'Unknown' : `${row.score}%`, coverageLabel:`${row.coverage ?? 0}%`,
+        reviewLabel:`Review ${row.name || 'saved assessment'}`, compareLabel:`Compare ${row.name || 'saved assessment'}`,
+        selectedLabel:row.id === this.historyId ? 'Reviewing' : row.id === this.comparisonId ? 'Comparing' : ''
+    })); }
+    get noHistory() { return this.historyRows.length === 0; }
+    reviewHistory(event) {
+        const {action,row}=event.detail || {};
+        if (!row?.id || !['review','compare'].includes(action?.name)) return;
+        return this.chooseHistory({detail:{value:row.id},target:{dataset:{comparison:action.name === 'compare' ? 'true' : 'false'}}});
+    }
+    get snapshotRows() { return [{key:'first',label:'Saved assessment',report:this.historyReport}, {key:'second',label:'Comparison',report:this.comparisonReport}].filter(row => row.report).map(row => ({...row, name:this.data.history.find(saved => saved.id === (row.key === 'first' ? this.historyId : this.comparisonId))?.name || row.label, implementation:row.report.useCaseId ? this.data.useCases.find(useCase => useCase.id === row.report.useCaseId)?.name || 'Implementation not visible' : 'Organization', assessmentId:row.report.assessmentId || (row.key === 'first' ? this.historyId : this.comparisonId), useCaseId:row.report.useCaseId || 'Organization', age:ageLabel(row.report.observedAt), scopeDetails:scopeDetails(row.report.scopeDefinition), scope:typeof row.report.scope === 'string' ? row.report.scope : JSON.stringify(row.report.scope), version:row.report.version, observedAt:row.report.observedAt, score:row.report.score == null ? 'Unknown' : `${row.report.score}%`, coverage:`${row.report.coverage ?? 0}%`, passed:row.report.passed ?? 0, failed:row.report.failed ?? 0, unknown:row.report.unknown ?? 0, findings:(row.report.findings || []).map((finding,index) => ({...finding,key:`${row.key}-${index}`,title:finding.label || finding.title || finding.id,outcome:finding.status || finding.outcome,action:finding.action || finding.recommendation}))})); }
     get comparisonWarning() {
         if (!this.historyReport || !this.comparisonReport) return '';
         return this.historyReport.useCaseId !== this.comparisonReport.useCaseId || JSON.stringify(this.historyReport.scopeDefinition || this.historyReport.scope) !== JSON.stringify(this.comparisonReport.scopeDefinition || this.comparisonReport.scope) || this.historyReport.version !== this.comparisonReport.version ? 'Scope or rubric differs. These scores are not directly comparable.' : 'Same saved scope and rubric. Compare individual findings as well as score and coverage.';
@@ -217,6 +235,8 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
     async chooseHistory(event) {
         const comparison = event.target.dataset.comparison === 'true';
         const id = event.detail.value;
+        if (comparison && id && id === this.historyId) { this.comparisonId=''; this.comparisonReport=undefined; this.message='Choose a different saved assessment to compare. This scan is already being reviewed.'; return; }
+        if (!comparison && id && id === this.comparisonId) { this.comparisonId=''; this.comparisonReport=undefined; }
         if (comparison) { this.comparisonId=id; this.comparisonReport=undefined; }
         else { this.historyId=id; this.historyReport=undefined; }
         if (!id) return;

@@ -1,11 +1,11 @@
 <template>
-    <section aria-label="AI implementation workspace" class="workspace">
-        <h2>{pageTitle}</h2>
+    <lightning-card title={pageTitle}>
+    <section aria-label="AI implementation workspace" class="slds-p-around_medium">
         <p>{pageDescription}</p>
         <template lwc:if={busy}><lightning-spinner size="small" alternative-text="Loading workspace"></lightning-spinner></template>
         <template lwc:if={error}><p role="alert" class="error">{error}</p></template>
         <template lwc:if={message}><p role="status">{message}</p></template>
-        <lightning-combobox label="Implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox>
+        <template lwc:if={showImplementationSelector}><lightning-combobox label="Implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox></template>
         <template lwc:if={showCases}>
         <details data-case-form>
             <summary>Implementation purpose, scope and responsibility</summary>
@@ -63,31 +63,40 @@
         <template lwc:if={showHistory}>
         <template lwc:if={combinedMode}><h2>Saved assessment history</h2></template>
         <p>Each assessment retains its own time, actor, scope and rubric. Later scans do not rewrite earlier findings.</p>
-        <div class="fields">
-            <lightning-combobox label="Saved assessment" value={historyId} options={historyOptions} onchange={chooseHistory} disabled={busy}></lightning-combobox>
-            <lightning-combobox label="Compare with" value={comparisonId} options={historyOptions} data-comparison="true" onchange={chooseHistory} disabled={busy}></lightning-combobox>
-        </div>
+        <p>Choose Review to open one scan, then Compare on another to inspect the differences. These saved scans cannot be edited.</p>
+        <lightning-combobox label="Filter by implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox>
+        <template lwc:if={noHistory}><p>No saved assessments match this filter. Run an assessment with the Assessment Recorder role to save a scan.</p></template>
+        <template lwc:else>
+            <lightning-datatable key-field="id" data={historyRows} columns={historyColumns} onrowaction={reviewHistory} hide-checkbox-column></lightning-datatable>
+        </template>
         <p role="status">{comparisonWarning}</p>
         <div class="fields">
             <template for:each={snapshotRows} for:item="snapshot">
-                <section key={snapshot.key} class="snapshot" aria-label={snapshot.label}>
-                    <h3>{snapshot.label}</h3>
-                    <p>Saved assessment: {snapshot.assessmentId} | Implementation: {snapshot.useCaseId}</p>
+                <lightning-card key={snapshot.key} title={snapshot.name} icon-name="standard:report">
+                    <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                    <p>{snapshot.label}: {snapshot.implementation}</p>
+                    <lightning-accordion allow-multiple-sections-open><lightning-accordion-section name="metadata" label="Assessment details">
+                    <p>Saved assessment ID: {snapshot.assessmentId} | Implementation reference: {snapshot.useCaseId}</p>
                     <p>Scope: {snapshot.scope}</p>
-                    <details><summary>Recorded scope definition</summary><template for:each={snapshot.scopeDetails} for:item="detail"><p key={detail.key}>{detail.label}: {detail.value}</p></template></details>
+                    <template for:each={snapshot.scopeDetails} for:item="detail"><p key={detail.key}>{detail.label}: {detail.value}</p></template>
+                    </lightning-accordion-section></lightning-accordion>
                     <p>Rubric: {snapshot.version} | Observed: {snapshot.observedAt}</p>
                     <p>{snapshot.age}. This is a saved observation. Run a new assessment to obtain current data; apply your approved review policy.</p>
                     <p>Score: {snapshot.score} | Checks completed: {snapshot.coverage}</p>
                     <p>Passed: {snapshot.passed} | Needs attention: {snapshot.failed} | Unknown: {snapshot.unknown}</p>
+                    <lightning-accordion allow-multiple-sections-open>
                     <template for:each={snapshot.findings} for:item="finding">
-                        <article key={finding.key}>
-                            <h3>{finding.title}</h3><p>{finding.outcome}</p>
+                        <lightning-accordion-section key={finding.key} name={finding.key} label={finding.title}>
+                            <p>{finding.outcome}</p>
                             <p>Actual: {finding.actual}</p><p>Expected: {finding.expected}</p><p>{finding.action}</p>
-                        </article>
+                        </lightning-accordion-section>
                     </template>
-                </section>
+                    </lightning-accordion>
+                    </div>
+                </lightning-card>
             </template>
         </div>
         </template>
     </section>
+    </lightning-card>
 </template>
