@@ -156,3 +156,13 @@ The existing REF-1–REF-6 implementations remain complete; this is the narrower
 - [x] REF-9 — Expose stage progress for existing guided checklists using saved answered/unanswered/accountable counts per selected scope. Stage navigation must not save answers implicitly or equate completed policy answers with executed safeguards or human competency.
 
 Native record Findings, white cards, warning/registration and the three visible-gap improvements were deployed and desktop-verified in DEPLOY-61; this audit does not reopen their existing components. Actual assistant, external erasure and human acceptance remain separate requirements.
+
+## UI/UX follow-up review, 21 October 2026
+
+- [x] Group the use-case editor, show required fields, focus opened editors and invalid inputs, and use appropriate single-line controls.
+- [x] Limit implementation selection to Implementation checklists; explain empty gap filters with a reset that preserves drafts.
+- [x] Add comparison reset, readable outcomes and timestamp times; clarify recent-history scope and practice-answer coverage.
+- [x] Commit/sync `413d086`; Salesforce dry-run `0AfJW00000ngmC70AI` compiled both components; local suite passed 126 tests and ten UI checks; Serpent DEPLOY-69 (`0AfPw00000as91aKAA`) deployed 2/2 components with zero failures.
+- [ ] Repeat final rendered checks of the changed editor, empty-filter reset, comparison reset and practice wording. The pre-change desktop walkthrough reproduced the issues, but concurrent Edge activity interrupted the post-deployment recheck. No final visual pass is asserted. Existing mobile, assistive-technology and focused-role checks remain open.
+
+Unsaved drafts are retained only within the current workspace page; leaving an app tab or refreshing can discard them. The new notice makes this explicit. This review does not add cross-tab draft persistence or change assessment scoring/permissions.
