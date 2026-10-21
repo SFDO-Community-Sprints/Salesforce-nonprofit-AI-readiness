@@ -35,10 +35,14 @@ Final action/sorting corrections deployed through Serpent DEPLOY-30 (`6ad752ac70
 
 ## Category tabs — 20 October 2026
 
-Serpent DEPLOY-34 (`6ad758169aee7ce85c4bc303`) deployed both updated Lightning bundles successfully (2/2 components), including the prior equal-width Actual/Expected columns. Overview retains AI readiness findings and recommended actions. Contact data, package configuration, licenses/features, verification, evidence/freshness and staff exercises have separate panels. Panels remain mounted so switching categories retains results and unsaved form inputs.
+Serpent DEPLOY-34 (`6ad758169aee7ce85c4bc303`) deployed both updated Lightning bundles successfully (2/2 components), including the prior equal-width Actual/Expected columns. Overview retains AI readiness findings and recommended actions. That deployed version placed Contact data, package configuration, licenses/features, verification, evidence/freshness and staff exercises in separate inner panels. The 21 October navigation correction described below supersedes that layout. Panels remain mounted so switching categories retains results and unsaved form inputs.
 
 Validation: Salesforce compiled the parent component in the validation scratch org; all eight Node checks passed, including selected-tab state and keyboard navigation. Live desktop inspection verified the Overview findings, isolated Contact summary/checks, retained staff answers and View recommended actions returning to Overview and focusing its heading. Mobile tab interaction was not checked.
 
 ## Implementation workspace extension, 21 October 2026
 
 The current public scan adds separately identified Company/Org governance findings and uses rubric `ai-readiness-health-v2`. Scoped implementation scans replace organization Contact rows with the selected grounding collectors, retain explicitly shared configuration and current-user evidence, and add implementation policy findings. Reported policy passes never replace actual safeguard gaps. Organization and scoped denominators differ by design; each report stores its scope definition and rubric. Existing October 20 results above remain historical v1 evidence, not current v2 scores. See the [workspace guide](implementation-workspace.md).
+
+## Standard app navigation correction, 21 October 2026
+
+AI Readiness retains Overview with findings and three detail panels: Contact data, Package configuration and Licenses and features. Use cases, Checklists, Assessment history, Staff exercises, Safeguard tests and Evidence reviews are separate standard Salesforce app pages. Exact checklist-question links and saved scoped reports use Salesforce navigation state. The local route tests cover this contract; clean-session rendered acceptance remains a separate gate in [TODO](../TODO.md).

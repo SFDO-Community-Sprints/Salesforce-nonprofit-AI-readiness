@@ -54,4 +54,7 @@
         <object>Readiness_Answer__c</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
+    <tabSettings><tab>AI_Use_Cases</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Checklists</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Assessment_History</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

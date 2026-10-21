@@ -5,4 +5,5 @@
     <description>Read your own calculated staff exercise outcomes through the fixed summary method. No raw review record, assessment, write, connection or Task grants.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Readiness Staff Reader</label>
+    <tabSettings><tab>AI_Staff_Exercises</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

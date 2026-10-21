@@ -61,8 +61,11 @@ class PermissionScopeTests(unittest.TestCase):
         for grant in root.findall('m:fieldPermissions', NS):
             for key in ('editable', 'readable'):
                 self.assertEqual(grant.find('m:' + key, NS).text, 'true')
-        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities', 'tabSettings'):
+        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities'):
             self.assertEqual(root.findall('m:' + group, NS), [], group)
+
+        self.assertEqual(names(root, 'tabSettings', 'tab'), {'AI_Use_Cases', 'AI_Checklists', 'AI_Assessment_History'})
+        self.assertTrue(all(node.find('m:visibility', NS).text == 'Visible' for node in root.findall('m:tabSettings', NS)))
 
     def test_assessment_recorder_only_creates_and_reads_snapshots(self):
         root = role('Readiness_Assessment_Recorder')
@@ -80,8 +83,11 @@ class PermissionScopeTests(unittest.TestCase):
         for grant in root.findall('m:fieldPermissions', NS):
             for key in ('editable', 'readable'):
                 self.assertEqual(grant.find('m:' + key, NS).text, 'true')
-        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities', 'tabSettings'):
+        for group in ('userPermissions', 'agentAccesses', 'applicationVisibilities'):
             self.assertEqual(root.findall('m:' + group, NS), [], group)
+
+        self.assertEqual(names(root, 'tabSettings', 'tab'), {'AI_Assessment_History'})
+        self.assertEqual(root.find('m:tabSettings/m:visibility', NS).text, 'Visible')
 
     def test_evidence_reviewer_has_only_evaluator_access(self):
         root = role('Readiness_Evidence_Reviewer')

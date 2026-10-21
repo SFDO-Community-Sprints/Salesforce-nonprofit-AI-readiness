@@ -138,4 +138,10 @@
         <tab>AI_Readiness</tab>
         <visibility>Visible</visibility>
     </tabSettings>
+    <tabSettings><tab>AI_Use_Cases</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Checklists</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Assessment_History</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Staff_Exercises</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Safeguard_Tests</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>AI_Evidence_Reviews</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

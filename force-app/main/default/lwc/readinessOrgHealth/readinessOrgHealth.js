@@ -22,6 +22,7 @@ export default class ReadinessOrgHealth extends LightningElement {
             heading.focus({preventScroll:true});
         }
     }
+    @api clearReport() { this.result = undefined; this.error = undefined; this.stale = false; }
     @api markStale() { this.stale = true; }
     get historyNotice() { return this.result?.historyMessage; }
     loading = false;

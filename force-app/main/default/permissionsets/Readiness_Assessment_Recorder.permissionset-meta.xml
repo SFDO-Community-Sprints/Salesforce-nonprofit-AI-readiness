@@ -35,4 +35,5 @@
         <object>Readiness_Assessment__c</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
+    <tabSettings><tab>AI_Assessment_History</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

@@ -1,4 +1,6 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, wire } from 'lwc';
+import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
+import loadHistory from '@salesforce/apex/ReadinessWorkspace.loadHistory';
 import hasFollowUpPermission from '@salesforce/customPermission/Readiness_Create_Follow_Up';
 import assess from '@salesforce/apex/NonprofitAIReadiness.assessScenario';
 import createFollowUpTasks from '@salesforce/apex/NonprofitAIReadiness.createFollowUpTasks';
@@ -47,12 +49,12 @@ function priorityDetails(key, metrics = {}) {
     }
 }
 
-export default class NonprofitAIReadiness extends LightningElement {
+export default class NonprofitAIReadiness extends NavigationMixin(LightningElement) {
     activeResultTab = 'overview';
     scopedOverview = false;
     get showOrganizationRecommendations() { return Boolean(this.result) && !this.scopedOverview; }
     get resultTabs() {
-        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features'],['verification','Safeguard tests'],['evidence','Evidence and freshness'],['staff','Staff exercises'],['workspace','Use cases and checklists']].map(([value,label]) => ({
+        return [['overview','Overview'],['contacts','Contact data'],['configuration','Package configuration'],['licenses','Licenses and features']].map(([value,label]) => ({
             value, label, id: `readiness-tab-${value}`, panelId: `readiness-panel-${value}`,
             selected: this.activeResultTab === value ? 'true' : 'false',
             tabIndex: this.activeResultTab === value ? 0 : -1,
@@ -63,23 +65,53 @@ export default class NonprofitAIReadiness extends LightningElement {
     get hideContacts() { return this.activeResultTab !== 'contacts'; }
     get hideConfiguration() { return this.activeResultTab !== 'configuration'; }
     get hideLicenses() { return this.activeResultTab !== 'licenses'; }
-    get hideVerification() { return this.activeResultTab !== 'verification'; }
-    get hideEvidence() { return this.activeResultTab !== 'evidence'; }
-    get hideWorkspace() { return this.activeResultTab !== 'workspace'; }
+    pendingReport;
+    routedAssessmentId;
+    routeRequest = 0;
+    @wire(CurrentPageReference)
+    async pageReferenceChanged(reference) {
+        if (reference?.attributes?.apiName !== 'AI_Readiness') return;
+        const id = reference.state?.c__assessmentId;
+        if (!id || id === this.routedAssessmentId) return;
+        this.routedAssessmentId = id;
+        const request = ++this.routeRequest;
+        this.loading = true;
+        this.error = undefined;
+        this.result = undefined;
+        this.scopedOverview = false;
+        this.template.querySelector('c-readiness-org-health')?.clearReport();
+        this.pendingReport = undefined;
+        try {
+            const report = JSON.parse(await loadHistory({assessmentId:id}));
+            if (!Array.isArray(report.findings) || !Number.isFinite(report.coverage) || report.error) throw new Error('Unavailable');
+            if (request !== this.routeRequest) return;
+            this.pendingReport = report;
+            this.handleScopedResult({detail:{report}});
+        } catch (error) {
+            if (request === this.routeRequest) {
+                this.routedAssessmentId = undefined;
+                this.error = 'Saved assessment could not be opened with your access. Open Assessment history or run a new assessment.';
+            }
+        } finally { if (request === this.routeRequest) this.loading = false; }
+    }
+    renderedCallback() {
+        if (!this.pendingReport) return;
+        const health = this.template.querySelector('c-readiness-org-health');
+        if (health) { health.displayReport(this.pendingReport); this.pendingReport = undefined; }
+    }
     handleOpenChecklist(event) {
-        this.activeResultTab = 'workspace';
-        Promise.resolve().then(() => this.template.querySelector('c-readiness-workspace')?.openChecklist(event.detail));
+        const {questionId,scope,useCaseId} = event.detail;
+        const state = {};
+        if (questionId) state.c__questionId = questionId;
+        if (scope) state.c__scope = scope;
+        if (useCaseId) state.c__useCaseId = useCaseId;
+        this[NavigationMixin.Navigate]({type:'standard__navItemPage',attributes:{apiName:'AI_Checklists'},state});
     }
     handleScopedResult(event) {
         this.scopedOverview = true;
         this.activeResultTab = 'overview';
         this.template.querySelector('c-readiness-org-health')?.displayReport(event.detail.report);
     }
-    async handleWorkspaceChange() {
-        this.template.querySelector('c-readiness-org-health')?.markStale();
-        await this.template.querySelector('c-readiness-workspace')?.load();
-    }
-    get hideStaff() { return this.activeResultTab !== 'staff'; }
     handleResultTab(event) {
         const value = event.currentTarget.dataset.tab;
         if (this.resultTabs.some(tab => tab.value === value)) this.activeResultTab = value;
@@ -115,19 +147,10 @@ export default class NonprofitAIReadiness extends LightningElement {
         this.scenario = event.detail.value;
         this.result = undefined;
         this.staffReview = undefined;
-        this.safeguardEvidence = undefined;
-        this.erasureEvidence = undefined;
         this.lastChecked = undefined;
         this.error = undefined;
         this.taskMessage = undefined;
         this.taskError = undefined;
-    }
-    handleVerificationChange() { this.template?.querySelector?.('c-readiness-org-health')?.runScan(); }
-    safeguardEvidence;
-    erasureEvidence;
-    handleEvidenceReview(event) {
-        if (event.detail.kind === 'safeguards') this.safeguardEvidence = event.detail.result;
-        if (event.detail.kind === 'erasure') this.erasureEvidence = event.detail.result;
     }
     orgConfiguration;
     orgConfigurationError;
@@ -152,15 +175,9 @@ export default class NonprofitAIReadiness extends LightningElement {
     inventory;
     inventoryError;
     staffReview;
-    refreshAfterAssessment = false;
     get staffPractice() { return this.staffReview?.provenance === 'seeded_practice' || this.staffReview?.source === 'seeded_practice'; }
     get staffScore() { return this.staffReview?.staff?.score == null ? 'Not assessed' : `${this.staffPractice ? 'Practice answers: ' : ''}${this.staffReview.staff.score}%`; }
     get staffCoverage() { return this.staffPractice ? 'Seeded input records; no observed staff competency' : this.staffReview ? `Checks completed: ${this.staffReview.staff.coverage}%. Your reviewed exercises only.` : 'Staff practice and review required'; }
-    async handleStaffReview(event) {
-        this.staffReview = event.detail;
-        if (this.loading) { this.refreshAfterAssessment = true; return; }
-        if (this.result) { await this.handleRun(); }
-    }
     get licenses() { return (this.inventory?.licenses || []).map(item => ({ ...item, total: item.total == null ? 'Not specified' : item.total, remaining: item.remaining == null ? 'Not specified' : item.remaining, key: `${item.kind}:${item.name}` })); }
     get capabilities() {
         return (this.inventory?.capabilities || []).map(item => ({
@@ -270,6 +287,8 @@ export default class NonprofitAIReadiness extends LightningElement {
     }
     async handleRun() {
         if (this.assessmentDisabled) return;
+        ++this.routeRequest;
+        this.pendingReport = undefined;
         this.scopedOverview = false;
         this.loading = true;
         this.error = undefined;
@@ -289,7 +308,6 @@ export default class NonprofitAIReadiness extends LightningElement {
             this.orgConfigurationError = 'Organization configuration unavailable for your access. These checks are not assessed.';
         });
         const healthRequest = this.template?.querySelector?.('c-readiness-org-health')?.runScan();
-        const verificationRequest = this.template?.querySelector?.('c-readiness-verification')?.runChecks();
         const inventoryRequest = capabilityInventory().then(value => {
             const inventory = JSON.parse(value);
             if (inventory.error) { throw new Error('Inventory unavailable'); }
@@ -306,13 +324,8 @@ export default class NonprofitAIReadiness extends LightningElement {
         } catch (error) {
             this.error = 'Assessment unavailable. Ask your Salesforce administrator to check your access and assessment setup.';
         } finally {
-            await Promise.all([inventoryRequest, configurationRequest, verificationRequest, healthRequest]);
-            await this.template?.querySelector?.('c-readiness-workspace')?.load();
+            await Promise.all([inventoryRequest, configurationRequest, healthRequest]);
             this.loading = false;
-            if (this.refreshAfterAssessment) {
-                this.refreshAfterAssessment = false;
-                await this.handleRun();
-            }
         }
     }
 }

@@ -61,14 +61,14 @@ The current deployed demo runs inside Salesforce using Apex and Lightning Web Co
 1. Sign in to the prepared practice org supplied by the project maintainers.
 2. Open **Nonprofit AI Readiness** from the Salesforce App Launcher.
 3. Select **Run assessment**.
-4. Review **Overview** for AI readiness findings, then use the category tabs for Contact data, configuration, licenses, safeguard tests, evidence and staff exercises.
+4. Review **Overview** for AI readiness findings, then use the four assessment tabs for Overview, Contact data, configuration and licenses. Open Staff exercises, Safeguard tests and Evidence reviews from the Salesforce app navigation.
 5. Review the actual value, expected outcome and recommended action for each finding.
 
 The records used for demonstrations are fictional. The assessment reads current org configuration, accessible data and recorded inputs; it does not load a preset readiness score. Changing the demo data and rerunning the assessment can change the result. Seeded staff answers remain practice inputs and do not establish human competency.
 
 Deletion testing and pause/resume are separate explicit actions. Running an assessment does not create follow-up Tasks or automatically perform a deletion test. Use a disposable practice org for active exercises.
 
-Register an AI implementation, complete its guided checklists and compare saved scans in **Use cases and checklists**. See the [workspace walkthrough](references/implementation-workspace.md).
+Use the Salesforce app navigation to open **AI use cases**, **Guided checklists** and **Assessment history**. Register an implementation, complete its checklist and compare saved scans on those separate pages. See the [workspace walkthrough](references/implementation-workspace.md).
 
 ## Deploy and set up
 

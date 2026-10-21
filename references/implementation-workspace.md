@@ -1,10 +1,10 @@
 # AI implementation workspace
 
-The app now extends its existing health Overview with a **Use cases and checklists** tab. All collection, validation, persistence and scoring run in Salesforce. No Python service or local runtime is required to use these features.
+The app uses standard Salesforce app navigation for **AI Readiness**, **AI use cases**, **Guided checklists**, **Assessment history**, **Staff exercises**, **Safeguard tests** and **Evidence reviews**. AI Readiness keeps four assessment panels: Overview, Contact data, Package configuration and Licenses and features. All collection, validation, persistence and scoring run in Salesforce. No Python service or local runtime is required to use these features.
 
 ## Start with a use case
 
-Open Use cases and checklists, choose New implementation, and expand Implementation purpose, scope and responsibility. Record a name, business owner and purpose. Add the actual integration username when known, allowed/excluded actions, selected `Object.Field` grounding fields, value, success measures, risks, mitigation, handover, stop owner, costs/gains and accountable approver. Save before running a scoped assessment.
+Open AI use cases from the app navigation, choose New implementation, and expand Implementation purpose, scope and responsibility. Record a name, business owner and purpose. Add the actual integration username when known, allowed/excluded actions, selected `Object.Field` grounding fields, value, success measures, risks, mitigation, handover, stop owner, costs/gains and accountable approver. Save before running a scoped assessment.
 
 The integration username resolves to a real visible Salesforce user only with the separate Security Reader role. It does not impersonate that account. Data aggregates run with the scanning user's accessible records and fields. Intended-account configuration and actual assistant behavior remain distinct evidence.
 
@@ -14,7 +14,7 @@ Business lifecycle approval is a decision, not a readiness result. An Approved i
 
 ## Guided governance
 
-Company, Org and Implementation checklists have short stages and contextual advice. Company and Org answers are shared across the implementation choices within the viewer's authorized record scope; implementation answers are attached to the selected use case. Private record sharing controls what each reviewer can read or change.
+Open Guided checklists from the app navigation. Company, Org and Implementation checklists have short stages and contextual advice. Company and Org answers are shared across the implementation choices within the viewer's authorized record scope; implementation answers are attached to the selected use case. Private record sharing controls what each reviewer can read or change.
 
 Answers are Yes, Partially, No or Not sure. Yes requires a responsible person/role, evidence reference and review date. A partial policy is not a pass; Not sure remains unknown. Notes, due dates, evidence and reviewer/time are retained. Filters show overdue and unassigned gaps. Each save appends a new answer instead of rewriting earlier evidence.
 
@@ -24,7 +24,7 @@ These are reported policies and responsibilities. They have separate finding ide
 
 Overview retains the health score, coverage and AI readiness findings. Filter by result, severity and category, expand a category or its advice, and use Answer in checklist to reach the exact manual question. Filter counts never change the full report's denominator. Actual and Expected columns retain equal widths. Changing governance marks the displayed scan as needing a rerun; saving an answer does not silently execute a new scan.
 
-With Assessment Recorder, organization and scoped scans save sanitized, versioned snapshots. History includes run identifier, actor, observation time, scope, rubric, totals, score and coverage. Select two saved assessments to compare their findings; scope or rubric changes produce a warning. Review and scan age are observations, not an invented expiry policy. Rerun for current evidence.
+With Assessment Recorder, organization and scoped scans save sanitized, versioned snapshots. Open Assessment history from the app navigation to review them. History includes run identifier, actor, observation time, scope, rubric, totals, score and coverage. A saved scoped scan opens the Overview with its saved scope and findings. If a report cannot be saved, it remains visible on the use-case page instead of being lost. Select two saved assessments to compare their findings; scope or rubric changes produce a warning. Review and scan age are observations, not an invented expiry policy. Rerun for current evidence.
 
 Snapshots contain no raw donor records, emails, private policy notes or evidence references. Identity and policy bindings are hashed in the scope definition. Server-side guards allow creation only through the validated service and reject later edits/deletes. Answer history is also append-only; use cases are edited through validation and retired rather than deleted. This is application-level evidence protection, not protection from an administrator changing deployed code.
 
@@ -61,3 +61,9 @@ These are application/scratch evidence. Actual assistant allow/deny/approval/sto
 Final history contract check used two actual saved reports read through Serpent MCP (`6ad8b498c248d67a734ab0b3`), one organization and one implementation report. The existing UI controller loaded their actual JSON, preserved 46/61 findings and all totals/IDs/dates, displayed grounding scope, and warned against cross-scope score comparison. This verifies the live backend/UI data contract; a complete browser comparison flow was not observed. The workspace history controls themselves were inspected in the rendered desktop app.
 
 Serpent metadata retrieve `6ad8b45ec248d67a734ab0ad` completed without saving changes to Git; it returned the workspace files and no diff for the requested parent/workspace JavaScript paths. An existing Lightning tab retained a stale action state after deployment, so older open tabs may require a cache-only hard reload. No browser security settings or sign-in cookies were changed. Workspace listing is bounded to the latest 100 accessible use cases, 2,000 answer versions and 30 reports per load; saved records remain in Salesforce.
+
+## Standard app navigation correction
+
+Use-case registration, guided checklists, saved history, staff exercises, safeguard tests and evidence reviews now have their own standard Salesforce app tabs. They are no longer embedded inside the assessment's local result tabs. Findings link to the exact checklist question through Salesforce page state; saved scoped reports route back to AI Readiness Overview by assessment identifier. Unsaved report results remain on the originating page.
+
+Local controller checks cover route state, delayed child rendering, ignored stale history responses, the four result tabs, exact question targeting and the unsaved-report fallback. Earlier rendered evidence above covers the prior embedded layout. Deployment and clean-session browser checks of this corrected navigation remain outstanding until separately recorded; mobile and assistive-technology behavior are not established by controller tests.

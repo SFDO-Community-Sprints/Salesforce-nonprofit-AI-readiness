@@ -7,4 +7,5 @@
 <fieldPermissions><editable>true</editable><field>AI_Readiness_Staff_Review__c.Version__c</field><readable>true</readable></fieldPermissions>
 <hasActivationRequired>false</hasActivationRequired><label>Readiness Staff Reviewer</label>
 <objectPermissions><allowCreate>true</allowCreate><allowDelete>false</allowDelete><allowEdit>false</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>AI_Readiness_Staff_Review__c</object><viewAllRecords>false</viewAllRecords></objectPermissions>
+    <tabSettings><tab>AI_Staff_Exercises</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

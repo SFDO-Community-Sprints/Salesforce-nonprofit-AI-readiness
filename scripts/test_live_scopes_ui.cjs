@@ -2,12 +2,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const original = fs.readFileSync('force-app/main/default/lwc/nonprofitAIReadiness/nonprofitAIReadiness.js', 'utf8');
-const source = original.replace(/^import .*;$/gm, '').replace('export default class', 'class');
+const source = original.replace(/^import .*;$/gm, '').replace('export default class', 'class').replace(/^\s*@wire\([^\n]+\)\s*$/gm, '');
 let inventoryCalls = 0, configurationCalls = 0, taskCalls = 0, response;
 let configuration = {version: 'v1', scope: 'organization', observed_at: 'now', access: {score: 25, coverage: 100, checks: [{id: 'role', label: 'Role', status: 'fail', basis: 'ObjectPermissions'}]}, privacy: {score: 75, coverage: 100, checks: []}};
 const scopes = [];
 const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
-    LightningElement: class {}, hasFollowUpPermission: true,
+    LightningElement: class {}, NavigationMixin: base => base, hasFollowUpPermission: true,
     assess: async request => { scopes.push(request.scenario); return JSON.stringify(response); },
     capabilityInventory: async () => { inventoryCalls++; return '{}'; },
     assessOrgConfiguration: async () => { configurationCalls++; return JSON.stringify(configuration); },
@@ -31,8 +31,6 @@ const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
         assert.equal(screen.configurationChecks[0].basis, 'ObjectPermissions');
         assert.equal(screen.tasksDisabled, scenario !== 'organization');
         if (scenario !== 'organization') await screen.handleCreateTasks();
-        screen.handleEvidenceReview({detail: {kind: 'safeguards', result: {mode: 'actual'}}});
-        assert.equal(screen.safeguardEvidence.mode, 'actual', 'Real evidence remains available in every data scope');
     }
     assert.equal(inventoryCalls, 6, 'Every scope scans org capability inventory');
     assert.equal(configurationCalls, 6, 'Every scope scans actual organization configuration');
@@ -63,8 +61,7 @@ const Component = vm.runInNewContext(source + '\nNonprofitAIReadiness', {
     assert.doesNotMatch(original, /getScenario|demoScenario|expected\.json|Simulation:/);
     const html = fs.readFileSync('force-app/main/default/lwc/nonprofitAIReadiness/nonprofitAIReadiness.html', 'utf8');
     assert.match(html, /Contact data scope/);
-    assert.match(html, /<c-readiness-evidence/);
-    assert.match(html, /<c-readiness-staff-review/);
+    for (const embedded of ['c-readiness-evidence', 'c-readiness-staff-review', 'c-readiness-verification', 'c-readiness-workspace']) assert(!html.includes(embedded), `${embedded} belongs on a standard app page`);
     assert.doesNotMatch(html, /isLive|isDemo|Simulated/);
     console.log('Live Contact scope UI checks passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

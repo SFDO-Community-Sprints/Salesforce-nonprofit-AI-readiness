@@ -37,7 +37,7 @@
                 <div id="readiness-panel-configuration" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-configuration" hidden={hideConfiguration}>
 <template lwc:if={result}>                    <section class="panel" aria-label="Measured organization configuration">
                         <h2>Measured organization configuration</h2>
-                        <p class="scope">Package role checks below describe this app’s configuration. Org-wide findings are on Overview; executed safeguards and deletion probes are on Verification.</p>
+                        <p class="scope">Package role checks below describe this app’s configuration. Org-wide findings are on Overview; executed safeguards and deletion probes are on the Safeguard tests app tab.</p>
                         <template lwc:if={orgConfigurationError}><p class="scope">{orgConfigurationError}</p></template>
                         <template lwc:if={orgConfiguration}>
                             <p class="scope">{configurationSource}</p>
@@ -61,18 +61,6 @@
                         </template>
                     </section>
 </template><template lwc:else><p class="empty">Run assessment to see licenses and features.</p></template>
-                </div>
-                <div id="readiness-panel-verification" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-verification" hidden={hideVerification}>
-<c-readiness-verification onverificationchange={handleVerificationChange}></c-readiness-verification>
-                </div>
-                <div id="readiness-panel-evidence" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-evidence" hidden={hideEvidence}>
-<c-readiness-evidence onevidencereview={handleEvidenceReview}></c-readiness-evidence>
-                </div>
-                <div id="readiness-panel-staff" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-staff" hidden={hideStaff}>
-<c-readiness-staff-review onstaffreview={handleStaffReview}></c-readiness-staff-review>
-                </div>
-                <div id="readiness-panel-workspace" class="slds-tabs_default__content" role="tabpanel" aria-labelledby="readiness-tab-workspace" hidden={hideWorkspace}>
-                    <c-readiness-workspace onscopedresult={handleScopedResult} onworkspacechange={handleWorkspaceChange}></c-readiness-workspace>
                 </div>
             </div>
             <footer>Only summary counts and structured exercise outcomes are shared with assessment assistants. Names, source notes and evidence references are excluded. Small-group contact results are withheld.</footer>

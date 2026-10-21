@@ -5,4 +5,5 @@
     <description>Evaluate reported safeguard and erasure evidence references only. Assign alongside Readiness Assessor for the readiness app. Does not grant data reads, deletion, staff reviews, task creation or API access.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Readiness Evidence Reviewer</label>
+    <tabSettings><tab>AI_Evidence_Reviews</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

@@ -144,4 +144,4 @@ Implemented in the native app; evidence and limits are recorded in the [workspac
 
 Existing real-assistant, external-erasure, human-evidence and production acceptance dependencies remain open.
 
-- [ ] REF-UI final acceptance: confirm saved-history comparison and the scoped findings shortcut in a clean Lightning session. Live history/backend-to-UI contract passed; an older open tab retained cached action state. This is an outstanding verification gate, not missing feature code.
+- [ ] REF-UI final acceptance: deploy the standard Salesforce app navigation correction, then verify separate Use cases, Checklists, Assessment history, Staff exercises, Safeguard tests and Evidence reviews pages in a clean Lightning session. Confirm exact checklist-question navigation, saved scoped reports reopening Overview, unsaved-result retention and saved-history comparison. Prior live backend/UI evidence covers the earlier embedded layout; local route tests do not prove the corrected rendered navigation. Mobile and assistive-technology operation remain separate checks.

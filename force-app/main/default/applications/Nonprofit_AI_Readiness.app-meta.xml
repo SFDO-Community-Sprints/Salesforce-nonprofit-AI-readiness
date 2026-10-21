@@ -5,5 +5,11 @@
     <label>Nonprofit AI Readiness</label>
     <navType>Standard</navType>
     <tabs>AI_Readiness</tabs>
+    <tabs>AI_Use_Cases</tabs>
+    <tabs>AI_Checklists</tabs>
+    <tabs>AI_Assessment_History</tabs>
+    <tabs>AI_Staff_Exercises</tabs>
+    <tabs>AI_Safeguard_Tests</tabs>
+    <tabs>AI_Evidence_Reviews</tabs>
     <uiType>Lightning</uiType>
 </CustomApplication>

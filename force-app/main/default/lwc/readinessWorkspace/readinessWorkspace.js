@@ -1,4 +1,5 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, wire } from 'lwc';
+import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
 import loadWorkspace from '@salesforce/apex/ReadinessWorkspace.loadWorkspace';
 import saveUseCase from '@salesforce/apex/ReadinessWorkspace.saveUseCase';
 import saveAnswer from '@salesforce/apex/ReadinessWorkspace.saveAnswer';
@@ -38,7 +39,35 @@ function scopeDetails(scope) {
     ];
 }
 
-export default class ReadinessWorkspace extends LightningElement {
+export default class ReadinessWorkspace extends NavigationMixin(LightningElement) {
+    @api mode = 'all';
+    routeState;
+    localReport;
+    localReportPending = false;
+    @wire(CurrentPageReference) receivePage(page) {
+        this.routeState=page?.state;
+        if (this.workspaceLoaded) this.applyRoute();
+    }
+    applyRoute() {
+        const state=this.routeState;
+        if (!state) return;
+        this.routeState=undefined;
+        const id=state.c__useCaseId;
+        if (id && this.data.useCases.some(row => row.id === id)) this.selectCase({detail:{value:id}});
+        if (state.c__questionId) this.openChecklist({questionId:state.c__questionId,scope:state.c__scope,useCaseId:id});
+        else if (['company','org','implementation'].includes(state.c__scope)) this.scope=state.c__scope;
+        if (state.c__assessmentId && this.mode === 'history') this.chooseHistory({detail:{value:state.c__assessmentId},target:{dataset:{}}});
+    }
+    get showCases() { return this.mode === 'all' || this.mode === 'cases'; }
+    get showChecklists() { return this.mode === 'all' || this.mode === 'checklists'; }
+    get showHistory() { return this.mode === 'all' || this.mode === 'history'; }
+    get combinedMode() { return this.mode === 'all'; }
+    get pageDescription() {
+        if (this.mode === 'history') return 'Review saved observations and compare their scope, rubric and age. Run a new assessment for current data.';
+        if (this.mode === 'checklists') return 'Record accountable people and reported policies for your company, org or a selected implementation. Yes requires a responsible person, evidence reference and review date. Reported policies do not establish executed safeguards or staff competency.';
+        return 'Name an AI use case, define its data and actions, assign accountable people and run an assessment of that scope. Business approval is separate from measured readiness.';
+    }
+    get pageTitle() { return this.mode === 'cases' ? 'AI use cases' : this.mode === 'checklists' ? 'Guided checklists' : this.mode === 'history' ? 'Assessment history' : 'Plan an AI implementation'; }
     data = {useCases:[],answers:[],questions:[],history:[],canEdit:false};
     selectedId = '';
     scope = 'company';
@@ -69,6 +98,7 @@ export default class ReadinessWorkspace extends LightningElement {
             if (!data || data.error || !Array.isArray(data.useCases) || !Array.isArray(data.questions) || !Array.isArray(data.answers) || !Array.isArray(data.history)) throw new Error('Invalid workspace');
             this.data = data;
             this.workspaceLoaded = true;
+            this.applyRoute();
             if (!this.dirty) this.draft = {...(data.useCases.find(row => row.id === this.selectedId) || {})};
         } catch (error) { this.workspaceLoaded = false; this.data = {...this.data,canEdit:false}; this.error = 'Workspace could not be loaded with your access. Refresh or ask your administrator.'; }
         finally { this.busy = false; }
@@ -81,7 +111,7 @@ export default class ReadinessWorkspace extends LightningElement {
     get scanDisabled() { return this.busy || !this.workspaceLoaded || !this.selectedId || this.dirty; }
     get implementationScope() { return this.scope === 'implementation'; }
     get needsImplementation() { return this.implementationScope && !this.selectedId; }
-    get caseOptions() { return [{label:'New implementation',value:''}, ...this.data.useCases.map(row => ({label:row.name,value:row.id}))]; }
+    get caseOptions() { return [{label:this.mode === 'history' ? 'All implementations and organization scans' : this.mode === 'checklists' ? 'Choose an implementation for its checklist' : 'New implementation',value:''}, ...this.data.useCases.map(row => ({label:row.name,value:row.id}))]; }
     get caseFields() { return FIELDS.map(([key,label]) => ({key,label,maximum:key === 'name' ? 80 : 2000,value:key === 'groundingFields' ? (Array.isArray(this.draft[key]) ? this.draft[key].join('\n') : this.draft[key] || '') : this.draft[key] || ''})); }
     get lifecycle() { return this.draft.status || 'Draft'; }
     get stages() { return [...new Set(this.data.questions.filter(row => row.scope === this.scope).map(row => row.stage))].map(value => ({label:value,value})); }
@@ -128,6 +158,10 @@ export default class ReadinessWorkspace extends LightningElement {
         this.focusQuestion=questionId;
     }
     renderedCallback() {
+        if (this.localReportPending) {
+            const view=this.template.querySelector('c-readiness-org-health');
+            if (view) { view.displayReport(this.localReport); this.localReportPending=false; }
+        }
         if (!this.focusQuestion) return;
         const heading=[...this.template.querySelectorAll('[data-question]')].find(node => node.dataset.question === this.focusQuestion);
         if (heading) { heading.focus(); this.focusQuestion=undefined; }
@@ -171,10 +205,13 @@ export default class ReadinessWorkspace extends LightningElement {
         if (this.scanDisabled) return;
         await this.perform(async () => {
             const report = parse(await scanUseCase({useCaseId:this.selectedId}));
-            if (!report || report.error || !Array.isArray(report.findings)) throw new Error('Invalid report');
+            if (!report || report.error || !Array.isArray(report.findings) || !Number.isFinite(report.coverage)) throw new Error('Invalid report');
             this.dispatchEvent(new CustomEvent('scopedresult',{detail:{report}}));
             this.historyMessage = report.historySaved ? 'Assessment history saved.' : (report.historyMessage || 'Assessment history was not saved.');
             await this.load(); this.message = 'Scoped assessment completed. Unmeasured checks remain unknown.';
+            if (this.mode !== 'all' && report.historySaved && report.assessmentId) {
+                this[NavigationMixin.Navigate]({type:'standard__navItemPage',attributes:{apiName:'AI_Readiness'},state:{c__assessmentId:report.assessmentId}});
+            } else if (this.mode !== 'all') { this.localReport=report; this.localReportPending=true; }
         }, 'Scoped assessment could not run with your access. No checks are marked as passed.');
     }
     async chooseHistory(event) {
@@ -185,9 +222,17 @@ export default class ReadinessWorkspace extends LightningElement {
         if (!id) return;
         await this.perform(async () => {
             const report = parse(await loadHistory({assessmentId:id}));
-            if (!report || report.error) throw new Error('Invalid snapshot');
+            if (!report || report.error || !Array.isArray(report.findings) || !Number.isFinite(report.coverage)) throw new Error('Invalid snapshot');
+            if ((comparison ? this.comparisonId : this.historyId) !== id) return;
             if (comparison) this.comparisonReport=report; else this.historyReport=report;
         }, 'Saved assessment could not be read with your access.');
+    }
+    navigateChecklist(event) {
+        const {questionId,scope,useCaseId}=event.detail || {};
+        if (!questionId || !['company','org','implementation'].includes(scope)) return;
+        const state={c__questionId:questionId,c__scope:scope};
+        if (useCaseId) state.c__useCaseId=useCaseId;
+        this[NavigationMixin.Navigate]({type:'standard__navItemPage',attributes:{apiName:'AI_Checklists'},state});
     }
     changed() { this.dispatchEvent(new CustomEvent('workspacechange')); }
     async perform(action,message) {

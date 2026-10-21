@@ -1,11 +1,12 @@
 <template>
     <section aria-label="AI implementation workspace" class="workspace">
-        <h2>Plan an AI implementation</h2>
-        <p>Name the use case, record accountable people and policies, then assess its declared data and access. A reported policy is not an executed safeguard test. A Yes answer requires a responsible person, evidence reference and review date.</p>
+        <h2>{pageTitle}</h2>
+        <p>{pageDescription}</p>
         <template lwc:if={busy}><lightning-spinner size="small" alternative-text="Loading workspace"></lightning-spinner></template>
         <template lwc:if={error}><p role="alert" class="error">{error}</p></template>
         <template lwc:if={message}><p role="status">{message}</p></template>
         <lightning-combobox label="Implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox>
+        <template lwc:if={showCases}>
         <details data-case-form>
             <summary>Implementation purpose, scope and responsibility</summary>
             <p>Implementation name, business owner and purpose are required. Never enter passwords, tokens, donor records or sensitive personal information here. Grounding fields must use Object.Field identifiers. Enter the full Salesforce username of the AI integration account. The actual AI identity remains distinct from the person running this app.</p>
@@ -28,7 +29,10 @@
         <template lwc:if={historyMessage}><p role="status">{historyMessage}</p></template>
         <template lwc:if={dirty}><p>Save this implementation before running a scoped assessment.</p></template>
         <template lwc:if={noRecorder}><p>Your role cannot save assessment history. Ask your administrator for the narrowly scoped recorder permission.</p></template>
-        <h2>Guided checklists</h2>
+        </template>
+        <template lwc:if={localReport}><c-readiness-org-health onopenchecklist={navigateChecklist}></c-readiness-org-health></template>
+        <template lwc:if={showChecklists}>
+        <template lwc:if={combinedMode}><h2>Guided checklists</h2></template>
         <lightning-radio-group label="Checklist scope" options={scopes} value={scope} type="button" onchange={changeScope}></lightning-radio-group>
         <div class="fields">
             <lightning-combobox label="Stage" value={currentStage} options={stages} onchange={changeStage}></lightning-combobox>
@@ -55,7 +59,9 @@
             </article>
         </template>
         <p>Use Staff exercises for observed competency. These checklists cannot establish staff competency or legal compliance.</p>
-        <h2>Saved assessment history</h2>
+        </template>
+        <template lwc:if={showHistory}>
+        <template lwc:if={combinedMode}><h2>Saved assessment history</h2></template>
         <p>Each assessment retains its own time, actor, scope and rubric. Later scans do not rewrite earlier findings.</p>
         <div class="fields">
             <lightning-combobox label="Saved assessment" value={historyId} options={historyOptions} onchange={chooseHistory} disabled={busy}></lightning-combobox>
@@ -82,5 +88,6 @@
                 </section>
             </template>
         </div>
+        </template>
     </section>
 </template>

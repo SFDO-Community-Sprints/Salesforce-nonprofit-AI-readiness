@@ -1,6 +1,6 @@
 # Record staff exercises in Salesforce
 
-Open **Nonprofit AI Readiness** and find **Staff readiness exercises** below the assessment results. The seven sections describe fictional situations and the actions a reviewer needs to observe. Opening the screen or running a data assessment does not save a staff review.
+Open **Nonprofit AI Readiness**, then choose **Staff exercises** from the Salesforce app navigation. The seven sections describe fictional situations and the actions a reviewer needs to observe. Opening the screen or running a data assessment does not save a staff review.
 
 An administrator grants **Readiness Staff Reviewer** only to people responsible for reviewing these exercises. **Readiness Assessor** remains read-only and cannot save observations. Reviewer access does not grant follow-up Task creation.
 

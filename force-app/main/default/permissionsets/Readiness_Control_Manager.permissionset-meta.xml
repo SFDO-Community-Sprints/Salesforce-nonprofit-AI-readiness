@@ -4,4 +4,5 @@
     <customPermissions><enabled>true</enabled><name>Readiness_Manage_Control</name></customPermissions>
     <description>Stop and resume only this readiness package. No CRM, staff, evidence or Task access.</description>
     <hasActivationRequired>false</hasActivationRequired><label>Readiness Control Manager</label>
+    <tabSettings><tab>AI_Safeguard_Tests</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

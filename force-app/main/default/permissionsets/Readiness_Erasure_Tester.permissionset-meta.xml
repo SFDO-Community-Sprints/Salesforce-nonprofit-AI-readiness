@@ -9,4 +9,5 @@
         <allowCreate>true</allowCreate><allowDelete>true</allowDelete><allowEdit>true</allowEdit>
         <allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>Contact</object><viewAllRecords>false</viewAllRecords>
     </objectPermissions>
+    <tabSettings><tab>AI_Safeguard_Tests</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>
