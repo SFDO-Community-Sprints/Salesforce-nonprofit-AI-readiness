@@ -35,9 +35,16 @@ const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningEleme
  assert.equal(screen.lastEvent.type,'openchecklist');assert.equal(screen.lastEvent.detail.questionId,'privacy_owner');assert.equal(screen.lastEvent.detail.scope,'company');assert.equal(screen.lastEvent.detail.useCaseId,'case1');
  screen.openChecklist({currentTarget:{dataset:{id:'runtime'}}});assert.equal(screen.lastEvent.detail.questionId,'privacy_owner');
  assert.match(screen.findings[0].why,/not enough evidence/);assert.equal(screen.findings[0].how,'Record the accountable owner');
- screen.handleFilter({target:{dataset:{filter:'categoryFilter'},value:'Company'}});assert.equal(screen.filteredFindings.length,2);
+ screen.handleCategoryTab({target:{value:'Company'}});assert.equal(screen.filteredFindings.length,2);
+ assert.equal(screen.findingTabs.length,3);assert.equal(screen.findingTabs[1].summary,'Company (2)');
+ assert.equal(screen.findingTabs[2].summary,'Safeguards (1)');
+ screen.handleFilter({target:{dataset:{filter:'statusFilter'},value:'pass'}});
+ assert.equal(screen.findingTabs[1].summary,'Company (1)');assert.equal(screen.findingTabs[2].summary,'Safeguards (0)');
+ assert.equal(screen.score,'0%');assert.equal(screen.coverage,'0%');
+ screen.clearFilters();assert.equal(screen.categoryFilter,'all');
  const html=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.html','utf8');
  const css=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.css','utf8');
+ assert.match(html,/<lightning-tabset active-tab-value=\{categoryFilter\}/);assert.match(html,/label=\{group.summary\} onactive=\{handleCategoryTab\}/);
  assert.match(html,/aria-label="Filter AI readiness findings"/);assert.match(html,/<details[^>]*class="advice"/);assert.match(html,/Answer in checklist/);
  assert.match(css,/th:nth-child\(4\),th:nth-child\(5\)\{width:20%\}/);
  screen.displayReport({findings:[],coverage:0,recordedBy:'Original reviewer',observedAt:new Date(Date.now()-2*86400000).toISOString()});assert.match(screen.scanActor,/Original reviewer/);assert.equal(screen.scanAge,'Observed 2 days ago');screen.result.observedAt='invalid';assert.equal(screen.scanAge,'Observation age unavailable');screen.result.observedAt=new Date(Date.now()+86400000).toISOString();assert.equal(screen.scanAge,'Observation age unavailable');

@@ -20,17 +20,17 @@
             <div class="filters" role="group" aria-label="Filter AI readiness findings">
                 <label>Result<select data-filter="statusFilter" onchange={handleFilter}><template for:each={statusOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
                 <label>Severity<select data-filter="severityFilter" onchange={handleFilter}><template for:each={severityOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
-                <label>Category<select data-filter="categoryFilter" onchange={handleFilter}><template for:each={categoryOptions} for:item="option"><option key={option.value} value={option.value} selected={option.selected}>{option.label}</option></template></select></label>
                 <button type="button" onclick={clearFilters}>Clear filters</button>
             </div>
             <p role="status">{filterSummary}</p>
             <template lwc:if={noMatches}><p>No findings match these filters. Clear filters to see the full assessment.</p></template>
-            <template for:each={findingGroups} for:item="group">
-                <details key={group.label} class="finding-group" open>
-                    <summary>{group.summary}</summary>
+            <lightning-tabset active-tab-value={categoryFilter}>
+            <template for:each={findingTabs} for:item="group">
+                <lightning-tab key={group.value} value={group.value} label={group.summary} onactive={handleCategoryTab}>
                     <div class="table-wrap"><table><caption class="slds-assistive-text">{group.label} findings</caption><thead><tr><th scope="col">Severity / result</th><th scope="col">Check</th><th scope="col">Group</th><th scope="col">Actual value</th><th scope="col">Expected value</th><th scope="col">Action</th></tr></thead><tbody><template for:each={group.rows} for:item="finding"><tr key={finding.id}><td><strong>{finding.severity}</strong><span class={finding.badgeClass}>{finding.statusLabel}</span></td><th scope="row">{finding.label}</th><td>{finding.group}</td><td>{finding.actual}</td><td>{finding.expected}</td><td><template lwc:if={finding.safeUrl}><a href={finding.safeUrl}>{finding.action}</a></template><template lwc:else>{finding.action}</template><template lwc:if={finding.hasChecklist}><button type="button" data-id={finding.id} onclick={openChecklist}>Answer in checklist</button></template><details class="advice"><summary>Why and how to address this</summary><p>{finding.why}</p><p>{finding.how}</p></details></td></tr></template></tbody></table></div>
-                </details>
+                </lightning-tab>
             </template>
+            </lightning-tabset>
         </template>
         <template lwc:else><template lwc:if={loading}></template><template lwc:else><template lwc:if={error}></template><template lwc:else><p>Run assessment to measure AI readiness health and see the settings that need attention.</p></template></template></template>
     </section>

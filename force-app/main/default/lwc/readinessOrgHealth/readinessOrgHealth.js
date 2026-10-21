@@ -37,6 +37,7 @@ export default class ReadinessOrgHealth extends LightningElement {
         const result = typeof report === 'string' ? JSON.parse(report) : report;
         if (!result || result.error || !Array.isArray(result.findings) || !Number.isFinite(result.coverage)) throw new Error('Unavailable');
         this.result = result;
+        if (!this.findings.some(row => row.group === this.categoryFilter)) this.categoryFilter = 'all';
         this.recordedBy = result.recordedBy;
         this.error = undefined;
     }
@@ -100,22 +101,24 @@ export default class ReadinessOrgHealth extends LightningElement {
     get noMatches() { return this.filteredFindings.length === 0; }
     get statusOptions() { return this.options(['all', 'fail', 'unknown', 'pass'], this.statusFilter, ['All results', 'Needs attention', 'Not checked', 'Passed']); }
     get severityOptions() { return this.options(['all', 'Critical', 'High', 'Medium', 'Low', 'Info'], this.severityFilter, ['All severities', 'Critical', 'High', 'Medium', 'Low', 'Info']); }
-    get categoryOptions() {
-        const names = [...new Set(this.findings.map(row => row.group))];
-        return this.options(['all', ...names], this.categoryFilter, ['All categories', ...names]);
-    }
     options(values, selected, labels) { return values.map((value, index) => ({ value, label: labels[index], selected: value === selected })); }
     get filteredFindings() { return this.findings.filter(row =>
         (this.statusFilter === 'all' || row.status === this.statusFilter) &&
         (this.severityFilter === 'all' || row.severity === this.severityFilter) &&
         (this.categoryFilter === 'all' || row.group === this.categoryFilter)); }
+    handleCategoryTab(event) { this.categoryFilter = event.target.value; }
     get findingGroups() {
-        const groups = new Map();
-        this.filteredFindings.forEach(row => {
-            if (!groups.has(row.group)) groups.set(row.group, []);
-            groups.get(row.group).push(row);
-        });
-        return [...groups].map(([label, rows]) => ({ label, rows, summary: `${label} (${rows.length})` }));
+        const groups = new Map(this.findings.map(row => [row.group, []]));
+        this.findings.filter(row =>
+            (this.statusFilter === 'all' || row.status === this.statusFilter) &&
+            (this.severityFilter === 'all' || row.severity === this.severityFilter)
+        ).forEach(row => groups.get(row.group).push(row));
+        return [...groups].map(([label, rows]) => ({ value: label, label, rows, summary: `${label} (${rows.length})` }));
+    }
+    get findingTabs() {
+        const groups = this.findingGroups;
+        const rows = groups.flatMap(group => group.rows);
+        return [{ value: 'all', label: 'All findings', rows, summary: `All findings (${rows.length})` }, ...groups];
     }
     get categories() { return (this.result?.categories || []).map(row => ({...row,
         scoreLabel: row.score == null ? 'Not checked' : `${row.score}%`,
