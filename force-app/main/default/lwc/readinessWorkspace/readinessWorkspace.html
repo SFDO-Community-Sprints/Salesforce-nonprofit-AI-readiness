@@ -67,7 +67,9 @@
         <lightning-combobox label="Filter by implementation" value={selectedId} options={caseOptions} onchange={selectCase} disabled={busy}></lightning-combobox>
         <template lwc:if={noHistory}><p>No saved assessments match this filter. Run an assessment with the Assessment Recorder role to save a scan.</p></template>
         <template lwc:else>
-            <lightning-datatable key-field="id" data={historyRows} columns={historyColumns} onrowaction={reviewHistory} hide-checkbox-column></lightning-datatable>
+            <div class="slds-m-top_medium">
+                <lightning-datatable key-field="id" data={historyRows} columns={historyColumns} onrowaction={reviewHistory} hide-checkbox-column></lightning-datatable>
+            </div>
         </template>
         <p role="status">{comparisonWarning}</p>
         <div class="fields">
