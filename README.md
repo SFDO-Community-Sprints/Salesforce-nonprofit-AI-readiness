@@ -68,7 +68,7 @@ The records used for demonstrations are fictional. The assessment reads current 
 
 Deletion testing and pause/resume are separate explicit actions. Running an assessment does not create follow-up Tasks or automatically perform a deletion test. Use a disposable practice org for active exercises.
 
-Use the Salesforce app navigation to open **AI use cases**, **Guided checklists** and **Assessment history**. Register an implementation, complete its checklist and compare saved scans on those separate pages. See the [workspace walkthrough](references/implementation-workspace.md).
+Use the Salesforce app navigation to open **AI use cases**, **Guided checklists** and **Assessment history**. Register an implementation and complete its checklist on those separate pages. In Assessment history, **View record** opens a saved assessment’s Salesforce record page; **Compare** separately compares two snapshots. See the [workspace walkthrough](references/implementation-workspace.md).
 
 ## Deploy and set up
 

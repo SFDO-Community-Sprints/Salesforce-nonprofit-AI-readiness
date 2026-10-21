@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+<flexiPageRegions>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Name</fieldItem><identifier>assessment_Name</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Use_Case__c</fieldItem><identifier>assessment_Use_Case__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Observed_At__c</fieldItem><identifier>assessment_Observed_At__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Source__c</fieldItem><identifier>assessment_Source__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Rubric__c</fieldItem><identifier>assessment_Rubric__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Scope__c</fieldItem><identifier>assessment_Scope__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.CreatedById</fieldItem><identifier>assessment_CreatedById</identifier></fieldInstance></itemInstances>
+<name>Facet-AssessmentFields0</name><type>Facet</type></flexiPageRegions>
+<flexiPageRegions>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Score__c</fieldItem><identifier>assessment_Score__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Coverage__c</fieldItem><identifier>assessment_Coverage__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Passed__c</fieldItem><identifier>assessment_Passed__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Failed__c</fieldItem><identifier>assessment_Failed__c</identifier></fieldInstance></itemInstances>
+<itemInstances><fieldInstance><fieldInstanceProperties><name>uiBehavior</name><value>readonly</value></fieldInstanceProperties><fieldItem>Record.Unknown__c</fieldItem><identifier>assessment_Unknown__c</identifier></fieldInstance></itemInstances>
+<name>Facet-AssessmentFields1</name><type>Facet</type></flexiPageRegions>
+<flexiPageRegions>
+<itemInstances><componentInstance><componentInstanceProperties><name>body</name><value>Facet-AssessmentFields0</value></componentInstanceProperties><componentName>flexipage:column</componentName><identifier>assessmentColumn0</identifier></componentInstance></itemInstances>
+<itemInstances><componentInstance><componentInstanceProperties><name>body</name><value>Facet-AssessmentFields1</value></componentInstanceProperties><componentName>flexipage:column</componentName><identifier>assessmentColumn1</identifier></componentInstance></itemInstances>
+<name>Facet-AssessmentColumns</name><type>Facet</type></flexiPageRegions>
+<flexiPageRegions><itemInstances><componentInstance><componentInstanceProperties><name>enableActionsConfiguration</name><value>true</value></componentInstanceProperties><componentInstanceProperties><name>actionNames</name><valueList/></componentInstanceProperties><componentName>force:highlightsPanel</componentName><identifier>assessmentHighlights</identifier></componentInstance></itemInstances><name>header</name><type>Region</type></flexiPageRegions>
+<flexiPageRegions><itemInstances><componentInstance><componentInstanceProperties><name>columns</name><value>Facet-AssessmentColumns</value></componentInstanceProperties><componentInstanceProperties><name>label</name><value>Assessment details</value></componentInstanceProperties><componentInstanceProperties><name>horizontalAlignment</name><value>false</value></componentInstanceProperties><componentName>flexipage:fieldSection</componentName><identifier>assessmentDetails</identifier></componentInstance></itemInstances>
+<itemInstances><componentInstance><componentName>c:readinessAssessmentFindings</componentName><identifier>savedFindings</identifier></componentInstance></itemInstances><name>main</name><type>Region</type></flexiPageRegions>
+<masterLabel>AI Readiness Assessment Record</masterLabel><sobjectType>Readiness_Assessment__c</sobjectType><template><name>flexipage:recordHomeSingleColTemplateDesktop</name></template><type>RecordPage</type></FlexiPage>

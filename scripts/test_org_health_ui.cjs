@@ -7,7 +7,7 @@ let response={score:50,coverage:75,passed:2,failed:2,unknown:1,rating:'Needs att
  {id:'fail',status:'fail',url:'javascript:alert(1)'},
  {id:'unknown',status:'unknown',url:'https://example.com'}
 ],inventory:[{id:'unavailable',count:null}],categories:[{id:'privacy',score:null,coverage:0,passed:0,failed:0,unknown:3}],banner:'Critical failures block a pilot'};
-const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningElement:class{dispatchEvent(event){this.lastEvent=event;}},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},scan:async()=>JSON.stringify(response),Set,Number});
+const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningElement:class{dispatchEvent(event){this.lastEvent=event;}},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},scan:async()=>JSON.stringify(response),loadHistory:async()=>JSON.stringify({recordedBy:'Recorded reviewer'}),Set,Number});
 (async()=>{
  const screen=new Component(); assert.equal(screen.score,'Not checked');
  await screen.runScan(); assert.equal(screen.score,'50%');assert.equal(screen.categories[0].scoreLabel,'Not checked');assert.equal(screen.categories[0].coverageLabel,'0%');assert.match(screen.banner,/Critical/);assert.equal(screen.coverage,'75%');
@@ -40,6 +40,7 @@ const Component=vm.runInNewContext(source+'\nReadinessOrgHealth',{LightningEleme
  const css=fs.readFileSync('force-app/main/default/lwc/readinessOrgHealth/readinessOrgHealth.css','utf8');
  assert.match(html,/aria-label="Filter AI readiness findings"/);assert.match(html,/<details[^>]*class="advice"/);assert.match(html,/Answer in checklist/);
  assert.match(css,/th:nth-child\(4\),th:nth-child\(5\)\{width:20%\}/);
+ screen.displayReport({findings:[],coverage:0,recordedBy:'Original reviewer',observedAt:new Date(Date.now()-2*86400000).toISOString()});assert.match(screen.scanActor,/Original reviewer/);assert.equal(screen.scanAge,'Observed 2 days ago');screen.result.observedAt='invalid';assert.equal(screen.scanAge,'Observation age unavailable');screen.result.observedAt=new Date(Date.now()+86400000).toISOString();assert.equal(screen.scanAge,'Observation age unavailable');
  response={error:'denied'};await screen.runScan();assert.equal(screen.result,undefined);assert.equal(screen.score,'Not checked');assert.match(screen.error,/No checks are marked as passed/);assert.equal(screen.loading,false);
  console.log('Org health UI coverage, safe links, scoped reports, filters, groups and checklist navigation passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

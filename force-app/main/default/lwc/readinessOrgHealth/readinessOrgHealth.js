@@ -1,5 +1,6 @@
 import { LightningElement, api } from 'lwc';
 import scan from '@salesforce/apex/ReadinessOrgHealth.scan';
+import loadHistory from '@salesforce/apex/ReadinessWorkspace.loadHistory';
 
 const SETUP_LINKS = new Set([
     '/lightning/o/Contact/list',
@@ -14,6 +15,7 @@ const safeLink = value => SETUP_LINKS.has(value) ? value : undefined;
 export default class ReadinessOrgHealth extends LightningElement {
     result;
     stale = false;
+    recordedBy;
     @api focusFindings() {
         const heading = this.template.querySelector('[data-findings-heading]');
         if (heading) {
@@ -22,7 +24,7 @@ export default class ReadinessOrgHealth extends LightningElement {
             heading.focus({preventScroll:true});
         }
     }
-    @api clearReport() { this.result = undefined; this.error = undefined; this.stale = false; }
+    @api clearReport() { this.result = undefined; this.error = undefined; this.stale = false; this.recordedBy = undefined; }
     @api markStale() { this.stale = true; }
     get historyNotice() { return this.result?.historyMessage; }
     loading = false;
@@ -35,6 +37,7 @@ export default class ReadinessOrgHealth extends LightningElement {
         const result = typeof report === 'string' ? JSON.parse(report) : report;
         if (!result || result.error || !Array.isArray(result.findings) || !Number.isFinite(result.coverage)) throw new Error('Unavailable');
         this.result = result;
+        this.recordedBy = result.recordedBy;
         this.error = undefined;
     }
     handleFilter(event) {
@@ -55,6 +58,13 @@ export default class ReadinessOrgHealth extends LightningElement {
         this.error = undefined;
         try {
             this.displayReport(await scan());
+            const report = this.result;
+            if (report.assessmentId) {
+                try {
+                    const saved = JSON.parse(await loadHistory({assessmentId:report.assessmentId}));
+                    if (this.result === report) this.recordedBy = saved.recordedBy;
+                } catch (error) { /* Actor lookup does not change measured findings. */ }
+            }
         } catch (error) {
             this.error = 'Org health could not be checked with your access. No checks are marked as passed.';
         } finally { this.loading = false; }
@@ -63,6 +73,18 @@ export default class ReadinessOrgHealth extends LightningElement {
     get score() { return this.result?.score == null ? 'Not checked' : `${this.result.score}%`; }
     get rating() { return this.result?.rating || 'Not checked'; }
     get coverage() { return `${this.result?.coverage ?? 0}%`; }
+    get scanAge() {
+        const observed = Date.parse(this.result?.observedAt);
+        if (!Number.isFinite(observed) || observed > Date.now()) return 'Observation age unavailable';
+        const minutes = Math.floor((Date.now() - observed) / 60000);
+        if (minutes < 1) return 'Observed just now';
+        if (minutes < 60) return `Observed ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `Observed ${hours} hour${hours === 1 ? '' : 's'} ago`;
+        const days = Math.floor(hours / 24);
+        return `Observed ${days} day${days === 1 ? '' : 's'} ago`;
+    }
+    get scanActor() { return this.recordedBy ? `Recorded by ${this.recordedBy}` : this.result?.assessmentId || this.result?.source === 'Saved assessment' ? 'Recorded actor unavailable' : 'Scanned by your signed-in Salesforce account'; }
     get observedAt() { return this.result?.observedAt || ''; }
     get passed() { return this.result?.passed ?? 0; }
     get failed() { return this.result?.failed ?? 0; }

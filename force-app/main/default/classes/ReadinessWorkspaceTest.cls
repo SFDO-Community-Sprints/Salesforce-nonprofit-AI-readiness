@@ -31,10 +31,36 @@
             Map<String,Object> saved=parse(report);System.assertEquals(true,saved.get('historySaved'));
             String snapshotId=(String)saved.get('assessmentId');
             Map<String,Object> loaded=parse(ReadinessWorkspace.loadHistory(snapshotId));System.assertEquals('Saved assessment',loaded.get('source'));System.assertEquals(saved.get('version'),loaded.get('version'));
+            System.assertEquals(UserInfo.getName(),loaded.get('recordedBy'));
+            System.assert(![SELECT Report__c FROM Readiness_Assessment__c WHERE Id=:snapshotId].Report__c.contains('recordedBy'),'Actor is UI-only provenance, never stored in sanitized assessment');
+            System.assert(!saved.containsKey('recordedBy'),'Scan and MCP reports must not gain actor names');
             ReadinessWorkspace.decorateOrganization(ReadinessOrgHealth.summarize(new List<Object>(),new List<Object>()));System.assertEquals(2,[SELECT COUNT() FROM Readiness_Assessment__c]);
             System.assertEquals('partial',((Map<String,Object>)((List<Object>)workspace.get('answers'))[0]).get('answer'));
             Integer failed=0;for(Object raw:(List<Object>)saved.get('findings')) {Map<String,Object> row=(Map<String,Object>)raw;if(row.get('questionId')=='privacy_owner'&&row.get('status')=='fail') failed++;}System.assertEquals(1,failed,'Partial policy never passes');
         }
+    }
+    @IsTest static void recordFieldsAndIdempotentHydrationPreserveEvidence() {
+        System.runAs(actor('wsedit')) {
+            Map<String,Object> saved=parse(ReadinessWorkspace.decorateOrganization(ReadinessOrgHealth.summarize(new List<Object>(),new List<Object>())));
+            Id assessmentId=(Id)saved.get('assessmentId');
+            Readiness_Assessment__c stored=[SELECT Id,Report__c,Summary__c,Observed_At__c,Score__c,Coverage__c,Passed__c,Failed__c,Unknown__c,Rubric__c,Scope__c,Source__c FROM Readiness_Assessment__c WHERE Id=:assessmentId WITH USER_MODE];
+            System.assertEquals(Decimal.valueOf(String.valueOf(saved.get('coverage'))),stored.Coverage__c);
+            System.assertEquals(saved.get('version'),stored.Rubric__c);System.assertNotEquals(null,stored.Observed_At__c);
+            System.assertEquals('Live organization assessment',stored.Source__c);
+            System.assertEquals(0,ReadinessWorkspace.hydrateAssessments());
+            String report=stored.Report__c,summary=stored.Summary__c;
+            // Reproduce a pre-projection snapshot without changing its stored evidence.
+            ReadinessWorkspace.writing='assessment_projection';
+            try {update as system new Readiness_Assessment__c(Id=assessmentId,Observed_At__c=null,Score__c=null,Coverage__c=null,Rubric__c=null);} finally {ReadinessWorkspace.writing=null;}
+            System.assertEquals(1,ReadinessWorkspace.hydrateAssessments());System.assertEquals(0,ReadinessWorkspace.hydrateAssessments());
+            stored=[SELECT Report__c,Summary__c,Observed_At__c,Rubric__c FROM Readiness_Assessment__c WHERE Id=:assessmentId];
+            System.assertEquals(report,stored.Report__c);System.assertEquals(summary,stored.Summary__c);System.assertNotEquals(null,stored.Observed_At__c);System.assertEquals(saved.get('version'),stored.Rubric__c);
+            Database.SaveResult forged=Database.update(new Readiness_Assessment__c(Id=assessmentId,Score__c=100),false,AccessLevel.SYSTEM_MODE);System.assertEquals(false,forged.isSuccess());
+            ReadinessWorkspace.writing='assessment_projection';
+            try {forged=Database.update(new Readiness_Assessment__c(Id=assessmentId,Summary__c='{}'),false,AccessLevel.SYSTEM_MODE);System.assertEquals(false,forged.isSuccess(),'Projection context cannot alter original evidence');} finally {ReadinessWorkspace.writing=null;}
+            System.assertEquals(false,Readiness_Assessment__c.SObjectType.getDescribe().isUpdateable(),'Recorder has no object edit permission');
+        }
+        System.runAs(actor('wsread')) {Boolean denied=false;try {ReadinessWorkspace.hydrateAssessments();}catch(Exception expected){denied=true;}System.assert(denied);}
     }
     @IsTest static void actualRecordAccessAndNarrowRoles() {
         String caseId,assessmentId;

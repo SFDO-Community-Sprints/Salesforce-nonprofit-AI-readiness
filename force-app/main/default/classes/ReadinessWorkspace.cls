@@ -3,7 +3,7 @@ public with sharing class ReadinessWorkspace {
     private static final String VERSION='ai-readiness-health-v2';
     private static final Set<String> CASE_TEXT=new Set<String>{'name','status','owner','purpose','integrationUsername','allowedActions','excludedActions','value','successCriteria','risks','mitigation','handover','stopOwner','costs','gains','decisionNotes','approver','policyReference'};
     private static final Set<String> STATUSES=new Set<String>{'Draft','Proposed','In progress','Approved','Paused','Retired'};
-    private static String writing;
+    @TestVisible private static String writing;
     public static Boolean allowsWrite(String kind) {return writing==kind;}
     @AuraEnabled public static String loadWorkspace() {
         Map<String,Object> result=new Map<String,Object>{'questions'=>questions(),'canEdit'=>FeatureManagement.checkPermission('Readiness_Manage_Workspace'),'canRecord'=>FeatureManagement.checkPermission('Readiness_Record_Assessment')};
@@ -100,9 +100,43 @@ public with sharing class ReadinessWorkspace {
     }
     @AuraEnabled public static String loadHistory(String assessmentId) {
         Id recordId=validatedId(assessmentId,Readiness_Assessment__c.SObjectType);
-        List<Readiness_Assessment__c> records=[SELECT Id,Report__c FROM Readiness_Assessment__c WHERE Id=:recordId WITH USER_MODE LIMIT 1];
+        List<Readiness_Assessment__c> records=[SELECT Id,Report__c,CreatedBy.Name FROM Readiness_Assessment__c WHERE Id=:recordId WITH USER_MODE LIMIT 1];
         if(records.isEmpty()) reject('Assessment is not accessible.');
-        Map<String,Object> report=parse(records[0].Report__c);report.put('source','Saved assessment');report.put('historySaved',true);report.put('assessmentId',records[0].Id);return JSON.serialize(report);
+        Map<String,Object> report=parse(records[0].Report__c);report.put('source','Saved assessment');report.put('recordedBy',records[0].CreatedBy.Name);report.put('historySaved',true);report.put('assessmentId',records[0].Id);return JSON.serialize(report);
+    }
+    private static final Set<String> PROJECTION_FIELDS=new Set<String>{'Score__c','Coverage__c','Passed__c','Failed__c','Unknown__c','Observed_At__c','Rubric__c','Scope__c','Source__c'};
+    public static Boolean allowsAssessmentProjection(Readiness_Assessment__c current,Readiness_Assessment__c previous) {
+        if(writing!='assessment_projection'||previous==null||previous.OwnerId!=UserInfo.getUserId()) return false;
+        for(String field:Readiness_Assessment__c.SObjectType.getDescribe().fields.getMap().keySet()) {
+            Boolean projected=false;for(String allowed:PROJECTION_FIELDS) if(allowed.equalsIgnoreCase(field)) projected=true;
+            if(!projected&&current.get(field)!=previous.get(field)) return false;
+        }
+        return true;
+    }
+    @AuraEnabled public static Integer hydrateAssessments() {
+        if(!FeatureManagement.checkPermission('Readiness_Record_Assessment')) reject('The Readiness Assessment Recorder role is required.');
+        Id owner=UserInfo.getUserId();List<Readiness_Assessment__c> updates=new List<Readiness_Assessment__c>();
+        for(Readiness_Assessment__c stored:[SELECT Id,Report__c FROM Readiness_Assessment__c WHERE OwnerId=:owner AND Observed_At__c=null WITH USER_MODE LIMIT 100]) {
+            try {Readiness_Assessment__c projection=new Readiness_Assessment__c(Id=stored.Id);project(projection,parse(stored.Report__c));updates.add(projection);} catch(Exception ignored) {}
+        }
+        if(updates.isEmpty()) return 0;
+        // System DML is restricted to own, user-visible snapshots and validated projection fields; Recorder cannot edit records.
+        writing='assessment_projection';try {update as system updates;} finally {writing=null;}
+        return updates.size();
+    }
+    private static void project(Readiness_Assessment__c record,Map<String,Object> report) {
+        if(report==null||report.get('observedAt')==null||report.get('version')==null) reject('Stored report lacks assessment provenance.');
+        record.Score__c=projectionNumber(report,'score',100);record.Coverage__c=projectionNumber(report,'coverage',100);
+        record.Passed__c=projectionNumber(report,'passed',99999999);record.Failed__c=projectionNumber(report,'failed',99999999);record.Unknown__c=projectionNumber(report,'unknown',99999999);
+        record.Observed_At__c=(Datetime)JSON.deserialize(JSON.serialize(report.get('observedAt')),Datetime.class);
+        record.Rubric__c=projectionText(report,'version',80);record.Scope__c=projectionText(report,'scope',32768);record.Source__c=projectionText(report,'source',100);
+    }
+    private static Decimal projectionNumber(Map<String,Object> report,String key,Decimal maximum) {
+        if(report.get(key)==null) return null;
+        Decimal value=Decimal.valueOf(String.valueOf(report.get(key)));if(value<0||value>maximum) reject('Stored assessment metric is out of bounds.');return value;
+    }
+    private static String projectionText(Map<String,Object> report,String key,Integer maximum) {
+        if(report.get(key)==null) return null;String value=String.valueOf(report.get(key));if(value.length()>maximum) reject('Stored assessment detail exceeds its field limit.');return value;
     }
     private static Map<String,Object> saveSnapshot(Map<String,Object> result,Id caseId) {
         result.put('historySaved',false);
@@ -113,6 +147,7 @@ public with sharing class ReadinessWorkspace {
         if(encoded.length()>131000) {result.put('historyMessage','Report exceeds the history storage limit; the scan is still available.');return result;}
         try {
             Readiness_Assessment__c record=new Readiness_Assessment__c(Use_Case__c=caseId,Summary__c=JSON.serialize(summary),Report__c=encoded);
+            project(record,stored);
             writing='assessment';try {insert as user record;} finally {writing=null;}result.put('historySaved',true);result.put('assessmentId',record.Id);
         } catch(Exception ignored) {result.put('historyMessage','History could not be saved with your access. No earlier assessment was changed.');}
         return result;

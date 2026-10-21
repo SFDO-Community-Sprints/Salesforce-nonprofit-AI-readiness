@@ -24,6 +24,15 @@
         <field>Readiness_Assessment__c.Report__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Score__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Coverage__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Passed__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Failed__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Unknown__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Observed_At__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Rubric__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Scope__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Readiness_Assessment__c.Source__c</field><readable>true</readable></fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Readiness Assessment Recorder</label>
     <objectPermissions>

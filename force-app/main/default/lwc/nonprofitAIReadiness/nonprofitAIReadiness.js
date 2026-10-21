@@ -99,6 +99,9 @@ export default class NonprofitAIReadiness extends NavigationMixin(LightningEleme
         const health = this.template.querySelector('c-readiness-org-health');
         if (health) { health.displayReport(this.pendingReport); this.pendingReport = undefined; }
     }
+    handleRegisterConnection() {
+        this[NavigationMixin.Navigate]({type:'standard__navItemPage',attributes:{apiName:'AI_Use_Cases'},state:{c__new:'true'}});
+    }
     handleOpenChecklist(event) {
         const {questionId,scope,useCaseId} = event.detail;
         const state = {};

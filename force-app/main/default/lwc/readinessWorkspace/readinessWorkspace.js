@@ -44,6 +44,7 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
     routeState;
     localReport;
     localReportPending = false;
+    openImplementationForm = false;
     @wire(CurrentPageReference) receivePage(page) {
         this.routeState=page?.state;
         if (this.workspaceLoaded) this.applyRoute();
@@ -52,6 +53,7 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
         const state=this.routeState;
         if (!state) return;
         this.routeState=undefined;
+        if (state.c__new === 'true' && this.mode === 'cases') { this.selectCase({detail:{value:''}}); this.openImplementationForm=true; }
         const id=state.c__useCaseId;
         if (id && this.data.useCases.some(row => row.id === id)) this.selectCase({detail:{value:id}});
         if (state.c__questionId) this.openChecklist({questionId:state.c__questionId,scope:state.c__scope,useCaseId:id});
@@ -114,7 +116,23 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
     get caseOptions() { return [{label:this.mode === 'history' ? 'All implementations and organization scans' : this.mode === 'checklists' ? 'Choose an implementation for its checklist' : 'New implementation',value:''}, ...this.data.useCases.map(row => ({label:row.name,value:row.id}))]; }
     get caseFields() { return FIELDS.map(([key,label]) => ({key,label,maximum:key === 'name' ? 80 : 2000,value:key === 'groundingFields' ? (Array.isArray(this.draft[key]) ? this.draft[key].join('\n') : this.draft[key] || '') : this.draft[key] || ''})); }
     get lifecycle() { return this.draft.status || 'Draft'; }
-    get stages() { return [...new Set(this.data.questions.filter(row => row.scope === this.scope).map(row => row.stage))].map(value => ({label:value,value})); }
+    savedProgress(questions) {
+        const answers=questions.map(question => this.data.answers.find(answer => answer.scope === this.scope && answer.questionId === question.id && (this.scope !== 'implementation' || answer.useCaseId === this.selectedId)));
+        return {total:questions.length,answered:answers.filter(answer => ['yes','partial','no'].includes(answer?.answer)).length,
+            assigned:answers.filter(answer => answer?.responsible?.trim()).length,yes:answers.filter(answer => answer?.answer === 'yes').length,unknown:answers.filter(answer => !answer || answer.answer === 'unknown').length};
+    }
+    get stages() {
+        const questions=this.data.questions.filter(row => row.scope === this.scope);
+        return [...new Set(questions.map(row => row.stage))].map(value => {
+            const progress=this.savedProgress(questions.filter(row => row.stage === value));
+            return {label:`${value} (${progress.answered}/${progress.total} answered)`,value};
+        });
+    }
+    get checklistProgress() {
+        if (this.needsImplementation) return 'Select an implementation to review its saved checklist progress.';
+        const progress=this.savedProgress(this.data.questions.filter(row => row.scope === this.scope));
+        return `${progress.answered} of ${progress.total} questions have saved Yes, Partially or No answers; ${progress.yes} reported Yes; ${progress.unknown} not sure or unanswered; ${progress.assigned} assigned to a responsible person or role. This is checklist completion, not a readiness score or observed competency.`;
+    }
     get currentStage() { return this.stages.some(row => row.value === this.stage) ? this.stage : this.stages[0]?.value; }
     get questions() {
         if (this.needsImplementation) return [];
@@ -127,26 +145,62 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
                 reviewAge:ageLabel(answer.reviewDate), audit:answer.updatedAt ? `Last saved ${answer.updatedAt} by ${answer.updatedBy || 'recorded reviewer'}` : 'Not yet saved', overdue:Boolean(answer.dueDate && answer.dueDate < today && answer.answer !== 'yes'), unassigned:!answer.responsible && answer.answer !== 'yes'};
         }).filter(row => this.accountability === 'all' || row[this.accountability]);
     }
+    caseColumns = [
+        {label:'AI use case',fieldName:'name'}, {label:'Business owner',fieldName:'ownerLabel'}, {label:'Business lifecycle',fieldName:'statusLabel'},
+        {label:'Latest score',fieldName:'scoreLabel'}, {label:'Checks completed',fieldName:'coverageLabel'},
+        {label:'Not checked',fieldName:'unknownLabel'}, {label:'Measured health',fieldName:'healthLabel'},
+        {label:'Critical failures',fieldName:'criticalLabel'}, {label:'Observed',fieldName:'observedLabel'},
+        {type:'button',typeAttributes:{label:'Open',name:'open'}}
+    ];
+    get caseRows() { return this.data.useCases.map(useCase => {
+        const latest=this.data.history.filter(scan => scan.useCaseId === useCase.id).reduce((current,scan) => !current || Date.parse(scan.observedAt) > Date.parse(current.observedAt) ? scan : current,null);
+        const critical=latest ? (Array.isArray(latest.criticalFailures) ? latest.criticalFailures.length : Number.isFinite(latest.criticalFailures) ? latest.criticalFailures : null) : null;
+        const health=latest ? latest.rating || (critical > 0 ? 'Blocked' : latest.unknown > 0 ? 'Incomplete' : latest.failed > 0 ? 'Needs attention' : latest.passed > 0 ? 'Checks passed' : 'Not checked') : 'No saved scan in recent history';
+        return {...useCase,ownerLabel:useCase.owner || 'Not assigned',statusLabel:useCase.status || 'Draft',
+            scoreLabel:latest && latest.score != null ? `${latest.score}%` : 'Not checked',
+            coverageLabel:latest && Number.isFinite(latest.coverage) ? `${latest.coverage}%` : 'Not checked',
+            unknownLabel:latest && Number.isFinite(latest.unknown) ? String(latest.unknown) : 'Not checked',
+            criticalLabel:critical == null ? 'Not checked' : String(critical),healthLabel:health,
+            observedLabel:latest?.observedAt || 'No saved scan'};
+    }); }
+    get noCases() { return this.data.useCases.length === 0; }
+    openCase(event) {
+        const {action,row}=event.detail || {};
+        if (action?.name !== 'open' || !this.data.useCases.some(useCase => useCase.id === row?.id)) return;
+        this.selectCase({detail:{value:row.id}}); this.openImplementationForm=true;
+    }
+    newCase() {
+        if (this.disabled) return;
+        this.selectCase({detail:{value:''}}); this.draft={}; this.dirty=false; this.openImplementationForm=true;
+    }
     historyColumns = [
         {label:'Assessment',fieldName:'name'}, {label:'Observed',fieldName:'observedAt',type:'date'},
-        {label:'Implementation',fieldName:'implementation'}, {label:'Score',fieldName:'scoreLabel'}, {label:'Checks completed',fieldName:'coverageLabel'},
-        {type:'button',typeAttributes:{label:'Review',name:'review'}}, {type:'button',typeAttributes:{label:'Compare',name:'compare'}}
+        {label:'Implementation',fieldName:'implementation'}, {label:'Saved by',fieldName:'actor'}, {label:'Score',fieldName:'scoreLabel'}, {label:'Checks completed',fieldName:'coverageLabel'},
+        {type:'button',typeAttributes:{label:'View record',name:'view'}}, {type:'button',typeAttributes:{label:'Compare',name:'compare'}}
     ];
-    get showImplementationSelector() { return this.mode !== 'history'; }
+    get showImplementationSelector() { return this.mode !== 'history' && this.mode !== 'cases'; }
     get historyRows() { return this.data.history.filter(row => !this.selectedId || row.useCaseId === this.selectedId).map(row => ({
         ...row, name:row.name || 'Saved assessment', observedAt:row.observedAt || 'Not recorded',
         implementation:row.useCaseId ? this.data.useCases.find(useCase => useCase.id === row.useCaseId)?.name || 'Implementation not visible' : 'Organization',
         scoreLabel:row.score == null ? 'Unknown' : `${row.score}%`, coverageLabel:`${row.coverage ?? 0}%`,
         reviewLabel:`Review ${row.name || 'saved assessment'}`, compareLabel:`Compare ${row.name || 'saved assessment'}`,
-        selectedLabel:row.id === this.historyId ? 'Reviewing' : row.id === this.comparisonId ? 'Comparing' : ''
+        selectedLabel:row.id === this.historyId ? 'Comparison baseline' : row.id === this.comparisonId ? 'Comparing' : ''
     })); }
     get noHistory() { return this.historyRows.length === 0; }
     reviewHistory(event) {
         const {action,row}=event.detail || {};
-        if (!row?.id || !['review','compare'].includes(action?.name)) return;
-        return this.chooseHistory({detail:{value:row.id},target:{dataset:{comparison:action.name === 'compare' ? 'true' : 'false'}}});
+        if (!row?.id || !['view','compare'].includes(action?.name)) return;
+        if (action.name === 'view') {
+            this[NavigationMixin.Navigate]({type:'standard__recordPage',attributes:{recordId:row.id,objectApiName:'Readiness_Assessment__c',actionName:'view'}});
+            return;
+        }
+        if (!this.historyId || this.comparisonId) {
+            this.comparisonId=''; this.comparisonReport=undefined;
+            return this.chooseHistory({detail:{value:row.id},target:{dataset:{}}});
+        }
+        return this.chooseHistory({detail:{value:row.id},target:{dataset:{comparison:'true'}}});
     }
-    get snapshotRows() { return [{key:'first',label:'Saved assessment',report:this.historyReport}, {key:'second',label:'Comparison',report:this.comparisonReport}].filter(row => row.report).map(row => ({...row, name:this.data.history.find(saved => saved.id === (row.key === 'first' ? this.historyId : this.comparisonId))?.name || row.label, implementation:row.report.useCaseId ? this.data.useCases.find(useCase => useCase.id === row.report.useCaseId)?.name || 'Implementation not visible' : 'Organization', assessmentId:row.report.assessmentId || (row.key === 'first' ? this.historyId : this.comparisonId), useCaseId:row.report.useCaseId || 'Organization', age:ageLabel(row.report.observedAt), scopeDetails:scopeDetails(row.report.scopeDefinition), scope:typeof row.report.scope === 'string' ? row.report.scope : JSON.stringify(row.report.scope), version:row.report.version, observedAt:row.report.observedAt, score:row.report.score == null ? 'Unknown' : `${row.report.score}%`, coverage:`${row.report.coverage ?? 0}%`, passed:row.report.passed ?? 0, failed:row.report.failed ?? 0, unknown:row.report.unknown ?? 0, findings:(row.report.findings || []).map((finding,index) => ({...finding,key:`${row.key}-${index}`,title:finding.label || finding.title || finding.id,outcome:finding.status || finding.outcome,action:finding.action || finding.recommendation}))})); }
+    get snapshotRows() { return [{key:'first',label:'Comparison baseline',report:this.historyReport}, {key:'second',label:'Comparison',report:this.comparisonReport}].filter(row => row.report).map(row => ({...row, name:this.data.history.find(saved => saved.id === (row.key === 'first' ? this.historyId : this.comparisonId))?.name || row.label, implementation:row.report.useCaseId ? this.data.useCases.find(useCase => useCase.id === row.report.useCaseId)?.name || 'Implementation not visible' : 'Organization', assessmentId:row.report.assessmentId || (row.key === 'first' ? this.historyId : this.comparisonId), useCaseId:row.report.useCaseId || 'Organization', age:ageLabel(row.report.observedAt), scopeDetails:scopeDetails(row.report.scopeDefinition), scope:typeof row.report.scope === 'string' ? row.report.scope : JSON.stringify(row.report.scope), version:row.report.version, observedAt:row.report.observedAt, score:row.report.score == null ? 'Unknown' : `${row.report.score}%`, coverage:`${row.report.coverage ?? 0}%`, passed:row.report.passed ?? 0, failed:row.report.failed ?? 0, unknown:row.report.unknown ?? 0, findings:(row.report.findings || []).map((finding,index) => ({...finding,key:`${row.key}-${index}`,title:finding.label || finding.title || finding.id,outcome:finding.status || finding.outcome,action:finding.action || finding.recommendation}))})); }
     get comparisonWarning() {
         if (!this.historyReport || !this.comparisonReport) return '';
         return this.historyReport.useCaseId !== this.comparisonReport.useCaseId || JSON.stringify(this.historyReport.scopeDefinition || this.historyReport.scope) !== JSON.stringify(this.comparisonReport.scopeDefinition || this.comparisonReport.scope) || this.historyReport.version !== this.comparisonReport.version ? 'Scope or rubric differs. These scores are not directly comparable.' : 'Same saved scope and rubric. Compare individual findings as well as score and coverage.';
@@ -176,6 +230,10 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
         this.focusQuestion=questionId;
     }
     renderedCallback() {
+        if (this.openImplementationForm) {
+            const form=this.template.querySelector('[data-case-form]');
+            if (form) { form.open=true; this.openImplementationForm=false; }
+        }
         if (this.localReportPending) {
             const view=this.template.querySelector('c-readiness-org-health');
             if (view) { view.displayReport(this.localReport); this.localReportPending=false; }
@@ -235,7 +293,7 @@ export default class ReadinessWorkspace extends NavigationMixin(LightningElement
     async chooseHistory(event) {
         const comparison = event.target.dataset.comparison === 'true';
         const id = event.detail.value;
-        if (comparison && id && id === this.historyId) { this.comparisonId=''; this.comparisonReport=undefined; this.message='Choose a different saved assessment to compare. This scan is already being reviewed.'; return; }
+        if (comparison && id && id === this.historyId) { this.comparisonId=''; this.comparisonReport=undefined; this.message='Choose a different saved assessment to compare. This scan is already the comparison baseline.'; return; }
         if (!comparison && id && id === this.comparisonId) { this.comparisonId=''; this.comparisonReport=undefined; }
         if (comparison) { this.comparisonId=id; this.comparisonReport=undefined; }
         else { this.historyId=id; this.historyReport=undefined; }

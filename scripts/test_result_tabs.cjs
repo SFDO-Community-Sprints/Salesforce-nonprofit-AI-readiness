@@ -38,5 +38,6 @@ historyResponse={error:'denied'};await screen.pageReferenceChanged(route('denied
 resolveHistory=true;const pending=screen.pageReferenceChanged(route('slow'));screen.routeRequest++;resolveHistory(JSON.stringify({findings:[],coverage:0,scope:'Stale scope'}));await pending;assert.notEqual(displayed?.scope,'Stale scope','Outdated route response must not replace current report');
 const app=fs.readFileSync('force-app/main/default/applications/Nonprofit_AI_Readiness.app-meta.xml','utf8');
 assert.deepEqual([...app.matchAll(/<tabs>(.*?)<\/tabs>/g)].map(match=>match[1]),['AI_Readiness','AI_Use_Cases','AI_Checklists','AI_Assessment_History','AI_Staff_Exercises','AI_Safeguard_Tests','AI_Evidence_Reviews']);
+screen.handleRegisterConnection();const connectionRoute=navigation.at(-1);assert.equal(connectionRoute.attributes.apiName,'AI_Use_Cases');assert.equal(connectionRoute.state.c__new,'true');assert.match(html,/Before you connect AI: never use a System Administrator account/);
 console.log('Standard app navigation, four detail tabs, exact checklist routes and saved-history loading/race checks passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

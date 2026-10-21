@@ -8,6 +8,7 @@
             <template lwc:if={stale}><p role="status">Governance inputs changed after this scan. Run the organization or selected implementation assessment again for current findings.</p></template>
             <template lwc:if={historyNotice}><p role="status">{historyNotice}</p></template>
             <p class="notice">{banner}</p><p class="observed">{sourceLabel} · Scanned: {observedAt} · Scope: {scope}</p>
+            <p class="observed">{scanActor} · {scanAge}. Refresh for current data; use your approved review policy to decide when results expire.</p>
             <div class="cards">
                 <article class="card"><h3>AI readiness health</h3><div class="ring" style={ringStyle}><span>{score}</span></div><p class="rating">{rating}</p><p>Score: passed checks divided by all defined checks. Unmeasured checks earn no points. Coverage shows how much could be measured. Critical failures can block a pilot regardless of score.</p></article>
                 <article class="card"><h3>Checks completed</h3><p class="number">{coverage}</p><dl><div><dt>Passed</dt><dd>{passed}</dd></div><div><dt>Needs attention</dt><dd>{failed}</dd></div><div><dt>Not checked</dt><dd>{unknown}</dd></div></dl><p>Unavailable checks stay visible and do not count as passes.</p></article>

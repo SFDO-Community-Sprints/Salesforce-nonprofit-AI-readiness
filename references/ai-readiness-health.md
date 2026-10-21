@@ -46,3 +46,5 @@ The current public scan adds separately identified Company/Org governance findin
 ## Standard app navigation correction, 21 October 2026
 
 AI Readiness retains Overview with findings and three detail panels: Contact data, Package configuration and Licenses and features. Use cases, Checklists, Assessment history, Staff exercises, Safeguard tests and Evidence reviews are separate standard Salesforce app pages. Exact checklist-question links and saved scoped reports use Salesforce navigation state. The local route tests cover this contract; clean-session rendered acceptance remains a separate gate in [TODO](../TODO.md).
+
+Saved reports have a native Salesforce assessment record page with stored score, coverage, count, scope, rubric, source and observation fields. A read-only Findings component renders the saved report there. History's View record action targets that record; comparison remains a separate history action. Deployment and rendered acceptance of this record-page correction are tracked in TODO; earlier Overview/card checks are not proof of it.

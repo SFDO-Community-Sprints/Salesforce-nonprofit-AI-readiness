@@ -1,11 +1,21 @@
 <template>
-    <section class="workspace" aria-label="Nonprofit AI readiness assessment">
-        <header class="hero">
-            <h1>AI Readiness</h1>
-            <p class="intro">Assess data, access, staff and privacy readiness before an AI pilot.</p>
-            <span class="privacy-pill">Summary results only</span>
+    <section class="workspace slds-card" aria-label="Nonprofit AI readiness assessment">
+        <header class="slds-page-header slds-theme_default">
+            <h1 class="slds-page-header__title">AI Readiness</h1>
+            <p class="slds-m-vertical_small">Assess data, access, staff and privacy readiness before an AI pilot.</p>
+            <lightning-badge label="Summary results only"></lightning-badge>
         </header>
-        <div class="body">
+        <div class="body slds-p-around_medium">
+            <section class="slds-box slds-theme_warning slds-m-bottom_medium" aria-label="Before connecting AI">
+                <div class="slds-media">
+                    <lightning-icon class="slds-media__figure" icon-name="utility:shield" size="small" alternative-text="Security guidance"></lightning-icon>
+                    <div class="slds-media__body">
+                        <h2 class="slds-text-heading_small">Before you connect AI: never use a System Administrator account</h2>
+                        <p class="slds-m-vertical_small">Give each AI connection, agent or MCP integration its own dedicated Salesforce integration user. Grant only the objects, fields and actions required for its use case. Register the connection and its actual integration username so the assessment can inspect that account's configuration. Configuration checks do not prove the assistant's runtime behavior.</p>
+                        <lightning-button label="Register an AI connection" onclick={handleRegisterConnection}></lightning-button>
+                    </div>
+                </div>
+            </section>
             <div class="controls">
                 <lightning-combobox label="Contact data scope" value={scenario} options={scenarioOptions} onchange={handleScenarioChange} disabled={assessmentDisabled}></lightning-combobox>
                 <lightning-button label="Run assessment" variant="brand" onclick={handleRun} disabled={assessmentDisabled}></lightning-button>

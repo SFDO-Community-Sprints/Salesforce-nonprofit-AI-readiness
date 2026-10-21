@@ -4,6 +4,11 @@ from xml.etree import ElementTree as ET
 from demo import ROOT
 
 NS = {'m': 'http://soap.sforce.com/2006/04/metadata'}
+ASSESSMENT_DISPLAY_FIELDS = {
+    'Readiness_Assessment__c.' + field for field in (
+        'Score__c', 'Coverage__c', 'Passed__c', 'Failed__c', 'Unknown__c',
+        'Observed_At__c', 'Rubric__c', 'Scope__c', 'Source__c')}
+
 
 
 def role(name, agent=False):
@@ -31,7 +36,7 @@ class PermissionScopeTests(unittest.TestCase):
         self.assertEqual(names(root, 'fieldPermissions', 'field'), {'Contact.Email', 'Contact.AccountId', 'Readiness_Use_Case__c.Definition__c',
             'Readiness_Answer__c.Scope__c', 'Readiness_Answer__c.Question__c', 'Readiness_Answer__c.Use_Case__c',
             'Readiness_Answer__c.Response__c', 'Readiness_Assessment__c.Use_Case__c',
-            'Readiness_Assessment__c.Summary__c', 'Readiness_Assessment__c.Report__c'})
+            'Readiness_Assessment__c.Summary__c', 'Readiness_Assessment__c.Report__c'} | ASSESSMENT_DISPLAY_FIELDS)
         for grant in root.findall('m:objectPermissions', NS):
             self.assertEqual(grant.find('m:allowRead', NS).text, 'true')
             for key in ('allowCreate', 'allowEdit', 'allowDelete', 'viewAllRecords', 'modifyAllRecords'):
@@ -74,7 +79,7 @@ class PermissionScopeTests(unittest.TestCase):
         self.assertEqual(names(root, 'objectPermissions', 'object'), {'Readiness_Assessment__c'})
         self.assertEqual(names(root, 'fieldPermissions', 'field'), {
             'Readiness_Assessment__c.Use_Case__c', 'Readiness_Assessment__c.Summary__c',
-            'Readiness_Assessment__c.Report__c'})
+            'Readiness_Assessment__c.Report__c'} | ASSESSMENT_DISPLAY_FIELDS)
         grant = root.find('m:objectPermissions', NS)
         for key in ('allowCreate', 'allowRead'):
             self.assertEqual(grant.find('m:' + key, NS).text, 'true', key)
@@ -88,6 +93,16 @@ class PermissionScopeTests(unittest.TestCase):
 
         self.assertEqual(names(root, 'tabSettings', 'tab'), {'AI_Assessment_History'})
         self.assertEqual(root.find('m:tabSettings/m:visibility', NS).text, 'Visible')
+
+    def test_native_assessment_layout_is_readonly_and_excludes_raw_json(self):
+        path = ROOT / 'force-app/main/default/layouts/Readiness_Assessment__c-Assessment Layout.layout-meta.xml'
+        root = ET.parse(path).getroot()
+        items = root.findall('.//m:layoutItems', NS)
+        actual = {item.find('m:field', NS).text for item in items}
+        expected = {field.split('.', 1)[1] for field in ASSESSMENT_DISPLAY_FIELDS}
+        self.assertEqual(actual, expected | {'Name', 'Use_Case__c', 'CreatedById'})
+        self.assertTrue(all(item.find('m:behavior', NS).text == 'Readonly' for item in items))
+        self.assertFalse({'Summary__c', 'Report__c'} & actual)
 
     def test_evidence_reviewer_has_only_evaluator_access(self):
         root = role('Readiness_Evidence_Reviewer')

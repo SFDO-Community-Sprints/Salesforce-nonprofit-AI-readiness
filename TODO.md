@@ -144,4 +144,14 @@ Implemented in the native app; evidence and limits are recorded in the [workspac
 
 Existing real-assistant, external-erasure, human-evidence and production acceptance dependencies remain open.
 
-- [ ] REF-UI final acceptance: deploy the standard Salesforce app navigation correction, then verify separate Use cases, Checklists, Assessment history, Staff exercises, Safeguard tests and Evidence reviews pages in a clean Lightning session. Confirm exact checklist-question navigation, saved scoped reports reopening Overview, unsaved-result retention and saved-history comparison. Prior live backend/UI evidence covers the earlier embedded layout; local route tests do not prove the corrected rendered navigation. Mobile and assistive-technology operation remain separate checks.
+- [ ] REF-UI final acceptance: deploy the native saved-assessment record layout and read-only Findings component, then verify View record opens the Salesforce record page, real snapshot fields match stored JSON, guarded hydration handles older snapshots without rewriting their reports, and Compare remains a separate two-snapshot action. Standard app navigation and the white history table were deployed in DEPLOY-55/58; those earlier checks do not establish this new record-page correction. Verify saved findings/next actions, exact checklist-question links from Overview, read-only role access, and comparison in a clean Lightning session. Mobile and assistive-technology operation remain separate checks.
+
+## Combined reference/current gap audit — 21 October 2026
+
+The existing REF-1–REF-6 implementations remain complete; this is the narrower visible-gap backlog after inspecting every reference navigation tab and current source. See [comparison and inspection limits](references/reference-app-gap-audit.md).
+
+- [ ] REF-7 — Add portfolio triage to existing Use Cases: standard table with business owner, lifecycle, latest accessible scoped score/coverage/readiness/critical count; Not checked when no scoped snapshot exists; Approved never overrides measured Blocked. Reuse existing editor and scan action.
+- [ ] REF-8 — Display live scan actor and elapsed age alongside source/time/scope; distinguish saved observations and refresh; age-based expiry needs an approved policy, not the reference's unapproved 24-hour default.
+- [ ] REF-9 — Expose stage progress for existing guided checklists using saved answered/unanswered/accountable counts per selected scope. Stage navigation must not save answers implicitly or equate completed policy answers with executed safeguards or human competency.
+
+Native record Findings/white-card and warning/registration corrections are active implementation with rendered acceptance pending under REF-UI; this audit does not reopen their existing components. Actual assistant, external erasure and human acceptance remain separate requirements.

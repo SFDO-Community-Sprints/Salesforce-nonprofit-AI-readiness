@@ -1,0 +1,11 @@
+<template>
+    <lightning-card title="Saved AI readiness findings" icon-name="standard:report">
+        <div class="slds-p-around_medium">
+            <p class="slds-m-bottom_medium">These findings are the observations saved with this assessment. Run a new assessment to obtain current results.</p>
+            <template lwc:if={loading}><lightning-spinner alternative-text="Loading saved findings" size="small"></lightning-spinner></template>
+            <template lwc:if={error}><p role="alert">{error}</p></template>
+            <template lwc:if={empty}><p>No findings were recorded in this assessment.</p></template>
+            <lightning-datatable key-field="key" data={findings} columns={columns} hide-checkbox-column></lightning-datatable>
+        </div>
+    </lightning-card>
+</template>
