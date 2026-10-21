@@ -372,11 +372,19 @@ private class NonprofitAIReadinessTest {
         NonprofitAIReadiness.Request request = new NonprofitAIReadiness.Request();
         request.scenario='pilot';
         Test.startTest();
+        List<NonprofitAIReadiness.Response> single = NonprofitAIReadiness.assess(
+            new List<NonprofitAIReadiness.Request>{request});
+        Integer singleQueries = Limits.getQueries();
         List<NonprofitAIReadiness.Response> results = NonprofitAIReadiness.assess(
             new List<NonprofitAIReadiness.Request>{request,request});
-        System.assertEquals(7,Limits.getQueries());
+        System.assert(singleQueries > 0,'Assessment must collect evidence');
+        System.assertEquals(singleQueries,Limits.getQueries()-singleQueries,
+            'Duplicate scenarios must use the same query budget as one assessment');
         Test.stopTest();
+        Map<String,Object> assessment = (Map<String,Object>)JSON.deserializeUntyped(single[0].output);
+        System.assertEquals(10,((Map<String,Object>)assessment.get('metrics')).get('contacts'));
         System.assertEquals(2,results.size());
+        System.assertEquals(single[0].output,results[0].output);
         System.assertEquals(results[0].output,results[1].output);
     }
     @IsTest static void unlimitedLicenseDoesNotLookLikeZeroSpareSeats() {
