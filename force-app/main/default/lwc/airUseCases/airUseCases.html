@@ -1,0 +1,156 @@
+<template>
+    <div class="air-page">
+        <div class="air-header">
+            <div>
+                <h1 class="air-title">AI use cases</h1>
+                <p class="air-subtitle">
+                    Each AI implementation (an agent, MCP connection or integration) gets its own use case and
+                    implementation checklist. Record what it is for, what it costs and what you lose, and which
+                    integration user it connects as.
+                </p>
+            </div>
+            <div class="air-actions">
+                <lightning-button
+                    variant="brand"
+                    label="New use case"
+                    icon-name="utility:add"
+                    onclick={handleNew}
+                ></lightning-button>
+            </div>
+        </div>
+
+        <template lwc:if={busy}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_medium" role="alert">{error}</div>
+        </template>
+
+        <template lwc:if={savedId}>
+            <div class="air-banner">
+                <span><strong>{savedName}</strong> is saved. Next: run its implementation assessment.</span>
+                <div>
+                    <lightning-button
+                        variant="brand"
+                        label="Start assessment"
+                        onclick={startSavedAssessment}
+                    ></lightning-button>
+                    <lightning-button
+                        class="slds-m-left_small"
+                        variant="base"
+                        label="Dismiss"
+                        onclick={dismissSaved}
+                    ></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <template lwc:if={showForm}>
+            <article class="air-card slds-m-bottom_large">
+                <h2 class="air-card__title">{formTitle}</h2>
+                <lightning-record-edit-form
+                    object-api-name="AIR_Use_Case__c"
+                    record-id={editId}
+                    onsuccess={handleSuccess}
+                    onerror={handleFormError}
+                >
+                    <lightning-messages></lightning-messages>
+
+                    <h3 class="air-section">1. The use case</h3>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Name" required></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <lightning-input-field field-name="Status__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <lightning-input-field field-name="Business_Owner__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1">
+                            <lightning-input-field field-name="Description__c"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <h3 class="air-section">2. AI access and data</h3>
+                    <p class="air-text air-muted">
+                        Connect AI with a dedicated integration user, never as a System Administrator. List the fields
+                        the AI will read or reason over as Object.Field, one per line; the data quality and access
+                        checks for this use case run on them.
+                    </p>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Agent_User__c"></lightning-input-field>
+                            <lightning-input-field field-name="Data_In_Scope__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Grounding_Fields__c"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <h3 class="air-section">3. Value</h3>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Added_Value__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Success_Criteria__c"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <h3 class="air-section">4. Risks and handover</h3>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                            <lightning-input-field field-name="What_We_Lose__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                            <lightning-input-field field-name="Mitigation__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                            <lightning-input-field field-name="Handover_Points__c"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <h3 class="air-section">5. Cost vs gains</h3>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <lightning-input-field field-name="Expected_Costs__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                            <lightning-input-field field-name="Expected_Gains__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                            <lightning-input-field field-name="Cost_Benefit_Notes__c"></lightning-input-field>
+                        </div>
+                    </div>
+
+                    <div class="air-form-actions">
+                        <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
+                        <lightning-button
+                            class="slds-m-left_small"
+                            variant="brand"
+                            type="submit"
+                            label="Save use case"
+                        ></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </article>
+        </template>
+
+        <template lwc:if={hasUseCases}>
+            <article class="air-card">
+                <lightning-datatable
+                    key-field="id"
+                    data={rows}
+                    columns={columns}
+                    hide-checkbox-column
+                    onrowaction={handleRowAction}
+                ></lightning-datatable>
+            </article>
+        </template>
+        <template lwc:elseif={loaded}>
+            <div class="air-empty">No AI use cases yet. Add the first one with New use case.</div>
+        </template>
+    </div>
+</template>

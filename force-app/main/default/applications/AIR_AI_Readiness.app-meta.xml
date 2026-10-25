@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0B5CAB</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <description>AI Readiness Check: how ready are your org and organisation to use AI?</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <label>AI Readiness Check</label>
+    <navType>Standard</navType>
+    <tabs>AIR_Home</tabs><tabs>AIR_Org_Scan</tabs><tabs>AIR_Checklists</tabs><tabs>AIR_Use_Cases</tabs><tabs>AIR_Assessment__c</tabs><tabs>AIR_Use_Case__c</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

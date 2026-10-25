@@ -1,0 +1,327 @@
+<template>
+    <div class="air-page">
+        <div class="air-header">
+            <div>
+                <h1 class="air-title">Checklists</h1>
+                <p class="air-subtitle">
+                    Answer the questions the org can't answer for itself. Company covers your organisation, Org covers
+                    how Salesforce is run, and Implementation covers one AI use case.
+                </p>
+            </div>
+            <div class="air-actions">
+                <lightning-button-group>
+                    <template for:each={levelButtons} for:item="b">
+                        <lightning-button
+                            key={b.value}
+                            label={b.label}
+                            variant={b.variant}
+                            data-value={b.value}
+                            onclick={handleLevel}
+                        ></lightning-button>
+                    </template>
+                </lightning-button-group>
+            </div>
+        </div>
+
+        <template lwc:if={busy}>
+            <lightning-spinner alternative-text="Working" size="medium"></lightning-spinner>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_medium" role="alert">{error}</div>
+        </template>
+
+        <template lwc:if={isImplementation}>
+            <div class="air-usecase">
+                <lightning-combobox
+                    label="AI use case"
+                    placeholder="Choose a use case"
+                    value={useCaseId}
+                    options={useCaseOptions}
+                    onchange={handleUseCase}
+                ></lightning-combobox>
+                <lightning-button
+                    class="slds-m-left_small"
+                    label="Manage use cases"
+                    variant="base"
+                    onclick={openUseCases}
+                ></lightning-button>
+            </div>
+            <template lwc:if={noUseCases}>
+                <div class="air-empty slds-m-bottom_medium">
+                    There are no AI use cases yet. Add one in the Use cases tab first.
+                </div>
+            </template>
+        </template>
+
+        <template lwc:if={showChecklist}>
+            <template lwc:if={finished}>
+                <article class="air-card air-finish">
+                    <h2 class="air-card__title">{levelLabel} checklist saved</h2>
+                    <div class="air-big">{summaryScore}</div>
+                    <p class={summaryHealthClass}>{summary.health}</p>
+                    <p class="air-text">Checks completed: {summaryCoverage}</p>
+                    <p class="air-text">{summaryCounts}</p>
+                    <div class="slds-m-top_medium">
+                        <lightning-button variant="brand" label="Go to Home" onclick={openHome}></lightning-button>
+                        <lightning-button
+                            class="slds-m-left_small"
+                            label="Back to checklist"
+                            onclick={backToChecklist}
+                        ></lightning-button>
+                    </div>
+                </article>
+            </template>
+            <template lwc:else>
+                <div class="slds-m-bottom_large">
+                    <lightning-progress-indicator current-step={currentStepValue} type="path" variant="base">
+                        <template for:each={steps} for:item="step">
+                            <lightning-progress-step key={step.value} label={step.label} value={step.value}>
+                            </lightning-progress-step>
+                        </template>
+                    </lightning-progress-indicator>
+                </div>
+
+                <!-- Implementation: AI integration user -->
+                <template lwc:if={isAiUserStep}>
+                    <article class="air-card slds-m-bottom_medium">
+                        <h2 class="air-card__title">Who does the AI connect as?</h2>
+                        <p class="air-text">
+                            Never connect AI (an agent, MCP server or integration) as a System Administrator: it would
+                            see and change everything in your org. Create a separate integration user for each AI
+                            connection, ideally with the free Salesforce Integration licence, and give it only the
+                            permission sets this use case needs.
+                        </p>
+                        <p class="air-text">
+                            Enter that user's username. The access checks below then run against what this user can
+                            actually reach through its profile, permission sets and permission set groups.
+                        </p>
+                        <template lwc:if={agentUser}>
+                            <div class="air-user">
+                                <lightning-icon icon-name="standard:user" size="small"></lightning-icon>
+                                <div>
+                                    <div class="air-item__title">{agentUser.name}</div>
+                                    <div class="air-muted">
+                                        {agentUser.username} · {agentUser.profileName} · {agentUser.licence}
+                                    </div>
+                                </div>
+                                <template lwc:if={agentUser.isAdminProfile}>
+                                    <span class="air-tag_critical">Administrator profile</span>
+                                </template>
+                            </div>
+                        </template>
+                        <div class="air-user-form">
+                            <lightning-input
+                                label="Integration user's username"
+                                placeholder="ai.integration@yourorg.org"
+                                value={usernameInput}
+                                onchange={handleUsername}
+                            ></lightning-input>
+                            <lightning-button
+                                variant="brand"
+                                label="Use this user"
+                                onclick={handleSetUser}
+                                disabled={busy}
+                            ></lightning-button>
+                        </div>
+                    </article>
+
+                    <article class="air-card slds-m-bottom_medium">
+                        <div class="air-card__head">
+                            <h2 class="air-card__title">Automated checks for this use case</h2>
+                            <lightning-button
+                                label="Run checks again"
+                                icon-name="utility:refresh"
+                                onclick={handleRunChecks}
+                                disabled={busy}
+                            ></lightning-button>
+                        </div>
+                        <template for:each={automatedItems} for:item="item">
+                            <div key={item.code} class="air-item">
+                                <div class="air-item__head">
+                                    <span class={item.statusClass}>{item.status}</span>
+                                    <template lwc:if={item.critical}>
+                                        <span class="air-tag_critical">Critical</span>
+                                    </template>
+                                    <span class="air-item__title">{item.title}</span>
+                                    <span class="air-item__code">{item.categoryLabel}</span>
+                                </div>
+                                <div class="air-item__body">{item.evidence}</div>
+                                <template lwc:if={item.showAdvice}>
+                                    <div class="air-fix">
+                                        <div class="air-fix__label">How to fix</div>
+                                        <div>{item.advice}</div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </article>
+                </template>
+
+                <!-- Company: responsible people -->
+                <template lwc:if={isOwnersStep}>
+                    <article class="air-card slds-m-bottom_medium">
+                        <h2 class="air-card__title">Responsible people</h2>
+                        <p class="air-text">
+                            Who manages the risk? Name the people (or roles) responsible, including external support.
+                        </p>
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                                <lightning-input
+                                    label="Data Protection Officer (or GDPR/AVG lead)"
+                                    value={owners.dpoName}
+                                    data-owner="dpoName"
+                                    onchange={handleOwner}
+                                ></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                                <lightning-input
+                                    label="Security owner"
+                                    value={owners.securityOwner}
+                                    data-owner="securityOwner"
+                                    onchange={handleOwner}
+                                ></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                                <lightning-input
+                                    label="Salesforce admin"
+                                    value={owners.adminOwner}
+                                    data-owner="adminOwner"
+                                    onchange={handleOwner}
+                                ></lightning-input>
+                            </div>
+                        </div>
+                        <template lwc:if={showDpoReason}>
+                            <lightning-textarea
+                                class="slds-m-top_small"
+                                label="No DPO? Explain why one isn't legally required"
+                                value={owners.dpoNotRequiredReason}
+                                data-owner="dpoNotRequiredReason"
+                                onchange={handleOwner}
+                            ></lightning-textarea>
+                        </template>
+                        <lightning-textarea
+                            class="slds-m-top_small"
+                            label="Other stakeholders (management, board, partner or consultancy)"
+                            value={owners.stakeholders}
+                            data-owner="stakeholders"
+                            onchange={handleOwner}
+                        ></lightning-textarea>
+                    </article>
+                </template>
+
+                <!-- Category questions -->
+                <template lwc:if={isCategoryStep}>
+                    <template for:each={currentItems} for:item="item">
+                        <article key={item.code} class="air-card air-question">
+                            <div class="air-item__head">
+                                <template lwc:if={item.critical}>
+                                    <span class="air-tag_critical">Critical</span>
+                                </template>
+                                <span class="air-item__title">{item.title}</span>
+                                <span class="air-item__code">{item.topic} · {item.code}</span>
+                            </div>
+                            <p class="air-question__text">{item.question}</p>
+                            <lightning-radio-group
+                                name={item.code}
+                                label="Answer"
+                                variant="label-hidden"
+                                type="button"
+                                options={answerOptions}
+                                value={item.answer}
+                                data-code={item.code}
+                                data-field="answer"
+                                onchange={handleField}
+                            ></lightning-radio-group>
+                            <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                    <lightning-textarea
+                                        label="Notes"
+                                        value={item.notes}
+                                        data-code={item.code}
+                                        data-field="notes"
+                                        onchange={handleField}
+                                    ></lightning-textarea>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                                    <lightning-input
+                                        label="Responsible"
+                                        value={item.responsible}
+                                        data-code={item.code}
+                                        data-field="responsible"
+                                        onchange={handleField}
+                                    ></lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4">
+                                    <lightning-input
+                                        type="date"
+                                        label="Due date"
+                                        value={item.dueDate}
+                                        data-code={item.code}
+                                        data-field="dueDate"
+                                        onchange={handleField}
+                                    ></lightning-input>
+                                </div>
+                            </div>
+                            <lightning-button
+                                class="slds-m-top_x-small"
+                                variant="base"
+                                label={item.adviceLabel}
+                                data-code={item.code}
+                                onclick={toggleAdvice}
+                            ></lightning-button>
+                            <template lwc:if={item.adviceOpen}>
+                                <div class="air-fix">
+                                    <div class="air-fix__label">Passed when</div>
+                                    <div>{item.passCriteria}</div>
+                                    <div class="air-fix__label">Advice</div>
+                                    <div>{item.advice}</div>
+                                    <template lwc:if={item.hasResources}>
+                                        <div class="air-fix__label">Resources</div>
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={item.resourceList} for:item="r">
+                                                <li key={r.key}>
+                                                    <template lwc:if={r.url}>
+                                                        <a href={r.url} target="_blank" rel="noopener noreferrer"
+                                                            >{r.label}</a
+                                                        >
+                                                    </template>
+                                                    <template lwc:else>{r.label} (link to follow)</template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </template>
+                                </div>
+                            </template>
+                        </article>
+                    </template>
+                </template>
+
+                <div class="air-nav">
+                    <lightning-button label="Back" onclick={handleBack} disabled={isFirstStep}></lightning-button>
+                    <div>
+                        <lightning-button label="Save" onclick={handleSave} disabled={busy}></lightning-button>
+                        <template lwc:if={isLastStep}>
+                            <lightning-button
+                                class="slds-m-left_small"
+                                variant="brand"
+                                label="Finish"
+                                onclick={handleFinish}
+                                disabled={busy}
+                            ></lightning-button>
+                        </template>
+                        <template lwc:else>
+                            <lightning-button
+                                class="slds-m-left_small"
+                                variant="brand"
+                                label="Next"
+                                onclick={handleNext}
+                                disabled={busy}
+                            ></lightning-button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,173 @@
+<template>
+    <div class="air-page">
+        <div class="air-header">
+            <div>
+                <h1 class="air-title">AI readiness</h1>
+                <p class="air-subtitle">{subtitle}</p>
+            </div>
+            <div class="air-actions">
+                <template lwc:if={scanStale}>
+                    <span class="air-status air-status_attention">Scan older than 24 hours</span>
+                </template>
+                <lightning-button
+                    variant="brand"
+                    label="Run org scan"
+                    icon-name="utility:refresh"
+                    onclick={handleScan}
+                    disabled={scanning}
+                ></lightning-button>
+            </div>
+        </div>
+
+        <template lwc:if={scanning}>
+            <lightning-spinner alternative-text="Scanning your org" size="medium"></lightning-spinner>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_medium" role="alert">{error}</div>
+        </template>
+
+        <template lwc:if={data}>
+            <template lwc:if={showAccessIntro}>
+                <div class="air-intro" role="note">
+                    <lightning-icon icon-name="utility:shield" size="small" class="air-intro__icon"></lightning-icon>
+                    <div class="air-intro__body">
+                        <div class="air-strong">Before you connect AI: never use a System Administrator account</div>
+                        <p class="air-text">
+                            An AI that connects as an admin can see and change everything in your org. Give every AI
+                            connection (an agent, MCP server or integration) its own dedicated integration user with
+                            only the access its use case needs. Register each connection as a use case and enter its
+                            integration user's username; the implementation checks then test what that user can reach.
+                        </p>
+                        <lightning-button
+                            variant="brand-outline"
+                            label="Register an AI connection"
+                            onclick={openUseCases}
+                        ></lightning-button>
+                    </div>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        variant="bare"
+                        alternative-text="Hide"
+                        onclick={hideAccessIntro}
+                    ></lightning-button-icon>
+                </div>
+            </template>
+
+            <template lwc:if={showCompanyBanner}>
+                <div class="air-banner">
+                    <span
+                        >The company checklist (DPO, policies, LLM policy, training) hasn't been answered yet. Those
+                        checks count as not checked.</span
+                    >
+                    <lightning-button
+                        label="Answer company checklist"
+                        onclick={openCompanyChecklist}
+                    ></lightning-button>
+                </div>
+            </template>
+
+            <!-- Row 1 -->
+            <div class="air-grid air-grid_2">
+                <article class="air-card">
+                    <h2 class="air-card__title">AI readiness health</h2>
+                    <div class="air-donut">
+                        <svg viewBox="0 0 120 120" class="air-donut__svg" aria-hidden="true">
+                            <circle class="air-donut__track" cx="60" cy="60" r="50"></circle>
+                            <circle
+                                class={arcClass}
+                                cx="60"
+                                cy="60"
+                                r="50"
+                                stroke-dasharray={dashArray}
+                                transform="rotate(-90 60 60)"
+                            ></circle>
+                        </svg>
+                        <span class="air-donut__value">{overallScore}</span>
+                    </div>
+                    <p class="air-strong">{overall.health}</p>
+                    <p class="air-text">
+                        Score: passed checks divided by all defined checks. Unmeasured checks earn no points. Coverage
+                        shows how much could be measured. Critical failures can block a pilot regardless of score.
+                    </p>
+                </article>
+
+                <article class="air-card">
+                    <h2 class="air-card__title">Checks completed</h2>
+                    <div class="air-big">{overallCoverage}</div>
+                    <div class="air-row">
+                        <span>Passed</span>
+                        <span class="air-row__value">{overall.passed}</span>
+                    </div>
+                    <div class="air-row">
+                        <span>Needs attention</span>
+                        <span class="air-row__value">{overall.attention}</span>
+                    </div>
+                    <div class="air-row">
+                        <span>Not checked</span>
+                        <span class="air-row__value">{overall.notChecked}</span>
+                    </div>
+                    <p class="air-footnote">Unavailable checks stay visible and do not count as passes.</p>
+                </article>
+            </div>
+
+            <!-- Row 2: categories -->
+            <div class="air-grid air-grid_4">
+                <template for:each={categories} for:item="cat">
+                    <article
+                        key={cat.code}
+                        class="air-card air-card_link"
+                        role="button"
+                        tabindex="0"
+                        data-category={cat.code}
+                        onclick={openCategory}
+                        onkeydown={openCategoryKey}
+                        aria-label={cat.ariaLabel}
+                    >
+                        <h2 class="air-card__title">{cat.label}</h2>
+                        <div class="air-big">{cat.headline}</div>
+                        <p class="air-strong">{cat.summary.health}</p>
+                        <p class="air-text">Checks completed: {cat.coverage}</p>
+                        <p class="air-text">{cat.counts}</p>
+                    </article>
+                </template>
+            </div>
+
+            <!-- Row 3: critical failures -->
+            <article class="air-card">
+                <h2 class="air-card__title">Critical failures</h2>
+                <template lwc:if={hasCriticalFailures}>
+                    <p class="air-text air-muted">
+                        These checks are marked critical and need attention. They block an AI pilot regardless of the
+                        score.
+                    </p>
+                    <template for:each={criticalFailures} for:item="item">
+                        <div key={item.code} class="air-item">
+                            <div class="air-item__head">
+                                <span class="air-tag_critical">Critical</span>
+                                <span class="air-item__title">{item.title}</span>
+                                <span class="air-item__code">{item.categoryLabel} · {item.topic}</span>
+                            </div>
+                            <div class="air-item__body">{item.evidence}</div>
+                            <div class="air-fix">
+                                <div class="air-fix__label">How to fix</div>
+                                <div>{item.advice}</div>
+                            </div>
+                            <div class="slds-m-top_small">
+                                <lightning-button
+                                    variant="base"
+                                    label={item.linkLabel}
+                                    data-code={item.code}
+                                    onclick={openItem}
+                                ></lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <div class="air-empty">No critical failures</div>
+                </template>
+            </article>
+        </template>
+    </div>
+</template>

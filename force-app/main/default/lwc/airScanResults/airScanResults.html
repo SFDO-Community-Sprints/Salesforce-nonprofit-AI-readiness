@@ -1,0 +1,155 @@
+<template>
+    <div class="air-page">
+        <div class="air-header">
+            <div>
+                <h1 class="air-title">Org scan</h1>
+                <p class="air-subtitle">{subtitle}</p>
+            </div>
+            <div class="air-actions">
+                <template lwc:if={stale}>
+                    <span class="air-status air-status_attention">Scan older than 24 hours</span>
+                </template>
+                <lightning-button
+                    variant="brand"
+                    label="Run org scan"
+                    icon-name="utility:refresh"
+                    onclick={handleScan}
+                    disabled={busy}
+                ></lightning-button>
+            </div>
+        </div>
+
+        <template lwc:if={busy}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template lwc:if={error}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_medium" role="alert">{error}</div>
+        </template>
+
+        <template lwc:if={detail}>
+            <div class="air-strip">
+                <div>
+                    <div class="air-strip__value">{summaryScore}</div>
+                    <div class="air-strip__label">Score</div>
+                </div>
+                <div>
+                    <div class="air-strip__value">{summaryCoverage}</div>
+                    <div class="air-strip__label">Checks completed</div>
+                </div>
+                <div>
+                    <div class="air-strip__value">{summary.passed}</div>
+                    <div class="air-strip__label">Passed</div>
+                </div>
+                <div>
+                    <div class="air-strip__value">{summary.attention}</div>
+                    <div class="air-strip__label">Needs attention</div>
+                </div>
+                <div>
+                    <div class="air-strip__value">{summary.notChecked}</div>
+                    <div class="air-strip__label">Not checked</div>
+                </div>
+                <div>
+                    <div class="air-strip__value">{summary.criticalFailures}</div>
+                    <div class="air-strip__label">Critical failures</div>
+                </div>
+            </div>
+
+            <div class="air-pills">
+                <lightning-button-group>
+                    <template for:each={statusFilters} for:item="f">
+                        <lightning-button
+                            key={f.value}
+                            label={f.label}
+                            variant={f.variant}
+                            data-value={f.value}
+                            onclick={handleStatusFilter}
+                        ></lightning-button>
+                    </template>
+                </lightning-button-group>
+                <lightning-combobox
+                    class="air-category-filter"
+                    label="Category"
+                    variant="label-hidden"
+                    value={categoryFilter}
+                    options={categoryOptions}
+                    onchange={handleCategoryFilter}
+                ></lightning-combobox>
+            </div>
+
+            <template lwc:if={hasResults}>
+                <lightning-accordion allow-multiple-sections-open active-section-name={openSections}>
+                    <template for:each={visibleCategories} for:item="cat">
+                        <lightning-accordion-section key={cat.code} name={cat.code} label={cat.sectionLabel}>
+                            <template for:each={cat.items} for:item="item">
+                                <div key={item.code} class="air-item">
+                                    <div class="air-item__head">
+                                        <span class={item.statusClass}>{item.status}</span>
+                                        <template lwc:if={item.critical}>
+                                            <span class="air-tag_critical">Critical</span>
+                                        </template>
+                                        <span class="air-item__title">{item.title}</span>
+                                        <span class="air-item__code">{item.topic} · {item.code}</span>
+                                    </div>
+                                    <div class="air-item__body">
+                                        <template lwc:if={item.isManual}>
+                                            <span class="air-muted">Manual – answer in Checklists. </span>
+                                        </template>
+                                        {item.evidence}
+                                    </div>
+                                    <div class="slds-m-top_x-small">
+                                        <lightning-button
+                                            variant="base"
+                                            label={item.toggleLabel}
+                                            data-code={item.code}
+                                            onclick={toggleFix}
+                                        ></lightning-button>
+                                        <template lwc:if={item.isManual}>
+                                            <span class="slds-m-horizontal_small air-muted">|</span>
+                                            <lightning-button
+                                                variant="base"
+                                                label="Answer in Checklists"
+                                                onclick={openOrgChecklist}
+                                            ></lightning-button>
+                                        </template>
+                                    </div>
+                                    <template lwc:if={item.open}>
+                                        <div class="air-fix">
+                                            <div class="air-fix__label">What is checked</div>
+                                            <div>{item.question}</div>
+                                            <div class="air-fix__label">Passed when</div>
+                                            <div>{item.passCriteria}</div>
+                                            <div class="air-fix__label">How to fix</div>
+                                            <div>{item.advice}</div>
+                                            <template lwc:if={item.hasResources}>
+                                                <div class="air-fix__label">Resources</div>
+                                                <ul class="slds-list_dotted">
+                                                    <template for:each={item.resourceList} for:item="r">
+                                                        <li key={r.key}>
+                                                            <template lwc:if={r.url}>
+                                                                <a
+                                                                    href={r.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    >{r.label}</a
+                                                                >
+                                                            </template>
+                                                            <template lwc:else>{r.label} (link to follow)</template>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </lightning-accordion-section>
+                    </template>
+                </lightning-accordion>
+            </template>
+            <template lwc:else>
+                <div class="air-empty">No checks match this filter.</div>
+            </template>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Grounding_Fields__c</fullName><inlineHelpText>One field per line as Object.Field (for example Contact.Email). The data quality checks for this use case run on these fields.</inlineHelpText><label>Grounding Fields</label><length>32768</length><type>LongTextArea</type><visibleLines>6</visibleLines></CustomField>

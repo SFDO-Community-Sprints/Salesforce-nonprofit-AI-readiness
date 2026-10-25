@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Handover_Points__c</fullName><inlineHelpText>When does the AI hand over to a person, and to and from the end client?</inlineHelpText><label>Handover Points</label><length>32768</length><type>LongTextArea</type><visibleLines>4</visibleLines></CustomField>

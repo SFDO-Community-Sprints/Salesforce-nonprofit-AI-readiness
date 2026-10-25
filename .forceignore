@@ -1,0 +1,7 @@
+# Not deployed
+package.xml
+**/jsconfig.json
+**/.eslintrc.json
+**/__tests__/**
+**/tsconfig.json
+**/*.ts

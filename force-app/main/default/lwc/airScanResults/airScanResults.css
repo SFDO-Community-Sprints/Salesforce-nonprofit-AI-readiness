@@ -1,0 +1,5 @@
+@import 'c/airStyles';
+
+.air-category-filter {
+    min-width: 14rem;
+}

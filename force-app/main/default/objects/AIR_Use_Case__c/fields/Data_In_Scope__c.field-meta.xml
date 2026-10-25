@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Data_In_Scope__c</fullName><inlineHelpText>Which data will the AI touch? Describe it in plain words.</inlineHelpText><label>Data In Scope</label><length>32768</length><type>LongTextArea</type><visibleLines>4</visibleLines></CustomField>

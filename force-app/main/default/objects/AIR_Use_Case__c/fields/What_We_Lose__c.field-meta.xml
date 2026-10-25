@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>What_We_Lose__c</fullName><inlineHelpText>What will you lose by introducing AI here (for example personal contact)?</inlineHelpText><label>What We Lose</label><length>32768</length><type>LongTextArea</type><visibleLines>4</visibleLines></CustomField>

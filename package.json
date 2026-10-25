@@ -1,0 +1,24 @@
+{
+  "name": "air-ai-readiness-check",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI Readiness Check for Salesforce (demo)",
+  "scripts": {
+    "lint": "eslint force-app/main/default/lwc",
+    "test": "sfdx-lwc-jest",
+    "prettier": "prettier --write \"force-app/**/*.{cls,js,html,css}\"",
+    "prettier:check": "prettier --check \"force-app/**/*.{cls,js,html,css}\"",
+    "generate": "python3 tools/generate.py"
+  },
+  "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^1.8.2",
+    "@salesforce/eslint-config-lwc": "^3.6.0",
+    "@salesforce/eslint-plugin-lightning": "^1.0.0",
+    "@salesforce/sfdx-lwc-jest": "^5.1.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^28.6.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-apex": "^2.1.4"
+  }
+}
